@@ -2,14 +2,12 @@ module github.com/iden3/iden3comm
 
 go 1.17
 
-replace github.com/iden3/go-schema-processor => ../go-schema-processor
-
 require (
 	github.com/google/uuid v1.3.0
 	github.com/iden3/go-circuits v0.0.32
 	github.com/iden3/go-iden3-core v0.0.14
 	github.com/iden3/go-iden3-crypto v0.0.13
-	github.com/iden3/go-schema-processor v0.0.18
+	github.com/iden3/go-schema-processor v0.0.19
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.0
 	gopkg.in/square/go-jose.v2 v2.6.0
