@@ -3,6 +3,7 @@ package iden3comm
 import (
 	"encoding/json"
 )
+
 // MediaType is media type for iden3comm messages
 type MediaType string
 
@@ -59,3 +60,6 @@ func (m *BasicMessage) GetMediaType() MediaType {
 
 // ProtocolMessage is IDEN3Comm message
 type ProtocolMessage string
+
+// Iden3Protocol is a const for protocol definition
+const Iden3Protocol = "https://iden3-communication.io/1.0/"

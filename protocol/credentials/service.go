@@ -17,16 +17,16 @@ const (
 	Name = "credentials"
 
 	// IssuanceRequestMessageType accepts request for credential creation
-	IssuanceRequestMessageType iden3comm.ProtocolMessage = "https://iden3-communication.io/1.0/" + "credential-issuance-request"
+	IssuanceRequestMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credential-issuance-request"
 
 	// FetchRequestMessageType is type for request of credential generation
-	FetchRequestMessageType iden3comm.ProtocolMessage = "https://iden3-communication.io/1.0/" + "credential-fetch-request"
+	FetchRequestMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credential-fetch-request"
 
 	// OfferMessageType is type of message with credential offering
-	OfferMessageType iden3comm.ProtocolMessage = "https://iden3-communication.io/1.0/" + "credential-offer"
+	OfferMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credential-offer"
 
 	// IssuanceResponseMessageType is type for message with a credential issuance
-	IssuanceResponseMessageType iden3comm.ProtocolMessage = "https://iden3-communication.io/1.0/" + "credential-issuance-response"
+	IssuanceResponseMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credential-issuance-response"
 )
 
 // Service for the revocation protocol.
@@ -60,7 +60,6 @@ func New(ch credManager) (*Service, error) {
 
 	return &svc, nil
 }
-
 
 // Name returns current name of service
 func (s *Service) Name() string {
@@ -273,9 +272,9 @@ type Schema struct {
 
 // CredentialIssuanceRequestMessageBody represents data for credential issuance request
 type CredentialIssuanceRequestMessageBody struct {
-	Schema     Schema                 `json:"schema"`
-	Data       json.RawMessage        `json:"data"`
-	Expiration int64                  `json:"expiration"`
+	Schema     Schema          `json:"schema"`
+	Data       json.RawMessage `json:"data"`
+	Expiration int64           `json:"expiration"`
 }
 
 // OfferMessageBody is struct the represents offer message

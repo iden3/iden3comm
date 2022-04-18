@@ -31,15 +31,19 @@ func (token *JSONWebZeroknowledge) SetHeader(zkpAlg string, id circuits.CircuitI
 	token.Header = joseHeadersBytes
 	return nil
 }
+
+// FullSerialize returns a serialized data
 func (token *JSONWebZeroknowledge) FullSerialize() ([]byte, error) {
-	joseJWS, err := jose.ParseSigned(token.String())
+	joseJWS, err := jose.ParseSigned(token.ToString())
 	if err != nil {
 		return nil, err
 	}
 	fullSerialized := joseJWS.FullSerialize()
 	return []byte(fullSerialized), nil
 }
-func (token *JSONWebZeroknowledge) String() string {
+
+// ToString  Returns string representation of JWZ token
+func (token *JSONWebZeroknowledge) ToString() string {
 	header := base64.RawURLEncoding.EncodeToString(token.Header)
 	payload := base64.RawURLEncoding.EncodeToString(token.Payload)
 	proof := base64.RawURLEncoding.EncodeToString(token.ZKP)

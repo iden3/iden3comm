@@ -13,9 +13,9 @@ const (
 	// Name of service
 	Name = "proof"
 	// ProofGenerationRequest is type for request of proof generation
-	ProofGenerationRequest iden3comm.ProtocolMessage = "https://iden3-communication.io/1.0/" + "proof-request"
+	ProofGenerationRequest iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "proof-request"
 	// ProofGenerationResponse is type for response of proof generation
-	ProofGenerationResponse iden3comm.ProtocolMessage = "https://iden3-communication.io/1.0/" + "proof-response"
+	ProofGenerationResponse iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "proof-response"
 )
 
 // zkProofService proof service interface
@@ -97,11 +97,12 @@ func (s *Service) Handle(ctx context.Context, msg iden3comm.Iden3Message) (iden3
 	var respBody ResponseMessageBody
 	respBody.Scope = make([]verifiable.ZKProof, 0)
 	for _, r := range proofReqBody.Scope {
-		proofResp, err := s.pg.Generate(ctx,&id,r)
-		if err != nil{
+		var proofResp *verifiable.ZKProof
+		proofResp, err = s.pg.Generate(ctx, &id, r)
+		if err != nil {
 			return nil, err
 		}
-		respBody.Scope = append(respBody.Scope,*proofResp)
+		respBody.Scope = append(respBody.Scope, *proofResp)
 	}
 
 	marshaledBody, err := json.Marshal(respBody)

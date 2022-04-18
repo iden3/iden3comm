@@ -26,19 +26,19 @@ type PackageManager struct {
 	packers map[MediaType]Packer
 }
 
-// New return new packager
+// NewPackageManager return new packager
 func NewPackageManager() *PackageManager {
 	return &PackageManager{packers: make(map[MediaType]Packer)}
 }
 
-// RegisterPacker adds new packer to packageManager
+// RegisterPackers adds new packers to packageManager
 func (r *PackageManager) RegisterPackers(packers ...Packer) error {
 	for _, p := range packers {
-			_, ok := r.packers[p.MediaType()]
-			if ok {
-				return errors.Errorf("packer already registered %s" , p.MediaType())
-			}
-			r.packers[p.MediaType()] = p
+		_, ok := r.packers[p.MediaType()]
+		if ok {
+			return errors.Errorf("packer already registered %s", p.MediaType())
+		}
+		r.packers[p.MediaType()] = p
 	}
 	return nil
 }
