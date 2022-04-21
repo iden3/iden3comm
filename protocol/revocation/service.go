@@ -14,9 +14,9 @@ const (
 	// Name of service
 	Name = "revocation"
 	// GetRevocationStatusMsgType is type for request of revocation status
-	GetRevocationStatusMsgType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "request-revocation-status"
+	GetRevocationStatusMsgType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "revocation/1.0/request-status"
 	// RevocationStatusMsgType is type for response with a revocation status
-	RevocationStatusMsgType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "revocation-status"
+	RevocationStatusMsgType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "revocation/1.0/status"
 )
 
 type nonRevocationProver interface {

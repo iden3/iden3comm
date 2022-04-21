@@ -13,9 +13,9 @@ const (
 	// Name of service
 	Name = "proof"
 	// ProofGenerationRequest is type for request of proof generation
-	ProofGenerationRequest iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "proof-request"
+	ProofGenerationRequest iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "proofs/1.0/request"
 	// ProofGenerationResponse is type for response of proof generation
-	ProofGenerationResponse iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "proof-response"
+	ProofGenerationResponse iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "proofs/1.0/response"
 )
 
 // zkProofService proof service interface

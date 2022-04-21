@@ -17,16 +17,16 @@ const (
 	Name = "credentials"
 
 	// IssuanceRequestMessageType accepts request for credential creation
-	IssuanceRequestMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credential-issuance-request"
+	IssuanceRequestMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/1.0/issuance-request"
 
 	// FetchRequestMessageType is type for request of credential generation
-	FetchRequestMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credential-fetch-request"
+	FetchRequestMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/1.0/fetch-request"
 
 	// OfferMessageType is type of message with credential offering
-	OfferMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credential-offer"
+	OfferMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/1.0/offer"
 
 	// IssuanceResponseMessageType is type for message with a credential issuance
-	IssuanceResponseMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credential-issuance-response"
+	IssuanceResponseMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/1.0/issuance-response"
 )
 
 // Service for the revocation protocol.

@@ -62,4 +62,4 @@ func (m *BasicMessage) GetMediaType() MediaType {
 type ProtocolMessage string
 
 // Iden3Protocol is a const for protocol definition
-const Iden3Protocol = "https://iden3-communication.io/1.0/"
+const Iden3Protocol = "https://iden3-communication.io/"
