@@ -64,66 +64,7 @@ func (s *Service) Handle(ctx context.Context, msg iden3comm.Iden3Message) (iden3
 
 func (s *Service) handleAuthorizationResponse(ctx context.Context, msg iden3comm.Iden3Message) (iden3comm.Iden3Message, error) {
 
-	//var fetchRequestBody AuthorizationMessageResponseData
-	//
-	//switch d := msg.GetBody().(type) {
-	//case json.RawMessage:
-	//	err := json.Unmarshal(d, &fetchRequestBody)
-	//	if err != nil {
-	//		return nil, errors.WithStack(err)
-	//	}
-	//case CredentialFetchRequestMessageBody:
-	//	fetchRequestBody = d
-	//}
-	//
-	//if fetchRequestBody.ClaimID == "" {
-	//	return nil, errors.New("no claim field in fetch request")
-	//}
-	//
-	//if fetchRequestBody.Schema.URL == "" {
-	//	return nil, errors.New("no claim schema field in fetch request")
-	//}
-	//
-	//to := msg.GetTo()
-	//if to == "" {
-	//	return nil, errors.New("no issuer is provided in 'to' field")
-	//}
-	//issuerID, err := core.IDFromString(to)
-	//if err != nil {
-	//	return nil, errors.WithStack(err)
-	//}
-	//
-	//claimID, err := uuid.Parse(fetchRequestBody.ClaimID)
-	//if err != nil {
-	//	return nil, errors.WithStack(err)
-	//}
-	//
-	//reqBytes, err := json.Marshal(fetchRequestBody)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//cred, err := s.fh.FetchCredential(ctx, issuerID, claimID, reqBytes)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//msgBody := IssuanceMessageBody{
-	//	Credential: *cred,
-	//}
-	//marshaledBody, err := json.Marshal(msgBody)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//respMsg := iden3comm.BasicMessage{
-	//	Type: IssuanceResponseMessageType,
-	//	From: to,
-	//	To:   cred.CredentialSubject["id"].(string),
-	//	Body: marshaledBody,
-	//}
-	//
-	//return &respMsg, nil
-	return nil, nil
+	return nil, errors.New("not implemented")
 }
 
 // AuthorizationMessageResponseData is struct the represents authorization response data
