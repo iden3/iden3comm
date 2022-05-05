@@ -15,7 +15,7 @@ type Packer interface {
 	// Pack a payload of type ContentType in an Iden3 compliant format using the sender identity
 	Pack(payload []byte, sender *core.ID) ([]byte, error)
 	// Unpack an envelope in Iden3 compliant format.
-	Unpack(envelope []byte) (Iden3Message, error)
+	Unpack(envelope []byte) (*BasicMessage, error)
 
 	// MediaType returns content type of message
 	MediaType() MediaType
@@ -60,7 +60,7 @@ func (r *PackageManager) Pack(mediaType MediaType, payload []byte, senderID *cor
 
 // Unpack returns iden3 message method from envelope
 // if it's not valid or can't be decrypted error is returned
-func (r *PackageManager) Unpack(envelope []byte) (Iden3Message, error) {
+func (r *PackageManager) Unpack(envelope []byte) (*BasicMessage, error) {
 
 	safeEnvelope := strings.Trim(strings.TrimSpace(string(envelope)), "\"")
 
@@ -109,8 +109,8 @@ func (r *PackageManager) GetMediaType(envelope []byte) (MediaType, error) {
 	var msg BasicMessage
 
 	err := json.Unmarshal(envelope, &msg)
-	if err == nil && msg.Type != "" {
-		return msg.GetMediaType(), nil
+	if err == nil && msg.Typ != "" {
+		return msg.Typ, nil
 	}
 	// we assume that it's not a plain message can continue to determine media type
 	env := &envelopeStub{}

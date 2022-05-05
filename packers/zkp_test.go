@@ -82,7 +82,7 @@ func TestPlainMessagePacker_Unpack(t *testing.T) {
 	msgBytes, err := json.Marshal(iden3msg)
 	assert.Nil(t, err)
 	fmt.Println(string(msgBytes))
-	bodyBytes, err := iden3msg.GetBody().(json.RawMessage).MarshalJSON()
+	bodyBytes, err := iden3msg.Body.MarshalJSON()
 	assert.Nil(t, err)
 
 	t.Log(string(bodyBytes))

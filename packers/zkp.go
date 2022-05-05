@@ -80,7 +80,7 @@ func (p *ZKPPacker) Pack(payload []byte, senderID *core.ID) ([]byte, error) {
 }
 
 // Unpack returns unpacked message from transport envelope with verification of zeroknowledge proof
-func (p *ZKPPacker) Unpack(envelope []byte) (iden3comm.Iden3Message, error) {
+func (p *ZKPPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 
 	token, err := jwz.Parse(string(envelope))
 	if err != nil {

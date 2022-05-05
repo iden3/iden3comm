@@ -77,17 +77,16 @@ func TestPackagerPlainPacker(t *testing.T) {
 
 	unpackedMsg, err := pm.Unpack(envelope)
 	assert.NoError(t, err)
-	expectedMsg := unpackedMsg.(*iden3comm.BasicMessage)
 
-	switch expectedMsg.Type {
+	switch unpackedMsg.Type {
 	case protocol.CredentialFetchRequestMessageType:
 		var fetchRequestBody protocol.CredentialFetchRequestMessageBody
-		err = json.Unmarshal(expectedMsg.Body, &fetchRequestBody)
+		err = json.Unmarshal(unpackedMsg.Body, &fetchRequestBody)
 		assert.NoError(t, err)
 		assert.Equal(t, msg.Body.ClaimID, fetchRequestBody.ClaimID)
 		assert.ObjectsAreEqual(msg.Body.Schema, fetchRequestBody.Schema)
 	default:
-		assert.FailNow(t, "message type %s is not supported by agent", expectedMsg.Type)
+		assert.FailNow(t, "message type %s is not supported by agent", unpackedMsg.Type)
 	}
 
 }
@@ -129,17 +128,15 @@ func TestPackagerZKPPacker(t *testing.T) {
 	unpackedMsg, err := pm.Unpack(envelope)
 	assert.NoError(t, err)
 
-	expectedMsg := unpackedMsg.(*iden3comm.BasicMessage)
-
-	switch expectedMsg.Type {
+	switch unpackedMsg.Type {
 	case protocol.CredentialFetchRequestMessageType:
 		var fetchRequestBody protocol.CredentialFetchRequestMessageBody
-		err = json.Unmarshal(expectedMsg.Body, &fetchRequestBody)
+		err = json.Unmarshal(unpackedMsg.Body, &fetchRequestBody)
 		assert.NoError(t, err)
 		assert.Equal(t, msg.Body.ClaimID, fetchRequestBody.ClaimID)
 		assert.ObjectsAreEqual(msg.Body.Schema, fetchRequestBody.Schema)
 	default:
-		assert.FailNow(t, "message type %s is not supported by agent", expectedMsg.Type)
+		assert.FailNow(t, "message type %s is not supported by agent", unpackedMsg.Type)
 	}
 
 }
