@@ -19,7 +19,7 @@ type Iden3Message interface {
 
 // BasicMessage is structure for message with unknown body format
 type BasicMessage struct {
-	Typ      MediaType       `json:"typ"`
+	Typ      MediaType       `json:"typ,omitempty"`
 	Type     ProtocolMessage `json:"type"`
 	ThreadID string          `json:"thread_id,omitempty"`
 	Body     json.RawMessage `json:"body,omitempty"`

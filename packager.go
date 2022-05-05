@@ -13,7 +13,7 @@ import (
 // Packer converts message to encrypted or encoded form
 type Packer interface {
 	// Pack a payload of type ContentType in an Iden3 compliant format using the sender identity
-	Pack(payload Iden3Message, senderID *core.ID) ([]byte, error)
+	Pack(payload []byte, sender *core.ID) ([]byte, error)
 	// Unpack an envelope in Iden3 compliant format.
 	Unpack(envelope []byte) (Iden3Message, error)
 
@@ -44,12 +44,13 @@ func (r *PackageManager) RegisterPackers(packers ...Packer) error {
 }
 
 // Pack performs packing of message with a given mediatype
-func (r *PackageManager) Pack(mediaType MediaType, payload Iden3Message, senderID *core.ID) ([]byte, error) {
+func (r *PackageManager) Pack(mediaType MediaType, payload []byte, senderID *core.ID) ([]byte, error) {
 
 	p, ok := r.packers[mediaType]
 	if !ok {
 		return nil, errors.Errorf("packer for media type %s doesn't exist", mediaType)
 	}
+
 	envelope, err := p.Pack(payload, senderID)
 	if err != nil {
 		return nil, err
@@ -108,7 +109,7 @@ func (r *PackageManager) GetMediaType(envelope []byte) (MediaType, error) {
 	var msg BasicMessage
 
 	err := json.Unmarshal(envelope, &msg)
-	if err == nil {
+	if err == nil && msg.Type != "" {
 		return msg.GetMediaType(), nil
 	}
 	// we assume that it's not a plain message can continue to determine media type
@@ -121,12 +122,16 @@ func (r *PackageManager) GetMediaType(envelope []byte) (MediaType, error) {
 		if err != nil {
 			return "", fmt.Errorf("parse envelope: %w", err)
 		}
-		base64Header, err = base64.RawURLEncoding.DecodeString(env.Protected)
+		base64Header, err = base64.StdEncoding.DecodeString(env.Protected)
 		if err != nil {
 			return "", fmt.Errorf("parse envelope: %w", err)
 		}
 	} else {
-		base64Header = []byte(strings.Split(string(envelope), ".")[0])
+		header := strings.Split(string(envelope), ".")[0]
+		base64Header, err = base64.RawURLEncoding.DecodeString(header)
+		if err != nil {
+			return "", fmt.Errorf("parse base64 err: %w", err)
+		}
 	}
 
 	header := &headerStub{}

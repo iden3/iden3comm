@@ -15,11 +15,15 @@ type PlainMessagePacker struct {
 }
 
 // Pack returns packed message to transport envelope
-func (p *PlainMessagePacker) Pack(payload iden3comm.Iden3Message, _ *core.ID) ([]byte, error) {
+func (p *PlainMessagePacker) Pack(payload []byte, _ *core.ID) ([]byte, error) {
 
-	var msgBytes []byte
-	msgBytes, err := json.Marshal(payload)
-	return msgBytes, err
+	var msgMap map[string]interface{}
+	err := json.Unmarshal(payload, &msgMap)
+	if err != nil {
+		return nil, err
+	}
+	msgMap["typ"] = MediaTypePlainMessage
+	return json.Marshal(msgMap)
 }
 
 // Unpack returns unpacked message from transport envelope
