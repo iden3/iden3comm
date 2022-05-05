@@ -73,6 +73,8 @@ func TestPackagerPlainPacker(t *testing.T) {
 	assert.NoError(t, err)
 
 	envelope, err := pm.Pack(packers.MediaTypePlainMessage, marshalledMsg, &senderID)
+	assert.NoError(t, err)
+
 	t.Log(string(envelope))
 
 	unpackedMsg, err := pm.Unpack(envelope)
@@ -132,9 +134,11 @@ func TestPackagerZKPPacker(t *testing.T) {
 	case protocol.CredentialFetchRequestMessageType:
 		var fetchRequestBody protocol.CredentialFetchRequestMessageBody
 		err = json.Unmarshal(unpackedMsg.Body, &fetchRequestBody)
+
 		assert.NoError(t, err)
 		assert.Equal(t, msg.Body.ClaimID, fetchRequestBody.ClaimID)
 		assert.ObjectsAreEqual(msg.Body.Schema, fetchRequestBody.Schema)
+
 	default:
 		assert.FailNow(t, "message type %s is not supported by agent", unpackedMsg.Type)
 	}

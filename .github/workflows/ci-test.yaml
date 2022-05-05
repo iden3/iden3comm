@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-      - develop
-  pull_request:
 
 jobs:
   test:
@@ -28,6 +26,4 @@ jobs:
       - name: Update go modules
         run: go mod tidy
       - name: Unit Tests
-        env:
-          RPC_URL: ${{ secrets.RPC_URL }}
         run: go test -race -timeout=60s ./...

@@ -71,7 +71,7 @@ func (p *ZKPPacker) Pack(payload []byte, senderID *core.ID) ([]byte, error) {
 		return nil, err
 	}
 
-	tokenStr, err := token.FullSerialize()
+	tokenStr, err := token.CompactSerialize()
 	if err != nil {
 		return nil, err
 	}
