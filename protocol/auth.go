@@ -32,17 +32,17 @@ type AuthorizationMessageResponseBody struct {
 
 // AuthorizationRequestMessage is struct the represents iden3message authorization request
 type AuthorizationRequestMessage struct {
-	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thread_id,omitempty"`
-	Body     AuthorizationRequestBody  `json:"body,omitempty"`
+	Typ      iden3comm.MediaType             `json:"typ,omitempty"`
+	Type     iden3comm.ProtocolMessage       `json:"type"`
+	ThreadID string                          `json:"thread_id,omitempty"`
+	Body     AuthorizationRequestMessageBody `json:"body,omitempty"`
 
 	From string `json:"from,omitempty"`
 	To   string `json:"to,omitempty"`
 }
 
-// AuthorizationRequestBody is body for authorization request
-type AuthorizationRequestBody struct {
+// AuthorizationRequestMessageBody is body for authorization request
+type AuthorizationRequestMessageBody struct {
 	CallbackURL string                                 `json:"callbackUrl"`
 	Audience    string                                 `json:"audience"`
 	Scope       []verifiable.ZeroKnowledgeProofRequest `json:"scope"`
