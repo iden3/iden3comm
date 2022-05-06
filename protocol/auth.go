@@ -2,6 +2,7 @@ package protocol
 
 import (
 	"github.com/iden3/iden3comm"
+	"math/big"
 
 	"github.com/iden3/go-schema-processor/verifiable"
 )
@@ -27,7 +28,7 @@ type AuthorizationResponseMessage struct {
 
 // AuthorizationMessageResponseBody is struct the represents authorization response data
 type AuthorizationMessageResponseBody struct {
-	Scope []verifiable.ZKProof `json:"scope"`
+	Scope []ZeroKnowledgeProofResponse `json:"scope"`
 }
 
 // AuthorizationRequestMessage is struct the represents iden3message authorization request
@@ -43,7 +44,20 @@ type AuthorizationRequestMessage struct {
 
 // AuthorizationRequestMessageBody is body for authorization request
 type AuthorizationRequestMessageBody struct {
-	CallbackURL string                                 `json:"callbackUrl"`
-	Audience    string                                 `json:"audience"`
-	Scope       []verifiable.ZeroKnowledgeProofRequest `json:"scope"`
+	CallbackURL string                      `json:"callbackUrl"`
+	Audience    string                      `json:"audience"`
+	Scope       []ZeroKnowledgeProofRequest `json:"scope"`
+}
+
+// ZeroKnowledgeProofRequest represents structure of zkp request object
+type ZeroKnowledgeProofRequest struct {
+	CircuitID string                 `json:"circuit_id"`
+	Challenge *big.Int               `json:"challenge"`
+	Rules     map[string]interface{} `json:"rules,omitempty"`
+}
+
+// ZeroKnowledgeProofResponse represents structure of zkp response
+type ZeroKnowledgeProofResponse struct {
+	CircuitID string `json:"circuit_id"`
+	verifiable.ZKProof
 }

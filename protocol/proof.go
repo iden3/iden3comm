@@ -1,7 +1,6 @@
 package protocol
 
 import (
-	"github.com/iden3/go-schema-processor/verifiable"
 	"github.com/iden3/iden3comm"
 )
 
@@ -25,7 +24,7 @@ type ProofGenerationRequestMessage struct {
 
 // ProofGenerationRequestMessageBody is struct the represents body for proof generation request
 type ProofGenerationRequestMessageBody struct {
-	Scope []verifiable.ProofRequest `json:"scope"`
+	Scope []ZeroKnowledgeProofRequest `json:"scope"`
 }
 
 // ProofGenerationResponseMessage is struct the represents body for proof generation request
@@ -41,5 +40,5 @@ type ProofGenerationResponseMessage struct {
 
 // ResponseMessageBody is struct the represents request for revocation status
 type ResponseMessageBody struct {
-	Scope []verifiable.ZKProof `json:"scope"`
+	Scope []ZeroKnowledgeProofResponse `json:"scope"`
 }
