@@ -51,6 +51,7 @@ type AuthorizationRequestMessageBody struct {
 
 // ZeroKnowledgeProofRequest represents structure of zkp request object
 type ZeroKnowledgeProofRequest struct {
+	ID        string                 `json:"id"` //unique request id
 	CircuitID string                 `json:"circuit_id"`
 	Challenge *big.Int               `json:"challenge"`
 	Rules     map[string]interface{} `json:"rules,omitempty"`
@@ -58,6 +59,7 @@ type ZeroKnowledgeProofRequest struct {
 
 // ZeroKnowledgeProofResponse represents structure of zkp response
 type ZeroKnowledgeProofResponse struct {
+	ID        string `json:"id"` //unique id to present unique proof request
 	CircuitID string `json:"circuit_id"`
 	verifiable.ZKProof
 }
