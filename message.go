@@ -7,6 +7,7 @@ type MediaType string
 
 // BasicMessage is structure for message with unknown body format
 type BasicMessage struct {
+	ID       string          `json:"id"`
 	Typ      MediaType       `json:"typ,omitempty"`
 	Type     ProtocolMessage `json:"type"`
 	ThreadID string          `json:"thread_id,omitempty"`

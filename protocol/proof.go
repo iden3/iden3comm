@@ -13,10 +13,12 @@ const (
 
 // ProofGenerationRequestMessage is struct the represents body for proof generation request
 type ProofGenerationRequestMessage struct {
-	Typ      iden3comm.MediaType               `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage         `json:"type"`
-	ThreadID string                            `json:"thread_id,omitempty"`
-	Body     ProofGenerationRequestMessageBody `json:"body,omitempty"`
+	ID       string                    `json:"id"`
+	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
+	Type     iden3comm.ProtocolMessage `json:"type"`
+	ThreadID string                    `json:"thid,omitempty"`
+
+	Body ProofGenerationRequestMessageBody `json:"body,omitempty"`
 
 	From string `json:"from,omitempty"`
 	To   string `json:"to,omitempty"`
@@ -29,10 +31,12 @@ type ProofGenerationRequestMessageBody struct {
 
 // ProofGenerationResponseMessage is struct the represents body for proof generation request
 type ProofGenerationResponseMessage struct {
+	ID       string                    `json:"id"`
 	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
 	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thread_id,omitempty"`
-	Body     ResponseMessageBody       `json:"body,omitempty"`
+	ThreadID string                    `json:"thid,omitempty"`
+
+	Body ResponseMessageBody `json:"body,omitempty"`
 
 	From string `json:"from,omitempty"`
 	To   string `json:"to,omitempty"`

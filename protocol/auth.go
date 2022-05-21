@@ -1,10 +1,8 @@
 package protocol
 
 import (
+	"github.com/iden3/go-rapidsnark/types"
 	"github.com/iden3/iden3comm"
-	"math/big"
-
-	"github.com/iden3/go-schema-processor/verifiable"
 )
 
 const (
@@ -17,9 +15,10 @@ const (
 
 // AuthorizationResponseMessage is struct the represents iden3message authorization response
 type AuthorizationResponseMessage struct {
+	ID       string                           `json:"id"`
 	Typ      iden3comm.MediaType              `json:"typ,omitempty"`
 	Type     iden3comm.ProtocolMessage        `json:"type"`
-	ThreadID string                           `json:"thread_id,omitempty"`
+	ThreadID string                           `json:"thid,omitempty"`
 	Body     AuthorizationMessageResponseBody `json:"body,omitempty"`
 
 	From string `json:"from,omitempty"`
@@ -28,11 +27,13 @@ type AuthorizationResponseMessage struct {
 
 // AuthorizationMessageResponseBody is struct the represents authorization response data
 type AuthorizationMessageResponseBody struct {
-	Scope []ZeroKnowledgeProofResponse `json:"scope"`
+	Message string                       `json:"message,omitempty"`
+	Scope   []ZeroKnowledgeProofResponse `json:"scope"`
 }
 
 // AuthorizationRequestMessage is struct the represents iden3message authorization request
 type AuthorizationRequestMessage struct {
+	ID       string                          `json:"id"`
 	Typ      iden3comm.MediaType             `json:"typ,omitempty"`
 	Type     iden3comm.ProtocolMessage       `json:"type"`
 	ThreadID string                          `json:"thread_id,omitempty"`
@@ -45,21 +46,22 @@ type AuthorizationRequestMessage struct {
 // AuthorizationRequestMessageBody is body for authorization request
 type AuthorizationRequestMessageBody struct {
 	CallbackURL string                      `json:"callbackUrl"`
-	Audience    string                      `json:"audience"`
+	Reason      string                      `json:"reason,omitempty"`
+	Message     string                      `json:"message,omitempty"`
 	Scope       []ZeroKnowledgeProofRequest `json:"scope"`
 }
 
 // ZeroKnowledgeProofRequest represents structure of zkp request object
 type ZeroKnowledgeProofRequest struct {
-	ID        string                 `json:"id"` //unique request id
+	ID        uint32                 `json:"id"` // unique request id
 	CircuitID string                 `json:"circuit_id"`
-	Challenge *big.Int               `json:"challenge"`
-	Rules     map[string]interface{} `json:"rules,omitempty"`
+	Optional  *bool                  `json:"optional,omitempty"`
+	Rules     map[string]interface{} `json:"rules"`
 }
 
 // ZeroKnowledgeProofResponse represents structure of zkp response
 type ZeroKnowledgeProofResponse struct {
-	ID        string `json:"id"` //unique id to present unique proof request
+	ID        uint32 `json:"id"` // unique id to present unique proof request
 	CircuitID string `json:"circuit_id"`
-	verifiable.ZKProof
+	types.ZKProof
 }

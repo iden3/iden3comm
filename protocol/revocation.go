@@ -30,10 +30,12 @@ type RevocationStatusRequestMessageBody struct {
 
 // RevocationStatusResponseMessage is struct the represents body for proof generation request
 type RevocationStatusResponseMessage struct {
-	Typ      iden3comm.MediaType                 `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage           `json:"type"`
-	ThreadID string                              `json:"thread_id,omitempty"`
-	Body     RevocationStatusResponseMessageBody `json:"body,omitempty"`
+	ID       string                    `json:"id"`
+	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
+	Type     iden3comm.ProtocolMessage `json:"type"`
+	ThreadID string                    `json:"thid,omitempty"`
+
+	Body RevocationStatusResponseMessageBody `json:"body,omitempty"`
 
 	From string `json:"from,omitempty"`
 	To   string `json:"to,omitempty"`

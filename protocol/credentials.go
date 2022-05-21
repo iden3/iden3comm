@@ -24,10 +24,12 @@ const (
 
 // CredentialIssuanceRequestMessage represent Iden3message for credential request
 type CredentialIssuanceRequestMessage struct {
-	Typ      iden3comm.MediaType                  `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage            `json:"type"`
-	ThreadID string                               `json:"thread_id,omitempty"`
-	Body     CredentialIssuanceRequestMessageBody `json:"body,omitempty"`
+	ID       string                    `json:"id"`
+	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
+	Type     iden3comm.ProtocolMessage `json:"type"`
+	ThreadID string                    `json:"thid,omitempty"`
+
+	Body CredentialIssuanceRequestMessageBody `json:"body,omitempty"`
 
 	From string `json:"from,omitempty"`
 	To   string `json:"to,omitempty"`
@@ -40,29 +42,37 @@ type CredentialIssuanceRequestMessageBody struct {
 	Expiration int64           `json:"expiration"`
 }
 
-// CredentialOfferMessage represent Iden3message for credential offer
-type CredentialOfferMessage struct {
+// CredentialsOfferMessage represent Iden3message for credential offer
+type CredentialsOfferMessage struct {
 	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
 	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thread_id,omitempty"`
-	Body     OfferMessageBody          `json:"body,omitempty"`
+	ThreadID string                    `json:"thid,omitempty"`
+
+	Body CredentialsOfferMessageBody `json:"body,omitempty"`
 
 	From string `json:"from,omitempty"`
 	To   string `json:"to,omitempty"`
 }
 
-// OfferMessageBody is struct the represents offer message
-type OfferMessageBody struct {
-	Schema  Schema `json:"schema"`
-	ClaimID string `json:"claim_id"`
+// CredentialsOfferMessageBody is struct the represents offer message
+type CredentialsOfferMessageBody struct {
+	URL         string            `json:"url"`
+	Credentials []CredentialOffer `json:"credentials"`
+}
+
+// CredentialOffer is structure to fetch credential
+type CredentialOffer struct {
+	ID          string `json:"id"`
+	Description string `json:"description"`
 }
 
 // CredentialIssuanceMessage represent Iden3message for credential issuance
 type CredentialIssuanceMessage struct {
 	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
 	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thread_id,omitempty"`
-	Body     IssuanceMessageBody       `json:"body,omitempty"`
+	ThreadID string                    `json:"thid,omitempty"`
+
+	Body IssuanceMessageBody `json:"body,omitempty"`
 
 	From string `json:"from,omitempty"`
 	To   string `json:"to,omitempty"`
@@ -86,12 +96,12 @@ type CredentialFetchRequestMessage struct {
 
 // CredentialFetchRequestMessageBody is msg body for fetch request
 type CredentialFetchRequestMessageBody struct {
-	ClaimID string `json:"claim_id"`
-	Schema  Schema `json:"schema"`
+	ID string `json:"id"`
 }
 
 // Schema represents location and type where it's stored
 type Schema struct {
+	Hash string `json:"hash,omitempty"`
 	URL  string `json:"url"`
 	Type string `json:"type"`
 }
