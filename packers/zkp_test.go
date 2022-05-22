@@ -1,77 +1,69 @@
 package packers
 
 import (
-	"context"
 	"encoding/json"
 	"github.com/iden3/go-circuits"
 	core "github.com/iden3/go-iden3-core"
-	"github.com/iden3/go-iden3-crypto/utils"
-	"github.com/iden3/go-schema-processor/verifiable"
+	"github.com/iden3/go-jwz"
+	"github.com/iden3/iden3comm/mock"
+	"github.com/iden3/iden3comm/protocol"
 	"github.com/stretchr/testify/assert"
-	"math"
 	"testing"
 )
 
-type ProofGenMock struct {
-}
-
-func (p ProofGenMock) Generate(ctx context.Context,
-	identifier *core.ID,
-	request verifiable.ProofRequest) (*verifiable.ZKProof, error) {
-	return &verifiable.ZKProof{
-		Proof: &verifiable.ProofData{
-			A:        []string{"1", "2"},
-			B:        [][]string{{"1,2"}, {"1,3"}},
-			C:        []string{"1", "2"},
-			Protocol: "groth16",
-		},
-		PubSignals: []string{
-			"19999688707115363375798349135216882950137172827530523694906852148073727847759", "11111111111111", "11111111111111111",
-		},
-	}, nil
-}
-func (p ProofGenMock) VerifyZKProof(ctx context.Context, zkp *verifiable.ZKProof, circuitType string) (bool, error) {
-	return true, nil
-}
-
 func TestZKPPacker_Pack(t *testing.T) {
 
-	p := NewZKPPacker("ZKP-GROTH16", circuits.AuthCircuitID, ProofGenMock{})
+	// mocked keys
+	keys := map[circuits.CircuitID][]byte{circuits.AuthCircuitID: []byte{}}
+	provingKey := []byte{}
+	wasm := []byte{}
 
-	msgBytes := []byte(`{"type":"https://iden3-communication.io/authorization-response/v1","body":{"scope":[{"type":"zeroknowledge","circuit_id":"auth","pub_signals":["1","18311560525383319719311394957064820091354976310599818797157189568621466950811","323416925264666217617288569742564703632850816035761084002720090377353297920"],"proof_data":{"pi_a":["11130843150540789299458990586020000719280246153797882843214290541980522375072","1300841912943781723022032355836893831132920783788455531838254465784605762713","1"],"pi_b":[["20615768536988438336537777909042352056392862251785722796637590212160561351656","10371144806107778890538857700855108667622042215096971747203105997454625814080"],["19598541350804478549141207835028671111063915635580679694907635914279928677812","15264553045517065669171584943964322117397645147006909167427809837929458012913"],["1","0"]],"pi_c":["16443309279825508893086251290003936935077348754097470818523558082502364822049","2984180227766048100510120407150752052334571876681304999595544138155611963273","1"],"protocol":""}}]}}`)
+	mockedProvingMethod := &mock.ProvingMethodGroth16Auth{Algorithm: "groth16-mock", Circuit: "auth"}
 
-	pp := &PlainMessagePacker{}
-	message, err := pp.Unpack(msgBytes)
+	jwz.RegisterProvingMethod("groth16-mock", func() jwz.ProvingMethod {
+		return mockedProvingMethod
+	})
+
+	p := NewZKPPacker(mockedProvingMethod, mock.PrepareAuthInputs, mock.VerifyState, provingKey, wasm, keys)
+
+	msgBytes := []byte(`{"type":"https://iden3-communication.io/authorization/1.0/response","body":{"scope":[{"type":"zeroknowledge","circuit_id":"auth","pub_signals":["1","18311560525383319719311394957064820091354976310599818797157189568621466950811","323416925264666217617288569742564703632850816035761084002720090377353297920"],"proof_data":{"pi_a":["11130843150540789299458990586020000719280246153797882843214290541980522375072","1300841912943781723022032355836893831132920783788455531838254465784605762713","1"],"pi_b":[["20615768536988438336537777909042352056392862251785722796637590212160561351656","10371144806107778890538857700855108667622042215096971747203105997454625814080"],["19598541350804478549141207835028671111063915635580679694907635914279928677812","15264553045517065669171584943964322117397645147006909167427809837929458012913"],["1","0"]],"pi_c":["16443309279825508893086251290003936935077348754097470818523558082502364822049","2984180227766048100510120407150752052334571876681304999595544138155611963273","1"],"protocol":""}}]}}`)
+	id, _ := core.IDFromString("119tqceWdRd2F6WnAyVuFQRFjK3WUXq2LorSPyG9LJ")
+	b, err := p.Pack(msgBytes, &id)
 	assert.Nil(t, err)
-	id, _ := core.IDFromString("1182P96d4eBnRAUWvGyj5QiPLL5U1TiNyJwcspt478")
-	b, err := p.Pack(message, &id)
+
+	token, err := jwz.Parse(string(b))
 	assert.Nil(t, err)
 
-	t.Log(string(b))
+	outs := circuits.AuthPubSignals{}
+	err = token.ParsePubSignals(&outs)
+	assert.Nil(t, err)
+
+	assert.EqualValues(t, id.String(), outs.UserID.String())
+
 }
 
 func TestPlainMessagePacker_Unpack(t *testing.T) {
-	p := NewZKPPacker("ZKP-GROTH16", circuits.AuthCircuitID, ProofGenMock{})
-	msg := []byte(`{"payload":"eyJ0eXBlIjoiaHR0cHM6Ly9pZGVuMy1jb21tdW5pY2F0aW9uLmlvL2F1dGhvcml6YXRpb24tcmVzcG9uc2UvdjEiLCJib2R5Ijp7InNjb3BlIjpbeyJ0eXBlIjoiemVyb2tub3dsZWRnZSIsImNpcmN1aXRfaWQiOiJhdXRoIiwicHViX3NpZ25hbHMiOlsiMSIsIjE4MzExNTYwNTI1MzgzMzE5NzE5MzExMzk0OTU3MDY0ODIwMDkxMzU0OTc2MzEwNTk5ODE4Nzk3MTU3MTg5NTY4NjIxNDY2OTUwODExIiwiMzIzNDE2OTI1MjY0NjY2MjE3NjE3Mjg4NTY5NzQyNTY0NzAzNjMyODUwODE2MDM1NzYxMDg0MDAyNzIwMDkwMzc3MzUzMjk3OTIwIl0sInByb29mX2RhdGEiOnsicGlfYSI6WyIxMTEzMDg0MzE1MDU0MDc4OTI5OTQ1ODk5MDU4NjAyMDAwMDcxOTI4MDI0NjE1Mzc5Nzg4Mjg0MzIxNDI5MDU0MTk4MDUyMjM3NTA3MiIsIjEzMDA4NDE5MTI5NDM3ODE3MjMwMjIwMzIzNTU4MzY4OTM4MzExMzI5MjA3ODM3ODg0NTU1MzE4MzgyNTQ0NjU3ODQ2MDU3NjI3MTMiLCIxIl0sInBpX2IiOltbIjIwNjE1NzY4NTM2OTg4NDM4MzM2NTM3Nzc3OTA5MDQyMzUyMDU2MzkyODYyMjUxNzg1NzIyNzk2NjM3NTkwMjEyMTYwNTYxMzUxNjU2IiwiMTAzNzExNDQ4MDYxMDc3Nzg4OTA1Mzg4NTc3MDA4NTUxMDg2Njc2MjIwNDIyMTUwOTY5NzE3NDcyMDMxMDU5OTc0NTQ2MjU4MTQwODAiXSxbIjE5NTk4NTQxMzUwODA0NDc4NTQ5MTQxMjA3ODM1MDI4NjcxMTExMDYzOTE1NjM1NTgwNjc5Njk0OTA3NjM1OTE0Mjc5OTI4Njc3ODEyIiwiMTUyNjQ1NTMwNDU1MTcwNjU2NjkxNzE1ODQ5NDM5NjQzMjIxMTczOTc2NDUxNDcwMDY5MDkxNjc0Mjc4MDk4Mzc5Mjk0NTgwMTI5MTMiXSxbIjEiLCIwIl1dLCJwaV9jIjpbIjE2NDQzMzA5Mjc5ODI1NTA4ODkzMDg2MjUxMjkwMDAzOTM2OTM1MDc3MzQ4NzU0MDk3NDcwODE4NTIzNTU4MDgyNTAyMzY0ODIyMDQ5IiwiMjk4NDE4MDIyNzc2NjA0ODEwMDUxMDEyMDQwNzE1MDc1MjA1MjMzNDU3MTg3NjY4MTMwNDk5OTU5NTU0NDEzODE1NTYxMTk2MzI3MyIsIjEiXSwicHJvdG9jb2wiOiIifX1dfX0","protected":"eyJhbGciOiJaS1AtR1JPVEgxNiIsImNpcmN1aXRJZCI6ImF1dGgiLCJjcml0IjoiY2lyY3VpdElkIn0","signature":"eyJwcm9vZiI6eyJwaV9hIjpbIjEiLCIyIl0sInBpX2IiOltbIjEsMiJdLFsiMSwzIl1dLCJwaV9jIjpbIjEiLCIyIl0sInByb3RvY29sIjoiZ3JvdGgxNiJ9LCJwdWJfc2lnbmFscyI6WyIxOTk5OTY4ODcwNzExNTM2MzM3NTc5ODM0OTEzNTIxNjg4Mjk1MDEzNzE3MjgyNzUzMDUyMzY5NDkwNjg1MjE0ODA3MzcyNzg0Nzc1OSIsIjExMTExMTExMTExMTExIiwiMTExMTExMTExMTExMTExMTEiXX0"}`)
+	keys := map[circuits.CircuitID][]byte{circuits.AuthCircuitID: []byte{}}
+	provingKey := []byte{}
+	wasm := []byte{}
 
-	b, err := p.Unpack(msg)
+	mockedProvingMethod := &mock.ProvingMethodGroth16Auth{Algorithm: "groth16-mock", Circuit: "auth"}
+
+	jwz.RegisterProvingMethod("groth16-mock", func() jwz.ProvingMethod {
+		return mockedProvingMethod
+	})
+	p := NewZKPPacker(mockedProvingMethod, mock.PrepareAuthInputs, mock.VerifyState, provingKey, wasm, keys)
+
+	msgZKP := []byte(`eyJhbGciOiJncm90aDE2LW1vY2siLCJjaXJjdWl0SWQiOiJhdXRoIiwiY3JpdCI6WyJjaXJjdWl0SWQiXSwidHlwIjoiYXBwbGljYXRpb24vaWRlbjMtemtwLWpzb24ifQ.eyJ0eXBlIjoiaHR0cHM6Ly9pZGVuMy1jb21tdW5pY2F0aW9uLmlvL2F1dGhvcml6YXRpb24vMS4wL3Jlc3BvbnNlIiwiYm9keSI6eyJzY29wZSI6W3sidHlwZSI6Inplcm9rbm93bGVkZ2UiLCJjaXJjdWl0X2lkIjoiYXV0aCIsInB1Yl9zaWduYWxzIjpbIjEiLCIxODMxMTU2MDUyNTM4MzMxOTcxOTMxMTM5NDk1NzA2NDgyMDA5MTM1NDk3NjMxMDU5OTgxODc5NzE1NzE4OTU2ODYyMTQ2Njk1MDgxMSIsIjMyMzQxNjkyNTI2NDY2NjIxNzYxNzI4ODU2OTc0MjU2NDcwMzYzMjg1MDgxNjAzNTc2MTA4NDAwMjcyMDA5MDM3NzM1MzI5NzkyMCJdLCJwcm9vZl9kYXRhIjp7InBpX2EiOlsiMTExMzA4NDMxNTA1NDA3ODkyOTk0NTg5OTA1ODYwMjAwMDA3MTkyODAyNDYxNTM3OTc4ODI4NDMyMTQyOTA1NDE5ODA1MjIzNzUwNzIiLCIxMzAwODQxOTEyOTQzNzgxNzIzMDIyMDMyMzU1ODM2ODkzODMxMTMyOTIwNzgzNzg4NDU1NTMxODM4MjU0NDY1Nzg0NjA1NzYyNzEzIiwiMSJdLCJwaV9iIjpbWyIyMDYxNTc2ODUzNjk4ODQzODMzNjUzNzc3NzkwOTA0MjM1MjA1NjM5Mjg2MjI1MTc4NTcyMjc5NjYzNzU5MDIxMjE2MDU2MTM1MTY1NiIsIjEwMzcxMTQ0ODA2MTA3Nzc4ODkwNTM4ODU3NzAwODU1MTA4NjY3NjIyMDQyMjE1MDk2OTcxNzQ3MjAzMTA1OTk3NDU0NjI1ODE0MDgwIl0sWyIxOTU5ODU0MTM1MDgwNDQ3ODU0OTE0MTIwNzgzNTAyODY3MTExMTA2MzkxNTYzNTU4MDY3OTY5NDkwNzYzNTkxNDI3OTkyODY3NzgxMiIsIjE1MjY0NTUzMDQ1NTE3MDY1NjY5MTcxNTg0OTQzOTY0MzIyMTE3Mzk3NjQ1MTQ3MDA2OTA5MTY3NDI3ODA5ODM3OTI5NDU4MDEyOTEzIl0sWyIxIiwiMCJdXSwicGlfYyI6WyIxNjQ0MzMwOTI3OTgyNTUwODg5MzA4NjI1MTI5MDAwMzkzNjkzNTA3NzM0ODc1NDA5NzQ3MDgxODUyMzU1ODA4MjUwMjM2NDgyMjA0OSIsIjI5ODQxODAyMjc3NjYwNDgxMDA1MTAxMjA0MDcxNTA3NTIwNTIzMzQ1NzE4NzY2ODEzMDQ5OTk1OTU1NDQxMzgxNTU2MTE5NjMyNzMiLCIxIl0sInByb3RvY29sIjoiIn19XX19.eyJwcm9vZiI6eyJwaV9hIjpudWxsLCJwaV9iIjpudWxsLCJwaV9jIjpudWxsLCJwcm90b2NvbCI6Imdyb3RoMTYifSwicHViX3NpZ25hbHMiOlsiMTc5OTQ5MTUwMTMwMjE0NzIzNDIwNTg5NjEwOTExMTYxODk1NDk1NjQ3Nzg5MDA2NjQ5Nzg1MjY0NzM4MTQxMjk5MTM1NDE0MjcyIiwiMSIsIjM3OTk0OTE1MDEzMDIxNDcyMzQyMDU4OTYxMDkxMTE2MTg5NTQ5NTY0Nzc4OTAwNjY0OTc4NTI2NDczODE0MTI5OTEzNTQxNDI3MiJdfQ`)
+	iden3msg, err := p.Unpack(msgZKP)
+	assert.Nil(t, err)
+	msgBytes, err := json.Marshal(iden3msg)
+	assert.Nil(t, err)
+	var authResponse protocol.AuthorizationResponseMessage
+	err = json.Unmarshal(msgBytes, &authResponse)
 	assert.Nil(t, err)
 
-	bodyBytes, err := b.GetBody().(json.RawMessage).MarshalJSON()
-	assert.Nil(t, err)
+	assert.Equal(t, authResponse.Type, protocol.AuthorizationResponseMessageType)
+	assert.Len(t, authResponse.Body.Scope, 1)
 
-	t.Log(string(bodyBytes))
-}
-
-func TestZKPPacker_PrepareMessageHash(t *testing.T) {
-
-	p := NewZKPPacker(AlgZKPGroth16, circuits.AuthCircuitID, ProofGenMock{})
-
-	msg := make([]byte, 32)
-	for i := range msg {
-		msg[i] = math.MaxUint8
-	}
-	h, err := p.PrepareMessageHash(msg)
-	assert.Nil(t, err)
-	assert.True(t, utils.CheckBigIntInField(h))
 }

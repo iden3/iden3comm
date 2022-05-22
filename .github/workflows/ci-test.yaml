@@ -6,12 +6,14 @@ on:
       - main
       - develop
   pull_request:
-
+    branches:
+      - main
+      - develop
 jobs:
   test:
     strategy:
       matrix:
-        containers: [ 1.17.2-bullseye ]
+        containers: [ 1.18 ]
     runs-on: ubuntu-latest
     container: golang:${{ matrix.containers }}
     steps:
@@ -28,6 +30,4 @@ jobs:
       - name: Update go modules
         run: go mod tidy
       - name: Unit Tests
-        env:
-          RPC_URL: ${{ secrets.RPC_URL }}
         run: go test -race -timeout=60s ./...

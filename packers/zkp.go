@@ -1,211 +1,126 @@
 package packers
 
 import (
-	"context"
-	"crypto/sha256"
 	"encoding/json"
 	"github.com/iden3/go-circuits"
 	core "github.com/iden3/go-iden3-core"
-	"github.com/iden3/go-iden3-crypto/constants"
-	"github.com/iden3/go-iden3-crypto/poseidon"
-	"github.com/iden3/go-iden3-crypto/utils"
-	"github.com/iden3/go-schema-processor/verifiable"
+	"github.com/iden3/go-jwz"
 	"github.com/iden3/iden3comm"
 	"github.com/pkg/errors"
-	"gopkg.in/square/go-jose.v2"
-	"math/big"
 )
 
 // MediaTypeZKPMessage is media type for jwz
 const MediaTypeZKPMessage iden3comm.MediaType = "application/iden3-zkp-json"
 
-type zkProver interface {
-	Generate(ctx context.Context,
-		identifier *core.ID,
-		request verifiable.ProofRequest) (*verifiable.ZKProof, error)
-	VerifyZKProof(ctx context.Context, zkp *verifiable.ZKProof, circuitType string) (bool, error)
+// AuthDataPreparerHandlerFunc registers the handler function for inputs preparation.
+type AuthDataPreparerHandlerFunc func(hash []byte, id *core.ID, circuitID circuits.CircuitID) ([]byte, error)
+
+// Prepare function is responsible to call provided handler for inputs preparation
+func (f AuthDataPreparerHandlerFunc) Prepare(hash []byte, id *core.ID, circuitID circuits.CircuitID) ([]byte, error) {
+	return f(hash, id, circuitID)
 }
 
-// ZKPPacker is  packer that use JWS format but with zero knowledge proof
+// StateVerificationHandlerFunc  registers the handler function for state verification.
+type StateVerificationHandlerFunc func(id circuits.CircuitID, pubsignals []string) error
+
+// Verify function is responsible to call provided handler for outputs verification
+func (f StateVerificationHandlerFunc) Verify(id circuits.CircuitID, pubsignals []string) error {
+	return f(id, pubsignals)
+}
+
+// StateVerificationFunc must verify pubsignals for circuit id
+type StateVerificationFunc func(id circuits.CircuitID, pubsignals []string) error
+
+// ZKPPacker is  packer that use JWZ
 type ZKPPacker struct {
-	zkpAlg    string
-	circuitID circuits.CircuitID
-	zk        zkProver
+	ProvingMethod    jwz.ProvingMethod
+	VerificationKeys map[circuits.CircuitID][]byte
+	ProvingKey       []byte
+	Wasm             []byte
+	AuthDataPreparer AuthDataPreparerHandlerFunc
+	StateVerifier    StateVerificationHandlerFunc
 }
 
-// NewZKPPacker creates new instance of zkp Packer
-func NewZKPPacker(zkpAlg string, circuitID circuits.CircuitID, zk zkProver) *ZKPPacker {
+// NewZKPPacker creates new instance of zkp Packer.
+// Pack works only with a specific proving Method
+// Unpack is universal function that supports all proving method defined in jwz.
+func NewZKPPacker(provingMethod jwz.ProvingMethod, authDataPreparer AuthDataPreparerHandlerFunc,
+	stateVerifier StateVerificationHandlerFunc,
+	provingKey, wasm []byte,
+	keys map[circuits.CircuitID][]byte) *ZKPPacker {
+
 	return &ZKPPacker{
-		zkpAlg:    zkpAlg,
-		circuitID: circuitID,
-		zk:        zk,
+		ProvingMethod:    provingMethod,
+		AuthDataPreparer: authDataPreparer,
+		VerificationKeys: keys,
+		ProvingKey:       provingKey,
+		Wasm:             wasm,
+		StateVerifier:    stateVerifier,
 	}
 }
-
-// AlgZKPGroth16 is algorithm for JWZ
-const AlgZKPGroth16 = "ZKP-GROTH16"
 
 // Pack returns packed message to transport envelope with a zero knowledge proof in JWZ full serialized format
-func (p *ZKPPacker) Pack(payload iden3comm.Iden3Message, senderID *core.ID) ([]byte, error) {
+func (p *ZKPPacker) Pack(payload []byte, senderID *core.ID) ([]byte, error) {
 
 	// create hash of message
+	var err error
+	var token *jwz.Token
 
-	serialized, err := json.Marshal(payload)
+	token, err = jwz.NewWithPayload(p.ProvingMethod, payload, func(hash []byte, circuitID circuits.CircuitID) ([]byte, error) {
+		return p.AuthDataPreparer.Prepare(hash, senderID, circuitID)
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	hash, err := p.PrepareMessageHash(serialized)
+	err = token.WithHeader(jwz.HeaderType, MediaTypeZKPMessage)
 	if err != nil {
 		return nil, err
 	}
 
-	proofBytes, err := p.prepareZKProof(context.Background(), senderID, hash)
+	tokenStr, err := token.Prove(p.ProvingKey, p.Wasm)
 	if err != nil {
 		return nil, err
 	}
 
-	jwz := iden3comm.JSONWebZeroknowledge{
-		Payload: serialized,
-		ZKP:     proofBytes,
-	}
-	err = jwz.SetHeader(p.zkpAlg, p.circuitID, string(MediaTypeZKPMessage))
-	if err != nil {
-		return nil, err
-	}
-	return jwz.FullSerialize()
+	return []byte(tokenStr), nil
 }
 
 // Unpack returns unpacked message from transport envelope with verification of zeroknowledge proof
-func (p *ZKPPacker) Unpack(envelope []byte) (iden3comm.Iden3Message, error) {
+func (p *ZKPPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 
-	jws, err := jose.ParseSigned(string(envelope))
-	if err != nil {
-		return nil, err
-	}
-	payload := jws.UnsafePayloadWithoutVerification()
-
-	signature := jws.Signatures[0]
-
-	// get headers
-
-	alg := signature.Header.Algorithm
-	circuitID := signature.Header.ExtraHeaders["circuitId"].(string)
-	if alg != p.zkpAlg {
-		return nil, errors.Errorf("%s algorithm is not supported by zkp packer", alg)
-	}
-	if circuits.CircuitID(circuitID) != p.circuitID {
-		return nil, errors.Errorf("%s circuit is not supported by zkp packer", circuitID)
-	}
-
-	var proof *verifiable.ZKProof
-
-	err = json.Unmarshal(signature.Signature, &proof)
-	if err != nil {
-		return nil, err
-	}
-	isProofValid, err := p.zk.VerifyZKProof(context.Background(), proof, circuitID)
-	if err != nil {
-		return nil, err
-	}
-	if !isProofValid {
-		return nil, errors.New("zk proof is not valid")
-	}
-
-	// get circuit public schema
-
-	circuit, err := circuits.GetCircuit(p.circuitID)
-	if err != nil {
-		return nil, err
-	}
-	publicSchemaJSON := circuit.GetPublicSignalsSchema()
-	var schemaPublicOutputs map[string]int
-	err = json.Unmarshal([]byte(publicSchemaJSON), &schemaPublicOutputs)
+	token, err := jwz.Parse(string(envelope))
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO: change to 'metadata'
-	metadataHashIndex := schemaPublicOutputs["challenge"]
-
-	if len(proof.PubSignals) != len(schemaPublicOutputs) {
-		return nil, errors.New("public signals count in proof is not corresponding to schema")
-	}
-
-	hashSignal := proof.PubSignals[metadataHashIndex]
-
-	hashSignalBigInt, ok := new(big.Int).SetString(hashSignal, 10)
+	verificationKey, ok := p.VerificationKeys[circuits.CircuitID(token.CircuitID)]
 	if !ok {
-		return nil, errors.New("can't convert a signal")
+		return nil, errors.New("message was packed with unsupported circuit")
 	}
 
-	// verify that message hash is one that is provided in the proof
-
-	messageHash, err := p.PrepareMessageHash(payload)
+	isValid, err := token.Verify(verificationKey)
 	if err != nil {
 		return nil, err
 	}
+	if !isValid {
+		return nil, errors.New("message proof is invalid")
+	}
 
-	if messageHash.Cmp(hashSignalBigInt) != 0 {
-		return nil, errors.New("has of message data is not equal to metadata if proof signal")
+	err = p.StateVerifier.Verify(circuits.CircuitID(token.CircuitID), token.ZkProof.PubSignals)
+	if err != nil {
+		return nil, err
 	}
 
 	var msg iden3comm.BasicMessage
-	err = json.Unmarshal(payload, &msg)
+	err = json.Unmarshal(token.GetPayload(), &msg)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 	return &msg, err
 }
 
-func (p *ZKPPacker) prepareZKProof(ctx context.Context, id *core.ID, hash *big.Int) ([]byte, error) {
-
-	proof, err := p.zk.Generate(ctx, id, &verifiable.ZeroKnowledgeProofRequest{CircuitID: string(p.circuitID), Challenge: hash, Rules: nil})
-	if err != nil {
-		return nil, err
-	}
-	proofBytes, err := json.Marshal(proof)
-	if err != nil {
-		return nil, err
-	}
-	return proofBytes, err
-}
-
-// PrepareMessageHash return hash of the message that is used in authentication circuit
-func (p *ZKPPacker) PrepareMessageHash(message []byte) (*big.Int, error) {
-
-	// 1. sha256 hash
-	h := sha256.New()
-	_, err := h.Write(message)
-	if err != nil {
-		return nil, err
-	}
-	b := h.Sum(nil)
-
-	// 2. swap hash before hashing
-
-	bs := utils.SwapEndianness(b)
-	bi := new(big.Int).SetBytes(bs)
-
-	// 3. check if it's in field
-	m := new(big.Int)
-	if utils.CheckBigIntInField(bi) {
-		m = bi
-	} else {
-		bi.DivMod(bi, constants.Q, m)
-	}
-
-	// 2. poseidon
-
-	res, err := poseidon.Hash([]*big.Int{m})
-
-	if err != nil {
-		return nil, err
-	}
-	return res, err
-}
-
-// MediaType for iden3comm
+// MediaType for iden3comm that returns MediaTypeZKPMessage
 func (p *ZKPPacker) MediaType() iden3comm.MediaType {
 	return MediaTypeZKPMessage
 }
