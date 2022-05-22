@@ -4,12 +4,16 @@ on:
   push:
     branches:
       - main
-
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
 jobs:
   test:
     strategy:
       matrix:
-        containers: [ 1.17.2-bullseye ]
+        containers: [ 1.18 ]
     runs-on: ubuntu-latest
     container: golang:${{ matrix.containers }}
     steps:
