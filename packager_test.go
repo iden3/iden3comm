@@ -9,6 +9,7 @@ import (
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-jwz"
 	"github.com/iden3/iden3comm"
+	"github.com/iden3/iden3comm/mock"
 	"github.com/iden3/iden3comm/packers"
 	"github.com/iden3/iden3comm/protocol"
 	"github.com/stretchr/testify/assert"
@@ -71,8 +72,6 @@ func TestPackagerPlainPacker(t *testing.T) {
 	envelope, err := pm.Pack(packers.MediaTypePlainMessage, marshalledMsg, &senderID)
 	assert.NoError(t, err)
 
-	t.Log(string(envelope))
-
 	unpackedMsg, err := pm.Unpack(envelope)
 	assert.NoError(t, err)
 
@@ -92,11 +91,15 @@ func TestPackagerZKPPacker(t *testing.T) {
 	pm := iden3comm.NewPackageManager()
 	pm.RegisterPackers(&packers.PlainMessagePacker{})
 	// nolint :
-	pm.RegisterPackers(packers.NewZKPPacker(jwz.ProvingMethodGroth16AuthInstance, func(hash []byte, id *core.ID, circuitID circuits.CircuitID) ([]byte, error) {
-		return MockPrepareAuthInputs(hash, id, circuitID)
-	}, func(id circuits.CircuitID, pubsignals []string) error {
-		return nil
-	}, []byte{}, []byte{}, map[circuits.CircuitID][]byte{}))
+
+	mockedProvingMethod := &mock.ProvingMethodGroth16Auth{Algorithm: "groth16-mock", Circuit: "auth"}
+	jwz.RegisterProvingMethod("groth16-mock", func() jwz.ProvingMethod {
+		return mockedProvingMethod
+	})
+	keys := map[circuits.CircuitID][]byte{circuits.AuthCircuitID: []byte{}}
+
+	err := pm.RegisterPackers(packers.NewZKPPacker(mockedProvingMethod, mock.PrepareAuthInputs, mock.VerifyState, []byte{}, []byte{}, keys))
+	assert.NoError(t, err)
 
 	identifier := "119tqceWdRd2F6WnAyVuFQRFjK3WUXq2LorSPyG9LJ"
 
