@@ -10,7 +10,7 @@ type BasicMessage struct {
 	ID       string          `json:"id"`
 	Typ      MediaType       `json:"typ,omitempty"`
 	Type     ProtocolMessage `json:"type"`
-	ThreadID string          `json:"thread_id,omitempty"`
+	ThreadID string          `json:"thid,omitempty"`
 	Body     json.RawMessage `json:"body,omitempty"`
 
 	From string `json:"from,omitempty"`
