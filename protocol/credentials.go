@@ -83,11 +83,22 @@ type IssuanceMessageBody struct {
 	Credential verifiable.Iden3Credential `json:"credential"`
 }
 
-// CredentialFetchRequestMessage represent Iden3message for credential fetch
+// CredentialFetchRequestMessage represent Iden3message for credential fetch request
 type CredentialFetchRequestMessage struct {
 	Typ      iden3comm.MediaType               `json:"typ,omitempty"`
 	Type     iden3comm.ProtocolMessage         `json:"type"`
-	ThreadID string                            `json:"thread_id,omitempty"`
+	ThreadID string                            `json:"thid,omitempty"`
+	Body     CredentialFetchRequestMessageBody `json:"body,omitempty"`
+
+	From string `json:"from,omitempty"`
+	To   string `json:"to,omitempty"`
+}
+
+// CredentialFetchResponseMessage represent Iden3message for credential fetch response
+type CredentialFetchResponseMessage struct {
+	Typ      iden3comm.MediaType               `json:"typ,omitempty"`
+	Type     iden3comm.ProtocolMessage         `json:"type"`
+	ThreadID string                            `json:"thid,omitempty"`
 	Body     CredentialFetchRequestMessageBody `json:"body,omitempty"`
 
 	From string `json:"from,omitempty"`
