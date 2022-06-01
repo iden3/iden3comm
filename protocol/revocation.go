@@ -14,9 +14,10 @@ const (
 
 // RevocationStatusRequestMessage is struct the represents body for proof generation request
 type RevocationStatusRequestMessage struct {
+	ID       string                             `json:"id"`
 	Typ      iden3comm.MediaType                `json:"typ,omitempty"`
 	Type     iden3comm.ProtocolMessage          `json:"type"`
-	ThreadID string                             `json:"thread_id,omitempty"`
+	ThreadID string                             `json:"thid,omitempty"`
 	Body     RevocationStatusRequestMessageBody `json:"body,omitempty"`
 
 	From string `json:"from,omitempty"`

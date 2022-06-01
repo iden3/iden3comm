@@ -36,7 +36,7 @@ type AuthorizationRequestMessage struct {
 	ID       string                          `json:"id"`
 	Typ      iden3comm.MediaType             `json:"typ,omitempty"`
 	Type     iden3comm.ProtocolMessage       `json:"type"`
-	ThreadID string                          `json:"thread_id,omitempty"`
+	ThreadID string                          `json:"thid,omitempty"`
 	Body     AuthorizationRequestMessageBody `json:"body,omitempty"`
 
 	From string `json:"from,omitempty"`
