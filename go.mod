@@ -4,8 +4,8 @@ go 1.17
 
 require (
 	github.com/gofrs/uuid v3.3.0+incompatible
-	github.com/iden3/go-circuits v0.0.42
-	github.com/iden3/go-iden3-core v0.0.16
+	github.com/iden3/go-circuits v0.1.0
+	github.com/iden3/go-iden3-core v0.1.0
 	github.com/iden3/go-jwz v0.0.1
 	github.com/iden3/go-rapidsnark/types v0.0.1
 	github.com/iden3/go-schema-processor v0.0.22
