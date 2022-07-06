@@ -4,9 +4,9 @@ import "github.com/iden3/iden3comm"
 
 const (
 	// {Prefix}RequestMessageType defines {Prefix} request type of the communication protocol
-	{Prefix}RequestMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + ""
+	{Prefix}RequestMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "PUT CONTENT"
 	// {Prefix}ResponseMessageType defines {Prefix} response type of the communication protocol
-	{Prefix}ResponseMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + ""
+	{Prefix}ResponseMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "PUT CONTENT"
 )
 
 // {Prefix}RequestMessage represent Iden3message for {Prefix} request
@@ -24,8 +24,7 @@ type {Prefix}RequestMessage struct {
 
 // {Prefix}RequestMessageBody is struct the represents body for {Prefix} request request
 type {Prefix}RequestMessageBody struct {
-	AppID  string `json:"app_id"`
-	Token  string `json:"token"`
+	// PUT CONTENT
 }
 
 // {Prefix}ResponseMessage represent Iden3message for {Prefix} response
@@ -43,6 +42,5 @@ type {Prefix}ResponseMessage struct {
 
 // {Prefix}RequestMessageBody is struct the represents body for {Prefix} response
 type {Prefix}ResponseMessageBody struct {
-	AppID  string `json:"app_id"`
-	Token  string `json:"token"`
+	// PUT CONTENT
 }
