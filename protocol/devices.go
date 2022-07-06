@@ -9,6 +9,7 @@ const (
 	RegisterDeviceResponseMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "device/1.0/register-response"
 )
 // TODO(illia-korotia): add generator for these structures.
+
 // RegisterDeviceRequestMessage represent Iden3message for register device request
 type RegisterDeviceRequestMessage struct {
 	ID       string                    `json:"id"`
