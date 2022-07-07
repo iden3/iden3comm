@@ -3,7 +3,7 @@ package protocol
 import "github.com/iden3/iden3comm"
 
 const (
-	// DeviceRegistrationRequestMessageType defines register device request type of the communication protocol
+	// DeviceRegistrationRequestMessageType defines device registration request type of the communication protocol
 	DeviceRegistrationRequestMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "devices/1.0/registration"
 )
 
