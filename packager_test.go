@@ -116,7 +116,7 @@ func TestPackagerZKPPacker(t *testing.T) {
 	assert.NoError(t, err)
 
 	msg.Type = protocol.CredentialFetchRequestMessageType
-	msg.Typ  = packers.MediaTypeZKPMessage
+	msg.Typ = packers.MediaTypeZKPMessage
 	msg.Body = protocol.CredentialFetchRequestMessageBody{
 		ID: claimID.String(),
 	}
@@ -127,6 +127,7 @@ func TestPackagerZKPPacker(t *testing.T) {
 	assert.NoError(t, err)
 
 	unpackedMsg, unpackerType, err := pm.Unpack(envelope)
+	assert.NoError(t, err)
 	fmt.Printf("unpaked msg: %v", unpackedMsg)
 	assert.NoError(t, err)
 	assert.Equal(t, unpackedMsg.Typ, unpackerType)
@@ -160,7 +161,7 @@ func TestPackagerZKPPacker_OtherMessageTypeInBody(t *testing.T) {
 	assert.NoError(t, err)
 
 	msg.Type = protocol.CredentialFetchRequestMessageType
-	msg.Typ  = packers.MediaTypePlainMessage
+	msg.Typ = packers.MediaTypePlainMessage
 	msg.Body = protocol.CredentialFetchRequestMessageBody{
 		ID: claimID.String(),
 	}
