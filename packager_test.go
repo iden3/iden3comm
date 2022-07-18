@@ -127,7 +127,6 @@ func TestPackagerZKPPacker(t *testing.T) {
 	assert.NoError(t, err)
 
 	unpackedMsg, unpackerType, err := pm.Unpack(envelope)
-	assert.NoError(t, err)
 	fmt.Printf("unpaked msg: %v", unpackedMsg)
 	assert.NoError(t, err)
 	assert.Equal(t, unpackedMsg.Typ, unpackerType)
