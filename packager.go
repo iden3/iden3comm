@@ -60,25 +60,25 @@ func (r *PackageManager) Pack(mediaType MediaType, payload []byte, senderID *cor
 
 // Unpack returns iden3 message method from envelope
 // if it's not valid or can't be decrypted error is returned
-func (r *PackageManager) Unpack(envelope []byte) (*BasicMessage, error) {
+func (r *PackageManager) Unpack(envelope []byte) (*BasicMessage, MediaType, error) {
 
 	safeEnvelope := strings.Trim(strings.TrimSpace(string(envelope)), "\"")
 
 	mediaType, err := r.GetMediaType(envelope)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	p, ok := r.packers[mediaType]
 	if !ok {
-		return nil, errors.Errorf("packer for media type %s doesn't exist", mediaType)
+		return nil, "", errors.Errorf("packer for media type %s doesn't exist", mediaType)
 	}
 
 	// safeEnvelope can be rather base64 encoded or valid json
 	msg, err := p.Unpack([]byte(safeEnvelope))
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
-	return msg, nil
+	return msg, mediaType, nil
 }
 
 type envelopeStub struct {
