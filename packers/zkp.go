@@ -134,9 +134,8 @@ func verifySender(token *jwz.Token, msg iden3comm.BasicMessage) error {
 		return err
 	}
 
-	var (
-		userID *big.Int
-	)
+	var userID *big.Int
+
 	switch circuits.CircuitID(token.CircuitID) {
 	case circuits.AuthCircuitID:
 		authPubSignals := circuits.AuthPubSignals{}
