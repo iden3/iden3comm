@@ -5,9 +5,12 @@ import "github.com/iden3/iden3comm"
 const (
 	// MessageFetchRequestMessageType defines message fetch request type of the communication protocol.
 	MessageFetchRequestMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "messages/1.0/fetch"
+	// MessageFetchAllRequestMessageType defines message fetch all request type of the communication protocol.
+	MessageFetchAllRequestMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "messages/1.0/fetch-all"
 )
 
 // MessageFetchRequestMessage represent Iden3message for message fetch request.
+// Using for MessageFetchRequestMessageType and MessageFetchAllRequestMessageType types.
 type MessageFetchRequestMessage struct {
 	ID       string                    `json:"id"`
 	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
