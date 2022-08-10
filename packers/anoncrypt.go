@@ -1,11 +1,12 @@
 package packers
 
 import (
-	"crypto"
+	"crypto/ecdsa"
 	"encoding/json"
-	"github.com/iden3/iden3comm"
-	"github.com/pkg/errors"
 
+	"github.com/iden3/iden3comm"
+
+	"github.com/pkg/errors"
 	jose "gopkg.in/square/go-jose.v2"
 )
 
@@ -13,15 +14,10 @@ import (
 const MediaTypeEncryptedMessage iden3comm.MediaType = "application/iden3comm-encrypted-json"
 
 // AnoncryptPacker is  packer for anon encryption / decryption
-type AnoncryptPacker struct {
-}
-type KeyPair struct {
-	crypto.PublicKey
-	crypto.PrivateKey
-}
+type AnoncryptPacker struct{}
 
 // Pack returns packed message to transport envelope
-func (p *AnoncryptPacker) Pack(payload []byte, senderKeyPair KeyPair, receiverPubKey []byte) ([]byte, error) {
+func (p *AnoncryptPacker) Pack(payload []byte, receiverPubKey *ecdsa.PublicKey) ([]byte, error) {
 
 	encryptor, err := jose.NewEncrypter(jose.A256CBC_HS512, jose.Recipient{
 		Algorithm: jose.ECDH_ES_A256KW,
