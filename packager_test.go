@@ -134,7 +134,7 @@ func TestPackagerZKPPacker(t *testing.T) {
 
 func TestPackagerAnonryptPacker(t *testing.T) {
 	pm := iden3comm.NewPackageManager()
-	pm.RegisterPackers(&packers.AnoncryptPacker{}, &packers.PlainMessagePacker{})
+	pm.RegisterPackers(packers.NewAnoncryptPacker(mock.ResolveEncPrivateKey), &packers.PlainMessagePacker{})
 	// nolint :
 
 	identifier := "119tqceWdRd2F6WnAyVuFQRFjK3WUXq2LorSPyG9LJ"
@@ -144,7 +144,7 @@ func TestPackagerAnonryptPacker(t *testing.T) {
 	var msg protocol.CredentialFetchRequestMessage
 	msg.From = identifier
 	msg.To = identifier
-
+	msg.Typ = packers.MediaTypeEncryptedMessage
 	claimID, err := uuid.NewV4()
 	assert.NoError(t, err)
 
