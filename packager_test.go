@@ -3,7 +3,6 @@ package iden3comm_test
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/gofrs/uuid"
 	"github.com/iden3/go-circuits"
 	circuitsTesting "github.com/iden3/go-circuits/testing"
@@ -14,6 +13,7 @@ import (
 	"github.com/iden3/iden3comm/packers"
 	"github.com/iden3/iden3comm/protocol"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"math/big"
 	"testing"
 )
@@ -54,7 +54,7 @@ func TestPackagerPlainPacker(t *testing.T) {
 
 	identifier := "119tqceWdRd2F6WnAyVuFQRFjK3WUXq2LorSPyG9LJ"
 
-	senderID, err := core.IDFromString(identifier)
+	_, err := core.IDFromString(identifier)
 	assert.NoError(t, err)
 	var msg protocol.CredentialFetchRequestMessage
 	msg.From = identifier
@@ -70,7 +70,7 @@ func TestPackagerPlainPacker(t *testing.T) {
 	marshalledMsg, err := json.Marshal(msg)
 	assert.NoError(t, err)
 
-	envelope, err := pm.Pack(packers.MediaTypePlainMessage, marshalledMsg, &senderID)
+	envelope, err := pm.Pack(packers.MediaTypePlainMessage, marshalledMsg, packers.PlainPackerParams{})
 	assert.NoError(t, err)
 
 	unpackedMsg, unpackerType, err := pm.Unpack(envelope)
@@ -123,14 +123,52 @@ func TestPackagerZKPPacker(t *testing.T) {
 	marshalledMsg, err := json.Marshal(msg)
 	assert.NoError(t, err)
 
-	envelope, err := pm.Pack(packers.MediaTypeZKPMessage, marshalledMsg, &senderID)
+	envelope, err := pm.Pack(packers.MediaTypeZKPMessage, marshalledMsg, packers.ZKPPackerParams{SenderID: &senderID})
 	assert.NoError(t, err)
 
 	unpackedMsg, unpackerType, err := pm.Unpack(envelope)
-	fmt.Printf("unpaked msg: %v", unpackedMsg)
 	assert.NoError(t, err)
 	assert.Equal(t, unpackedMsg.Typ, unpackerType)
 	assert.Equal(t, packers.MediaTypeZKPMessage, unpackerType)
+}
+
+func TestPackagerAnonryptPacker(t *testing.T) {
+	pm := iden3comm.NewPackageManager()
+	pm.RegisterPackers(&packers.AnoncryptPacker{}, &packers.PlainMessagePacker{})
+	// nolint :
+
+	identifier := "119tqceWdRd2F6WnAyVuFQRFjK3WUXq2LorSPyG9LJ"
+
+	_, err := core.IDFromString(identifier)
+	assert.NoError(t, err)
+	var msg protocol.CredentialFetchRequestMessage
+	msg.From = identifier
+	msg.To = identifier
+
+	claimID, err := uuid.NewV4()
+	assert.NoError(t, err)
+
+	msg.Type = protocol.CredentialFetchRequestMessageType
+	msg.Body = protocol.CredentialFetchRequestMessageBody{
+		ID: claimID.String(),
+	}
+	marshalledMsg, err := json.Marshal(msg)
+	assert.NoError(t, err)
+
+	key, err := mock.ResolveKeyID("myencryptionkey")
+	require.NoError(t, err)
+	envelope, err := pm.Pack(packers.MediaTypeEncryptedMessage, marshalledMsg, packers.AnoncryptPackerParams{RecipientKey: &key})
+	assert.NoError(t, err)
+
+	unpackedMsg, unpackerType, err := pm.Unpack(envelope)
+	assert.NoError(t, err)
+	assert.Equal(t, unpackedMsg.Typ, unpackerType)
+
+	actualMSGBytes, err := json.Marshal(unpackedMsg)
+	assert.NoError(t, err)
+
+	assert.JSONEq(t, string(marshalledMsg), string(actualMSGBytes))
+
 }
 
 // check that MediaTypeZKPMessage will take only from jwz header, not from body.
@@ -167,7 +205,9 @@ func TestPackagerZKPPacker_OtherMessageTypeInBody(t *testing.T) {
 	marshalledMsg, err := json.Marshal(msg)
 	assert.NoError(t, err)
 
-	envelope, err := pm.Pack(packers.MediaTypeZKPMessage, marshalledMsg, &senderID)
+	envelope, err := pm.Pack(packers.MediaTypeZKPMessage, marshalledMsg, packers.ZKPPackerParams{
+		SenderID: &senderID,
+	})
 	assert.NoError(t, err)
 
 	unpackedMsg, unpackerType, err := pm.Unpack(envelope)
@@ -211,11 +251,12 @@ func TestUnpackWithType(t *testing.T) {
 	marshalledMsg, err := json.Marshal(msg)
 	assert.NoError(t, err)
 
-	envelope, err := pm.Pack(packers.MediaTypeZKPMessage, marshalledMsg, &senderID)
+	envelope, err := pm.Pack(packers.MediaTypeZKPMessage, marshalledMsg, packers.ZKPPackerParams{
+		SenderID: &senderID,
+	})
 	assert.NoError(t, err)
 
 	unpackedMsg, err := pm.UnpackWithType(packers.MediaTypeZKPMessage, envelope)
-	fmt.Printf("unpaked msg: %v", unpackedMsg)
 	assert.NoError(t, err)
 	assert.Equal(t, unpackedMsg.Typ, packers.MediaTypeZKPMessage)
 }

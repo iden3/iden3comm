@@ -42,6 +42,12 @@ type ZKPPacker struct {
 	StateVerifier    StateVerificationHandlerFunc
 }
 
+// ZKPPackerParams is params for zkp packer
+type ZKPPackerParams struct {
+	SenderID *core.ID
+	iden3comm.PackerParams
+}
+
 // NewZKPPacker creates new instance of zkp Packer.
 // Pack works only with a specific proving Method
 // Unpack is universal function that supports all proving method defined in jwz.
@@ -61,14 +67,19 @@ func NewZKPPacker(provingMethod jwz.ProvingMethod, authDataPreparer AuthDataPrep
 }
 
 // Pack returns packed message to transport envelope with a zero knowledge proof in JWZ full serialized format
-func (p *ZKPPacker) Pack(payload []byte, senderID *core.ID) ([]byte, error) {
+func (p *ZKPPacker) Pack(payload []byte, params iden3comm.PackerParams) ([]byte, error) {
 
 	// create hash of message
 	var err error
 	var token *jwz.Token
 
+	zkpParams, ok := params.(ZKPPackerParams)
+	if !ok {
+		return nil, errors.New("can't cast params to zkp packer params")
+	}
+
 	token, err = jwz.NewWithPayload(p.ProvingMethod, payload, func(hash []byte, circuitID circuits.CircuitID) ([]byte, error) {
-		return p.AuthDataPreparer.Prepare(hash, senderID, circuitID)
+		return p.AuthDataPreparer.Prepare(hash, zkpParams.SenderID, circuitID)
 	})
 	if err != nil {
 		return nil, err

@@ -2,10 +2,13 @@ package mock
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	"github.com/iden3/go-circuits"
 	circuitsTesting "github.com/iden3/go-circuits/testing"
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-rapidsnark/types"
+	"gopkg.in/square/go-jose.v2"
 	"math/big"
 )
 
@@ -79,4 +82,32 @@ func PrepareAuthInputs(hash []byte, id *core.ID, circuitID circuits.CircuitID) (
 // VerifyState return no error always
 func VerifyState(id circuits.CircuitID, signals []string) error {
 	return nil
+}
+
+// MockRecepientKeyID is mocked key id
+const MockRecepientKeyID = "123245366475734"
+
+// ResolveKeyID returns mocked public key for any key ID
+func ResolveKeyID(_ string) (jose.JSONWebKey, error) {
+	recipientPrivKey, _ := ResolveEncPrivateKey("")
+	recipientPubKey := jose.JSONWebKey{
+		Key:       &recipientPrivKey.(*ecdsa.PrivateKey).PublicKey,
+		KeyID:     "myecnryptionkey",
+		Algorithm: "PS256",
+		Use:       "enc",
+	}
+	return recipientPubKey, nil
+}
+
+// ResolveEncPrivateKey returns mocked private key
+func ResolveEncPrivateKey(_ string) (interface{}, error) {
+	seed := new(big.Int)
+	seed.SetString(MockRecepientKeyID, 16)
+
+	recipientPrivKey := new(ecdsa.PrivateKey)
+	curve := elliptic.P256()
+	recipientPrivKey.PublicKey.Curve = curve
+	recipientPrivKey.D = seed
+	recipientPrivKey.PublicKey.X, recipientPrivKey.PublicKey.Y = curve.ScalarBaseMult(seed.Bytes())
+	return recipientPrivKey, nil
 }
