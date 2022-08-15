@@ -54,20 +54,15 @@ func TestPackagerPlainPacker(t *testing.T) {
 
 	identifier := "119tqceWdRd2F6WnAyVuFQRFjK3WUXq2LorSPyG9LJ"
 
-	_, err := core.IDFromString(identifier)
-	assert.NoError(t, err)
-	var msg protocol.CredentialFetchRequestMessage
-	msg.From = identifier
-	msg.To = identifier
-
-	claimID, err := uuid.NewV4()
+	senderID, err := core.IDFromString(identifier)
 	assert.NoError(t, err)
 
-	msg.Type = protocol.CredentialFetchRequestMessageType
-	msg.Body = protocol.CredentialFetchRequestMessageBody{
-		ID: claimID.String(),
-	}
-	marshalledMsg, err := json.Marshal(msg)
+	targetIdentifier := "11C8f2cLx3w5tjk3AuaC11ofGkW7gPPUJzMXv27PpJ"
+
+	targetID, err := core.IDFromString(targetIdentifier)
+	assert.NoError(t, err)
+
+	marshalledMsg, err := createFetchCredentialMessage(packers.MediaTypePlainMessage, &senderID, &targetID)
 	assert.NoError(t, err)
 
 	envelope, err := pm.Pack(packers.MediaTypePlainMessage, marshalledMsg, packers.PlainPackerParams{})
@@ -83,7 +78,7 @@ func TestPackagerPlainPacker(t *testing.T) {
 		var fetchRequestBody protocol.CredentialFetchRequestMessageBody
 		err = json.Unmarshal(unpackedMsg.Body, &fetchRequestBody)
 		assert.NoError(t, err)
-		assert.Equal(t, msg.Body.ID, fetchRequestBody.ID)
+		assert.NotEmpty(t, fetchRequestBody)
 	default:
 		assert.FailNow(t, "message type %s is not supported by agent", unpackedMsg.Type)
 	}
@@ -108,19 +103,13 @@ func TestPackagerZKPPacker(t *testing.T) {
 
 	senderID, err := core.IDFromString(identifier)
 	assert.NoError(t, err)
-	var msg protocol.CredentialFetchRequestMessage
-	msg.From = identifier
-	msg.To = identifier
 
-	claimID, err := uuid.NewV4()
+	targetIdentifier := "11C8f2cLx3w5tjk3AuaC11ofGkW7gPPUJzMXv27PpJ"
+
+	targetID, err := core.IDFromString(targetIdentifier)
 	assert.NoError(t, err)
 
-	msg.Type = protocol.CredentialFetchRequestMessageType
-	msg.Typ = packers.MediaTypeZKPMessage
-	msg.Body = protocol.CredentialFetchRequestMessageBody{
-		ID: claimID.String(),
-	}
-	marshalledMsg, err := json.Marshal(msg)
+	marshalledMsg, err := createFetchCredentialMessage(packers.MediaTypeZKPMessage, &senderID, &targetID)
 	assert.NoError(t, err)
 
 	envelope, err := pm.Pack(packers.MediaTypeZKPMessage, marshalledMsg, packers.ZKPPackerParams{SenderID: &senderID})
@@ -128,8 +117,9 @@ func TestPackagerZKPPacker(t *testing.T) {
 
 	unpackedMsg, unpackerType, err := pm.Unpack(envelope)
 	assert.NoError(t, err)
-	assert.Equal(t, unpackedMsg.Typ, unpackerType)
 	assert.Equal(t, packers.MediaTypeZKPMessage, unpackerType)
+	assert.Equal(t, senderID.String(), unpackedMsg.From)
+
 }
 
 func TestPackagerAnonryptPacker(t *testing.T) {
@@ -139,23 +129,18 @@ func TestPackagerAnonryptPacker(t *testing.T) {
 
 	identifier := "119tqceWdRd2F6WnAyVuFQRFjK3WUXq2LorSPyG9LJ"
 
-	_, err := core.IDFromString(identifier)
-	assert.NoError(t, err)
-	var msg protocol.CredentialFetchRequestMessage
-	msg.From = identifier
-	msg.To = identifier
-	msg.Typ = packers.MediaTypeEncryptedMessage
-	claimID, err := uuid.NewV4()
+	id, err := core.IDFromString(identifier)
 	assert.NoError(t, err)
 
-	msg.Type = protocol.CredentialFetchRequestMessageType
-	msg.Body = protocol.CredentialFetchRequestMessageBody{
-		ID: claimID.String(),
-	}
-	marshalledMsg, err := json.Marshal(msg)
+	targetIdentifier := "11C8f2cLx3w5tjk3AuaC11ofGkW7gPPUJzMXv27PpJ"
+
+	targetID, err := core.IDFromString(targetIdentifier)
 	assert.NoError(t, err)
 
-	key, err := mock.ResolveKeyID("myencryptionkey")
+	marshalledMsg, err := createFetchCredentialMessage(packers.MediaTypeEncryptedMessage, &id, &targetID)
+	assert.NoError(t, err)
+
+	key, err := mock.ResolveKeyID(mock.MockRecipientKeyID)
 	require.NoError(t, err)
 	envelope, err := pm.Pack(packers.MediaTypeEncryptedMessage, marshalledMsg, packers.AnoncryptPackerParams{RecipientKey: &key})
 	assert.NoError(t, err)
@@ -190,19 +175,13 @@ func TestPackagerZKPPacker_OtherMessageTypeInBody(t *testing.T) {
 
 	senderID, err := core.IDFromString(identifier)
 	assert.NoError(t, err)
-	var msg protocol.CredentialFetchRequestMessage
-	msg.From = identifier
-	msg.To = identifier
 
-	claimID, err := uuid.NewV4()
+	targetIdentifier := "11C8f2cLx3w5tjk3AuaC11ofGkW7gPPUJzMXv27PpJ"
+
+	targetID, err := core.IDFromString(targetIdentifier)
 	assert.NoError(t, err)
 
-	msg.Type = protocol.CredentialFetchRequestMessageType
-	msg.Typ = packers.MediaTypePlainMessage
-	msg.Body = protocol.CredentialFetchRequestMessageBody{
-		ID: claimID.String(),
-	}
-	marshalledMsg, err := json.Marshal(msg)
+	marshalledMsg, err := createFetchCredentialMessage(packers.MediaTypePlainMessage, &senderID, &targetID)
 	assert.NoError(t, err)
 
 	envelope, err := pm.Pack(packers.MediaTypeZKPMessage, marshalledMsg, packers.ZKPPackerParams{
@@ -259,4 +238,23 @@ func TestUnpackWithType(t *testing.T) {
 	unpackedMsg, err := pm.UnpackWithType(packers.MediaTypeZKPMessage, envelope)
 	assert.NoError(t, err)
 	assert.Equal(t, unpackedMsg.Typ, packers.MediaTypeZKPMessage)
+}
+
+func createFetchCredentialMessage(typ iden3comm.MediaType, from, to *core.ID) ([]byte, error) {
+
+	var msg protocol.CredentialFetchRequestMessage
+	msg.From = from.String()
+	msg.To = to.String()
+	msg.Typ = typ
+	claimID, err := uuid.NewV4()
+	if err != nil {
+		return nil, err
+	}
+
+	msg.Type = protocol.CredentialFetchRequestMessageType
+	msg.Body = protocol.CredentialFetchRequestMessageBody{
+		ID: claimID.String(),
+	}
+	marshalledMsg, err := json.Marshal(msg)
+	return marshalledMsg, err
 }

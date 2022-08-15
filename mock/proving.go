@@ -84,15 +84,15 @@ func VerifyState(id circuits.CircuitID, signals []string) error {
 	return nil
 }
 
-// MockRecepientKeyID is mocked key id
-const MockRecepientKeyID = "123245366475734"
+// MockRecipientKeyID is mocked key id for recipient
+const MockRecipientKeyID = "123456789"
 
 // ResolveKeyID returns mocked public key for any key ID
-func ResolveKeyID(_ string) (jose.JSONWebKey, error) {
-	recipientPrivKey, _ := ResolveEncPrivateKey("")
+func ResolveKeyID(keyID string) (jose.JSONWebKey, error) {
+	recipientPrivKey, _ := ResolveEncPrivateKey(keyID)
 	recipientPubKey := jose.JSONWebKey{
 		Key:       &recipientPrivKey.(*ecdsa.PrivateKey).PublicKey,
-		KeyID:     "myecnryptionkey",
+		KeyID:     keyID,
 		Algorithm: "PS256",
 		Use:       "enc",
 	}
@@ -100,14 +100,14 @@ func ResolveKeyID(_ string) (jose.JSONWebKey, error) {
 }
 
 // ResolveEncPrivateKey returns mocked private key
-func ResolveEncPrivateKey(_ string) (interface{}, error) {
+func ResolveEncPrivateKey(keyID string) (interface{}, error) {
 	seed := new(big.Int)
-	seed.SetString(MockRecepientKeyID, 16)
+	// key id should be integer
+	seed.SetString(keyID, 16)
 
 	recipientPrivKey := new(ecdsa.PrivateKey)
-	curve := elliptic.P256()
-	recipientPrivKey.PublicKey.Curve = curve
+	recipientPrivKey.PublicKey.Curve = elliptic.P256()
 	recipientPrivKey.D = seed
-	recipientPrivKey.PublicKey.X, recipientPrivKey.PublicKey.Y = curve.ScalarBaseMult(seed.Bytes())
+	recipientPrivKey.PublicKey.X, recipientPrivKey.PublicKey.Y = recipientPrivKey.PublicKey.Curve.ScalarBaseMult(seed.Bytes())
 	return recipientPrivKey, nil
 }
