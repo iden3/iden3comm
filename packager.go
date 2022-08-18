@@ -5,19 +5,23 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	core "github.com/iden3/go-iden3-core"
 	"github.com/pkg/errors"
 	"strings"
 )
 
 // Packer converts message to encrypted or encoded form
 type Packer interface {
-	// Pack a payload of type ContentType in an Iden3 compliant format using the sender identity
-	Pack(payload []byte, sender *core.ID) ([]byte, error)
+	// Pack a payload of type ContentType in an Iden3 compliant format using the packer identity
+	Pack(payload []byte, params PackerParams) ([]byte, error)
 	// Unpack an envelope in Iden3 compliant format.
 	Unpack(envelope []byte) (*BasicMessage, error)
 	// MediaType returns content type of message
 	MediaType() MediaType
+}
+
+// PackerParams mock interface for packer params
+type PackerParams interface {
+	Params()
 }
 
 // PackageManager is a registry of packers for iden3comm protocol
@@ -43,14 +47,14 @@ func (r *PackageManager) RegisterPackers(packers ...Packer) error {
 }
 
 // Pack performs packing of message with a given mediatype
-func (r *PackageManager) Pack(mediaType MediaType, payload []byte, senderID *core.ID) ([]byte, error) {
+func (r *PackageManager) Pack(mediaType MediaType, payload []byte, params PackerParams) ([]byte, error) {
 
 	p, ok := r.packers[mediaType]
 	if !ok {
 		return nil, errors.Errorf("packer for media type %s doesn't exist", mediaType)
 	}
 
-	envelope, err := p.Pack(payload, senderID)
+	envelope, err := p.Pack(payload, params)
 	if err != nil {
 		return nil, err
 	}

@@ -2,7 +2,6 @@ package packers
 
 import (
 	"encoding/json"
-	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/iden3comm"
 	"github.com/pkg/errors"
 )
@@ -14,8 +13,13 @@ const MediaTypePlainMessage iden3comm.MediaType = "application/iden3comm-plain-j
 type PlainMessagePacker struct {
 }
 
+// PlainPackerParams is params for plain packer
+type PlainPackerParams struct {
+	iden3comm.PackerParams
+}
+
 // Pack returns packed message to transport envelope
-func (p *PlainMessagePacker) Pack(payload []byte, _ *core.ID) ([]byte, error) {
+func (p *PlainMessagePacker) Pack(payload []byte, params iden3comm.PackerParams) ([]byte, error) {
 
 	var msgMap map[string]interface{}
 	err := json.Unmarshal(payload, &msgMap)
