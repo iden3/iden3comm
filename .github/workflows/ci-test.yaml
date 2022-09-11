@@ -11,12 +11,12 @@ on:
       - develop
 jobs:
   test:
+    strategy:
+      matrix:
+        containers: [ 1.18 ]
     runs-on: ubuntu-22.04
+    container: golang:${{ matrix.containers }}
     steps:
-      - name: Install Go
-        uses: actions/setup-go@v1
-        with:
-          go-version: 1.18
       - name: Checkout code
         uses: actions/checkout@v2
       - uses: actions/cache@v2
@@ -30,4 +30,4 @@ jobs:
       - name: Update go modules
         run: go mod tidy
       - name: Unit Tests
-        run: go test -tags rapidsnark_noasm -race -timeout=60s ./...
+        run: go test -tags rapidsnark_noasm -timeout=60s ./...
