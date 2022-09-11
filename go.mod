@@ -6,7 +6,7 @@ require (
 	github.com/gofrs/uuid v3.3.0+incompatible
 	github.com/iden3/go-circuits v0.1.0
 	github.com/iden3/go-iden3-core v0.1.0
-	github.com/iden3/go-jwz v0.1.2-0.20220911141248-5072ecea5e0e
+	github.com/iden3/go-jwz v0.1.2-0.20220911142023-bd4f12c86594
 	github.com/iden3/go-rapidsnark/types v0.0.1
 	github.com/iden3/go-schema-processor v0.1.0
 	github.com/pkg/errors v0.9.1
