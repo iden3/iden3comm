@@ -52,17 +52,17 @@ func TestPackagerPlainPacker(t *testing.T) {
 	pm := iden3comm.NewPackageManager()
 	pm.RegisterPackers(&packers.PlainMessagePacker{})
 
-	identifier := "119tqceWdRd2F6WnAyVuFQRFjK3WUXq2LorSPyG9LJ"
+	identifier := "did:iden3:polygon:mumbai:4RzkkAj2G1ugUEdSo676p5ot7dgQqZ8riTfv4Ev1YX2"
 
-	senderID, err := core.IDFromString(identifier)
+	senderDID, err := core.ParseDID(identifier)
 	assert.NoError(t, err)
 
-	targetIdentifier := "11C8f2cLx3w5tjk3AuaC11ofGkW7gPPUJzMXv27PpJ"
+	targetIdentifier := "did:iden3:polygon:mumbai:4RzqWLqUWKL8ERhUnvvdn5HZcMVfeWKsdunJsBFJtTQ"
 
-	targetID, err := core.IDFromString(targetIdentifier)
+	targetID, err := core.ParseDID(targetIdentifier)
 	assert.NoError(t, err)
 
-	marshalledMsg, err := createFetchCredentialMessage(packers.MediaTypePlainMessage, &senderID, &targetID)
+	marshalledMsg, err := createFetchCredentialMessage(packers.MediaTypePlainMessage, senderDID, targetID)
 	assert.NoError(t, err)
 
 	envelope, err := pm.Pack(packers.MediaTypePlainMessage, marshalledMsg, packers.PlainPackerParams{})
@@ -99,45 +99,46 @@ func TestPackagerZKPPacker(t *testing.T) {
 	err := pm.RegisterPackers(packers.NewZKPPacker(mockedProvingMethod, mock.PrepareAuthInputs, mock.VerifyState, []byte{}, []byte{}, keys))
 	assert.NoError(t, err)
 
-	identifier := "119tqceWdRd2F6WnAyVuFQRFjK3WUXq2LorSPyG9LJ"
+	identifier := "did:iden3:polygon:mumbai:4RzkkAj2G1ugUEdSo676p5ot7dgQqZ8riTfv4Ev1YX2"
 
-	senderID, err := core.IDFromString(identifier)
+	senderDID, err := core.ParseDID(identifier)
 	assert.NoError(t, err)
 
-	targetIdentifier := "11C8f2cLx3w5tjk3AuaC11ofGkW7gPPUJzMXv27PpJ"
+	targetIdentifier := "did:iden3:polygon:mumbai:4RzqWLqUWKL8ERhUnvvdn5HZcMVfeWKsdunJsBFJtTQ"
 
-	targetID, err := core.IDFromString(targetIdentifier)
+	targetID, err := core.ParseDID(targetIdentifier)
 	assert.NoError(t, err)
 
-	marshalledMsg, err := createFetchCredentialMessage(packers.MediaTypeZKPMessage, &senderID, &targetID)
+	marshalledMsg, err := createFetchCredentialMessage(packers.MediaTypeZKPMessage, senderDID, targetID)
 	assert.NoError(t, err)
 
-	envelope, err := pm.Pack(packers.MediaTypeZKPMessage, marshalledMsg, packers.ZKPPackerParams{SenderID: &senderID})
+	envelope, err := pm.Pack(packers.MediaTypeZKPMessage, marshalledMsg, packers.ZKPPackerParams{SenderID: senderDID})
 	assert.NoError(t, err)
 
 	unpackedMsg, unpackerType, err := pm.Unpack(envelope)
 	assert.NoError(t, err)
 	assert.Equal(t, packers.MediaTypeZKPMessage, unpackerType)
-	assert.Equal(t, senderID.String(), unpackedMsg.From)
+	assert.Equal(t, senderDID.String(), unpackedMsg.From)
 
 }
 
 func TestPackagerAnonryptPacker(t *testing.T) {
+
 	pm := iden3comm.NewPackageManager()
 	pm.RegisterPackers(packers.NewAnoncryptPacker(mock.ResolveEncPrivateKey), &packers.PlainMessagePacker{})
 	// nolint :
 
-	identifier := "119tqceWdRd2F6WnAyVuFQRFjK3WUXq2LorSPyG9LJ"
+	identifier := "did:iden3:polygon:mumbai:4RzkkAj2G1ugUEdSo676p5ot7dgQqZ8riTfv4Ev1YX2"
 
-	id, err := core.IDFromString(identifier)
+	senderDID, err := core.ParseDID(identifier)
 	assert.NoError(t, err)
 
-	targetIdentifier := "11C8f2cLx3w5tjk3AuaC11ofGkW7gPPUJzMXv27PpJ"
+	targetIdentifier := "did:iden3:polygon:mumbai:4RzqWLqUWKL8ERhUnvvdn5HZcMVfeWKsdunJsBFJtTQ"
 
-	targetID, err := core.IDFromString(targetIdentifier)
+	targetID, err := core.ParseDID(targetIdentifier)
 	assert.NoError(t, err)
 
-	marshalledMsg, err := createFetchCredentialMessage(packers.MediaTypeEncryptedMessage, &id, &targetID)
+	marshalledMsg, err := createFetchCredentialMessage(packers.MediaTypeEncryptedMessage, senderDID, targetID)
 	assert.NoError(t, err)
 
 	key, err := mock.ResolveKeyID(mock.MockRecipientKeyID)
@@ -171,21 +172,21 @@ func TestPackagerZKPPacker_OtherMessageTypeInBody(t *testing.T) {
 	err := pm.RegisterPackers(packers.NewZKPPacker(mockedProvingMethod, mock.PrepareAuthInputs, mock.VerifyState, []byte{}, []byte{}, keys))
 	assert.NoError(t, err)
 
-	identifier := "119tqceWdRd2F6WnAyVuFQRFjK3WUXq2LorSPyG9LJ"
+	identifier := "did:iden3:polygon:mumbai:4RzkkAj2G1ugUEdSo676p5ot7dgQqZ8riTfv4Ev1YX2"
 
-	senderID, err := core.IDFromString(identifier)
+	senderDID, err := core.ParseDID(identifier)
 	assert.NoError(t, err)
 
-	targetIdentifier := "11C8f2cLx3w5tjk3AuaC11ofGkW7gPPUJzMXv27PpJ"
+	targetIdentifier := "did:iden3:polygon:mumbai:4RzqWLqUWKL8ERhUnvvdn5HZcMVfeWKsdunJsBFJtTQ"
 
-	targetID, err := core.IDFromString(targetIdentifier)
+	targetID, err := core.ParseDID(targetIdentifier)
 	assert.NoError(t, err)
 
-	marshalledMsg, err := createFetchCredentialMessage(packers.MediaTypePlainMessage, &senderID, &targetID)
+	marshalledMsg, err := createFetchCredentialMessage(packers.MediaTypePlainMessage, senderDID, targetID)
 	assert.NoError(t, err)
 
 	envelope, err := pm.Pack(packers.MediaTypeZKPMessage, marshalledMsg, packers.ZKPPackerParams{
-		SenderID: &senderID,
+		SenderID: senderDID,
 	})
 	assert.NoError(t, err)
 
@@ -211,9 +212,9 @@ func TestUnpackWithType(t *testing.T) {
 	err := pm.RegisterPackers(packers.NewZKPPacker(mockedProvingMethod, mock.PrepareAuthInputs, mock.VerifyState, []byte{}, []byte{}, keys))
 	assert.NoError(t, err)
 
-	identifier := "119tqceWdRd2F6WnAyVuFQRFjK3WUXq2LorSPyG9LJ"
+	identifier := "did:iden3:polygon:mumbai:4RzkkAj2G1ugUEdSo676p5ot7dgQqZ8riTfv4Ev1YX2"
 
-	senderID, err := core.IDFromString(identifier)
+	senderDID, err := core.ParseDID(identifier)
 	assert.NoError(t, err)
 	var msg protocol.CredentialFetchRequestMessage
 	msg.From = identifier
@@ -231,7 +232,7 @@ func TestUnpackWithType(t *testing.T) {
 	assert.NoError(t, err)
 
 	envelope, err := pm.Pack(packers.MediaTypeZKPMessage, marshalledMsg, packers.ZKPPackerParams{
-		SenderID: &senderID,
+		SenderID: senderDID,
 	})
 	assert.NoError(t, err)
 
@@ -240,7 +241,7 @@ func TestUnpackWithType(t *testing.T) {
 	assert.Equal(t, unpackedMsg.Typ, packers.MediaTypeZKPMessage)
 }
 
-func createFetchCredentialMessage(typ iden3comm.MediaType, from, to *core.ID) ([]byte, error) {
+func createFetchCredentialMessage(typ iden3comm.MediaType, from, to *core.DID) ([]byte, error) {
 
 	var msg protocol.CredentialFetchRequestMessage
 	msg.From = from.String()

@@ -48,7 +48,7 @@ func (m *ProvingMethodGroth16Auth) Prove(inputs, provingKey, wasm []byte) (*type
 }
 
 // PrepareAuthInputs returns mocked inputs for auth circuit
-func PrepareAuthInputs(hash []byte, id *core.ID, circuitID circuits.CircuitID) ([]byte, error) {
+func PrepareAuthInputs(hash []byte, id *core.DID, circuitID circuits.CircuitID) ([]byte, error) {
 	challenge := new(big.Int).SetBytes(hash)
 
 	ctx := context.Background()

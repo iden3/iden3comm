@@ -5,13 +5,14 @@ go 1.18
 require (
 	github.com/gofrs/uuid v3.3.0+incompatible
 	github.com/iden3/go-circuits v0.1.0
-	github.com/iden3/go-iden3-core v0.1.0
+	github.com/iden3/go-iden3-core v0.1.1-0.20220923135459-cda2655fb250
 	github.com/iden3/go-jwz v0.1.3
 	github.com/iden3/go-rapidsnark/types v0.0.1
-	github.com/iden3/go-schema-processor v0.1.0
+	github.com/iden3/go-schema-processor v0.1.1-0.20220923140116-d29e2d987b99
 	github.com/pkg/errors v0.9.1
-	github.com/stretchr/testify v1.7.2
+	github.com/stretchr/testify v1.7.4
 	gopkg.in/square/go-jose.v2 v2.6.0
+
 )
 
 require (

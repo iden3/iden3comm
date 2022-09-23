@@ -14,10 +14,10 @@ import (
 const MediaTypeZKPMessage iden3comm.MediaType = "application/iden3-zkp-json"
 
 // AuthDataPreparerHandlerFunc registers the handler function for inputs preparation.
-type AuthDataPreparerHandlerFunc func(hash []byte, id *core.ID, circuitID circuits.CircuitID) ([]byte, error)
+type AuthDataPreparerHandlerFunc func(hash []byte, id *core.DID, circuitID circuits.CircuitID) ([]byte, error)
 
 // Prepare function is responsible to call provided handler for inputs preparation
-func (f AuthDataPreparerHandlerFunc) Prepare(hash []byte, id *core.ID, circuitID circuits.CircuitID) ([]byte, error) {
+func (f AuthDataPreparerHandlerFunc) Prepare(hash []byte, id *core.DID, circuitID circuits.CircuitID) ([]byte, error) {
 	return f(hash, id, circuitID)
 }
 
@@ -44,7 +44,7 @@ type ZKPPacker struct {
 
 // ZKPPackerParams is params for zkp packer
 type ZKPPackerParams struct {
-	SenderID *core.ID
+	SenderID *core.DID
 	iden3comm.PackerParams
 }
 
@@ -162,8 +162,11 @@ func verifySender(token *jwz.Token, msg iden3comm.BasicMessage) error {
 	if err != nil {
 		return err
 	}
-
-	if msg.From != id.String() {
+	did, err := core.ParseDIDFromID(id)
+	if err != nil {
+		return err
+	}
+	if msg.From != did.String() {
 		return errors.Errorf("sender of message is not used for jwz token creation, expected: '%s' got: '%s", msg.From, userID.String())
 	}
 

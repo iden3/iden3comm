@@ -1,13 +1,16 @@
 package packers
 
 import (
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"github.com/iden3/go-circuits"
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-jwz"
 	"github.com/iden3/iden3comm/mock"
 	"github.com/iden3/iden3comm/protocol"
 	"github.com/stretchr/testify/assert"
+	"math/big"
 	"testing"
 )
 
@@ -27,9 +30,13 @@ func TestZKPPacker_Pack(t *testing.T) {
 	p := NewZKPPacker(mockedProvingMethod, mock.PrepareAuthInputs, mock.VerifyState, provingKey, wasm, keys)
 
 	msgBytes := []byte(`{"type":"https://iden3-communication.io/authorization/1.0/response","from":"119tqceWdRd2F6WnAyVuFQRFjK3WUXq2LorSPyG9LJ","body":{"scope":[{"type":"zeroknowledge","circuit_id":"auth","pub_signals":["1","18311560525383319719311394957064820091354976310599818797157189568621466950811","323416925264666217617288569742564703632850816035761084002720090377353297920"],"proof_data":{"pi_a":["11130843150540789299458990586020000719280246153797882843214290541980522375072","1300841912943781723022032355836893831132920783788455531838254465784605762713","1"],"pi_b":[["20615768536988438336537777909042352056392862251785722796637590212160561351656","10371144806107778890538857700855108667622042215096971747203105997454625814080"],["19598541350804478549141207835028671111063915635580679694907635914279928677812","15264553045517065669171584943964322117397645147006909167427809837929458012913"],["1","0"]],"pi_c":["16443309279825508893086251290003936935077348754097470818523558082502364822049","2984180227766048100510120407150752052334571876681304999595544138155611963273","1"],"protocol":""}}]}}`)
-	id, _ := core.IDFromString("119tqceWdRd2F6WnAyVuFQRFjK3WUXq2LorSPyG9LJ")
+	identifier := "did:iden3:polygon:mumbai:4RzkkAj2G1ugUEdSo676p5ot7dgQqZ8riTfv4Ev1YX2"
+
+	senderDID, err := core.ParseDID(identifier)
+	assert.Nil(t, err)
+
 	b, err := p.Pack(msgBytes, ZKPPackerParams{
-		SenderID: &id,
+		SenderID: senderDID,
 	})
 	assert.Nil(t, err)
 
@@ -40,7 +47,7 @@ func TestZKPPacker_Pack(t *testing.T) {
 	err = token.ParsePubSignals(&outs)
 	assert.Nil(t, err)
 
-	assert.EqualValues(t, id.String(), outs.UserID.String())
+	assert.EqualValues(t, senderDID.String(), outs.UserID.String())
 
 }
 
@@ -67,5 +74,21 @@ func TestPlainMessagePacker_Unpack(t *testing.T) {
 
 	assert.Equal(t, authResponse.Type, protocol.AuthorizationResponseMessageType)
 	assert.Len(t, authResponse.Body.Scope, 1)
+
+}
+
+func TestZKPPacker_Unpack22(t *testing.T) {
+	hexManual := "1abd909e3fc909993dacb7b8426eb2cf85c00cbc91f43bbbdbc02b21acb2edbe"
+	hexContract := "da0c104a69df125229040e8dd4d9a2b1b8fcf7828ba856e708157b04d30000"
+
+	mb, err := hex.DecodeString(hexManual)
+	assert.NoError(t, err)
+	i := new(big.Int).SetBytes(mb)
+	fmt.Println(i.String())
+
+	cb, err := hex.DecodeString(hexContract)
+	assert.NoError(t, err)
+	i2 := new(big.Int).SetBytes(cb)
+	fmt.Println(i2.String())
 
 }
