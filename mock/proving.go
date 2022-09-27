@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"crypto/elliptic"
+	"fmt"
 	"github.com/iden3/go-circuits"
 	circuitsTesting "github.com/iden3/go-circuits/testing"
 	core "github.com/iden3/go-iden3-core"
@@ -43,7 +44,7 @@ func (m *ProvingMethodGroth16Auth) Prove(inputs, provingKey, wasm []byte) (*type
 			C:        nil,
 			Protocol: "groth16",
 		},
-		PubSignals: []string{"179949150130214723420589610911161895495647789006649785264738141299135414272", "1", "379949150130214723420589610911161895495647789006649785264738141299135414272"},
+		PubSignals: []string{"1", "18656147546666944484453899241916469544090258810192803949522794490493271005313", "326950639933209984096878120644736617046275723209353386907645117784580620769"},
 	}, nil
 }
 
@@ -75,6 +76,12 @@ func PrepareAuthInputs(hash []byte, id *core.DID, circuitID circuits.CircuitID) 
 		Signature: signature,
 		Challenge: challenge,
 	}
+
+	iddd, err := core.IDFromInt(identifier.BigInt())
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(iddd.String())
 
 	return inputs.InputsMarshal()
 }

@@ -9,8 +9,8 @@ github.com/gofrs/uuid v3.3.0+incompatible h1:8K4tyRfvU1CYPgJsveYFQMhpFd/wXNM7iK6
 github.com/gofrs/uuid v3.3.0+incompatible/go.mod h1:b2aQJv3Z4Fp6yNu3cdSllBxTCLRxnplIgP/c0N/04lM=
 github.com/google/go-cmp v0.5.9 h1:O2Tfq5qg4qc4AmwVlvv0oLiVAGB7enBSJ2x2DqQFi38=
 github.com/google/go-cmp v0.5.9/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
-github.com/iden3/go-circuits v0.1.0 h1:Ry/V1WlOuwPwGhIx/ZJJelz0Jx7h6g2cto6gui/0VWA=
-github.com/iden3/go-circuits v0.1.0/go.mod h1:pd69vG2pg8qvxYTbb7WHrZ41OF5bizgs5E/dkBggUag=
+github.com/iden3/go-circuits v0.1.1-0.20220926135756-38ea5710839d h1:7SDq9PXNv9wgqLXh7GtQGz2Si1dJiNgK12oVNieiMgs=
+github.com/iden3/go-circuits v0.1.1-0.20220926135756-38ea5710839d/go.mod h1:AYIgiL3fjNopzBrVkfK29SJzk8NqFMKSPL94Dhh2Wr4=
 github.com/iden3/go-iden3-core v0.1.1-0.20220923135459-cda2655fb250 h1:SC1TW31pQ5+wvYBZZ+mq6fT7D9J1icoFUcbqL3+4ipM=
 github.com/iden3/go-iden3-core v0.1.1-0.20220923135459-cda2655fb250/go.mod h1:yoAZdz0TpK/wcFvek8fDWfdd6FUhKgFzLKfCBwUaBCs=
 github.com/iden3/go-iden3-crypto v0.0.13 h1:ixWRiaqDULNyIDdOWz2QQJG5t4PpNHkQk2P6GV94cok=
