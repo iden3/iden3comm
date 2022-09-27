@@ -167,7 +167,7 @@ func verifySender(token *jwz.Token, msg iden3comm.BasicMessage) error {
 		return err
 	}
 	if msg.From != did.String() {
-		return errors.Errorf("sender of message is not used for jwz token creation, expected: '%s' got: '%s", msg.From, userID.String())
+		return errors.Errorf("sender of message is not used for jwz token creation, expected: '%s' got: '%s", msg.From, did.String())
 	}
 
 	return nil

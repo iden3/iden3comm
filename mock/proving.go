@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"crypto/elliptic"
-	"fmt"
 	"github.com/iden3/go-circuits"
 	circuitsTesting "github.com/iden3/go-circuits/testing"
 	core "github.com/iden3/go-iden3-core"
@@ -30,12 +29,12 @@ func (m *ProvingMethodGroth16Auth) CircuitID() string {
 }
 
 // Verify return no error for any proof
-func (m *ProvingMethodGroth16Auth) Verify(messageHash []byte, proof *types.ZKProof, verificationKey []byte) error {
+func (m *ProvingMethodGroth16Auth) Verify(_ []byte, _ *types.ZKProof, _ []byte) error {
 	return nil
 }
 
 // Prove generates proof using auth circuit and groth16 alg, checks that proven message hash is set as a part of circuit specific inputs
-func (m *ProvingMethodGroth16Auth) Prove(inputs, provingKey, wasm []byte) (*types.ZKProof, error) {
+func (m *ProvingMethodGroth16Auth) Prove(_, _, _ []byte) (*types.ZKProof, error) {
 
 	return &types.ZKProof{
 		Proof: &types.ProofData{
@@ -49,7 +48,7 @@ func (m *ProvingMethodGroth16Auth) Prove(inputs, provingKey, wasm []byte) (*type
 }
 
 // PrepareAuthInputs returns mocked inputs for auth circuit
-func PrepareAuthInputs(hash []byte, id *core.DID, circuitID circuits.CircuitID) ([]byte, error) {
+func PrepareAuthInputs(hash []byte, _ *core.DID, _ circuits.CircuitID) ([]byte, error) {
 	challenge := new(big.Int).SetBytes(hash)
 
 	ctx := context.Background()
@@ -77,17 +76,11 @@ func PrepareAuthInputs(hash []byte, id *core.DID, circuitID circuits.CircuitID) 
 		Challenge: challenge,
 	}
 
-	iddd, err := core.IDFromInt(identifier.BigInt())
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(iddd.String())
-
 	return inputs.InputsMarshal()
 }
 
 // VerifyState return no error always
-func VerifyState(id circuits.CircuitID, signals []string) error {
+func VerifyState(_ circuits.CircuitID, _ []string) error {
 	return nil
 }
 

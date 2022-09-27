@@ -1,11 +1,9 @@
 package iden3comm_test
 
 import (
-	"context"
 	"encoding/json"
 	"github.com/gofrs/uuid"
 	"github.com/iden3/go-circuits"
-	circuitsTesting "github.com/iden3/go-circuits/testing"
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-jwz"
 	"github.com/iden3/iden3comm"
@@ -14,43 +12,13 @@ import (
 	"github.com/iden3/iden3comm/protocol"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"math/big"
 	"testing"
 )
 
-func MockPrepareAuthInputs(hash []byte, id *core.ID, circuitID circuits.CircuitID) ([]byte, error) {
-	challenge := new(big.Int).SetBytes(hash)
-
-	ctx := context.Background()
-	privKeyHex := "28156abe7fe2fd433dc9df969286b96666489bac508612d0e16593e944c4f69f"
-	identifier, claim, state, claimsTree, revTree, rootsTree, claimEntryMTP, claimNonRevMTP, signature, err := circuitsTesting.AuthClaimFullInfo(ctx, privKeyHex, challenge)
-	if err != nil {
-		return nil, err
-	}
-	treeState := circuits.TreeState{
-		State:          state,
-		ClaimsRoot:     claimsTree.Root(),
-		RevocationRoot: revTree.Root(),
-		RootOfRoots:    rootsTree.Root(),
-	}
-
-	inputs := circuits.AuthInputs{
-		ID: identifier,
-		AuthClaim: circuits.Claim{
-			Claim:       claim,
-			Proof:       claimEntryMTP,
-			TreeState:   treeState,
-			NonRevProof: &circuits.ClaimNonRevStatus{TreeState: treeState, Proof: claimNonRevMTP},
-		},
-		Signature: signature,
-		Challenge: challenge,
-	}
-	return inputs.InputsMarshal()
-}
-
 func TestPackagerPlainPacker(t *testing.T) {
 	pm := iden3comm.NewPackageManager()
-	pm.RegisterPackers(&packers.PlainMessagePacker{})
+	err := pm.RegisterPackers(&packers.PlainMessagePacker{})
+	assert.NoError(t, err)
 
 	identifier := "did:iden3:polygon:mumbai:4RzkkAj2G1ugUEdSo676p5ot7dgQqZ8riTfv4Ev1YX2"
 
@@ -87,19 +55,19 @@ func TestPackagerPlainPacker(t *testing.T) {
 
 func TestPackagerZKPPacker(t *testing.T) {
 	pm := iden3comm.NewPackageManager()
-	pm.RegisterPackers(&packers.PlainMessagePacker{})
-	// nolint :
+	err := pm.RegisterPackers(&packers.PlainMessagePacker{})
+	assert.NoError(t, err)
 
 	mockedProvingMethod := &mock.ProvingMethodGroth16Auth{Algorithm: "groth16-mock", Circuit: "auth"}
 	jwz.RegisterProvingMethod("groth16-mock", func() jwz.ProvingMethod {
 		return mockedProvingMethod
 	})
-	keys := map[circuits.CircuitID][]byte{circuits.AuthCircuitID: []byte{}}
+	keys := map[circuits.CircuitID][]byte{circuits.AuthCircuitID: {}}
 
-	err := pm.RegisterPackers(packers.NewZKPPacker(mockedProvingMethod, mock.PrepareAuthInputs, mock.VerifyState, []byte{}, []byte{}, keys))
+	err = pm.RegisterPackers(packers.NewZKPPacker(mockedProvingMethod, mock.PrepareAuthInputs, mock.VerifyState, []byte{}, []byte{}, keys))
 	assert.NoError(t, err)
 
-	identifier := "did:iden3:polygon:mumbai:4RzkkAj2G1ugUEdSo676p5ot7dgQqZ8riTfv4Ev1YX2"
+	identifier := "did:iden3:polygon:mumbai:4RzqiKYtZjWu8xf1jnts3FTpPnwTzW1HyUsdDGcDER6"
 
 	senderDID, err := core.ParseDID(identifier)
 	assert.NoError(t, err)
@@ -125,8 +93,8 @@ func TestPackagerZKPPacker(t *testing.T) {
 func TestPackagerAnonryptPacker(t *testing.T) {
 
 	pm := iden3comm.NewPackageManager()
-	pm.RegisterPackers(packers.NewAnoncryptPacker(mock.ResolveEncPrivateKey), &packers.PlainMessagePacker{})
-	// nolint :
+	err := pm.RegisterPackers(packers.NewAnoncryptPacker(mock.ResolveEncPrivateKey), &packers.PlainMessagePacker{})
+	assert.NoError(t, err)
 
 	identifier := "did:iden3:polygon:mumbai:4RzkkAj2G1ugUEdSo676p5ot7dgQqZ8riTfv4Ev1YX2"
 
@@ -160,19 +128,19 @@ func TestPackagerAnonryptPacker(t *testing.T) {
 // check that MediaTypeZKPMessage will take only from jwz header, not from body.
 func TestPackagerZKPPacker_OtherMessageTypeInBody(t *testing.T) {
 	pm := iden3comm.NewPackageManager()
-	pm.RegisterPackers(&packers.PlainMessagePacker{})
-	// nolint :
+	err := pm.RegisterPackers(&packers.PlainMessagePacker{})
+	assert.NoError(t, err)
 
 	mockedProvingMethod := &mock.ProvingMethodGroth16Auth{Algorithm: "groth16-mock", Circuit: "auth"}
 	jwz.RegisterProvingMethod("groth16-mock", func() jwz.ProvingMethod {
 		return mockedProvingMethod
 	})
-	keys := map[circuits.CircuitID][]byte{circuits.AuthCircuitID: []byte{}}
+	keys := map[circuits.CircuitID][]byte{circuits.AuthCircuitID: {}}
 
-	err := pm.RegisterPackers(packers.NewZKPPacker(mockedProvingMethod, mock.PrepareAuthInputs, mock.VerifyState, []byte{}, []byte{}, keys))
+	err = pm.RegisterPackers(packers.NewZKPPacker(mockedProvingMethod, mock.PrepareAuthInputs, mock.VerifyState, []byte{}, []byte{}, keys))
 	assert.NoError(t, err)
 
-	identifier := "did:iden3:polygon:mumbai:4RzkkAj2G1ugUEdSo676p5ot7dgQqZ8riTfv4Ev1YX2"
+	identifier := "did:iden3:polygon:mumbai:4RzqiKYtZjWu8xf1jnts3FTpPnwTzW1HyUsdDGcDER6"
 
 	senderDID, err := core.ParseDID(identifier)
 	assert.NoError(t, err)
@@ -200,19 +168,19 @@ func TestPackagerZKPPacker_OtherMessageTypeInBody(t *testing.T) {
 
 func TestUnpackWithType(t *testing.T) {
 	pm := iden3comm.NewPackageManager()
-	pm.RegisterPackers(&packers.PlainMessagePacker{})
-	// nolint :
+	err := pm.RegisterPackers(&packers.PlainMessagePacker{})
+	assert.NoError(t, err)
 
 	mockedProvingMethod := &mock.ProvingMethodGroth16Auth{Algorithm: "groth16-mock", Circuit: "auth"}
 	jwz.RegisterProvingMethod("groth16-mock", func() jwz.ProvingMethod {
 		return mockedProvingMethod
 	})
-	keys := map[circuits.CircuitID][]byte{circuits.AuthCircuitID: []byte{}}
+	keys := map[circuits.CircuitID][]byte{circuits.AuthCircuitID: {}}
 
-	err := pm.RegisterPackers(packers.NewZKPPacker(mockedProvingMethod, mock.PrepareAuthInputs, mock.VerifyState, []byte{}, []byte{}, keys))
+	err = pm.RegisterPackers(packers.NewZKPPacker(mockedProvingMethod, mock.PrepareAuthInputs, mock.VerifyState, []byte{}, []byte{}, keys))
 	assert.NoError(t, err)
 
-	identifier := "did:iden3:polygon:mumbai:4RzkkAj2G1ugUEdSo676p5ot7dgQqZ8riTfv4Ev1YX2"
+	identifier := "did:iden3:polygon:mumbai:4RzqiKYtZjWu8xf1jnts3FTpPnwTzW1HyUsdDGcDER6"
 
 	senderDID, err := core.ParseDID(identifier)
 	assert.NoError(t, err)
