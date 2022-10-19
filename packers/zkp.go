@@ -7,6 +7,7 @@ import (
 	"github.com/iden3/go-jwz"
 	"github.com/iden3/iden3comm"
 	"github.com/pkg/errors"
+	"math/big"
 )
 
 // MediaTypeZKPMessage is media type for jwz
@@ -41,6 +42,12 @@ type ZKPPacker struct {
 	StateVerifier    StateVerificationHandlerFunc
 }
 
+// ZKPPackerParams is params for zkp packer
+type ZKPPackerParams struct {
+	SenderID *core.ID
+	iden3comm.PackerParams
+}
+
 // NewZKPPacker creates new instance of zkp Packer.
 // Pack works only with a specific proving Method
 // Unpack is universal function that supports all proving method defined in jwz.
@@ -60,14 +67,19 @@ func NewZKPPacker(provingMethod jwz.ProvingMethod, authDataPreparer AuthDataPrep
 }
 
 // Pack returns packed message to transport envelope with a zero knowledge proof in JWZ full serialized format
-func (p *ZKPPacker) Pack(payload []byte, senderID *core.ID) ([]byte, error) {
+func (p *ZKPPacker) Pack(payload []byte, params iden3comm.PackerParams) ([]byte, error) {
 
 	// create hash of message
 	var err error
 	var token *jwz.Token
 
+	zkpParams, ok := params.(ZKPPackerParams)
+	if !ok {
+		return nil, errors.New("can't cast params to zkp packer params")
+	}
+
 	token, err = jwz.NewWithPayload(p.ProvingMethod, payload, func(hash []byte, circuitID circuits.CircuitID) ([]byte, error) {
-		return p.AuthDataPreparer.Prepare(hash, senderID, circuitID)
+		return p.AuthDataPreparer.Prepare(hash, zkpParams.SenderID, circuitID)
 	})
 	if err != nil {
 		return nil, err
@@ -117,7 +129,45 @@ func (p *ZKPPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
+
+	// check that sender of the message is presented in proof
+	err = verifySender(token, msg)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
 	return &msg, err
+}
+func verifySender(token *jwz.Token, msg iden3comm.BasicMessage) error {
+
+	bytePubsig, err := json.Marshal(token.ZkProof.PubSignals)
+	if err != nil {
+		return err
+	}
+
+	var userID *big.Int
+
+	switch circuits.CircuitID(token.CircuitID) {
+	case circuits.AuthCircuitID:
+		authPubSignals := circuits.AuthPubSignals{}
+		err = authPubSignals.PubSignalsUnmarshal(bytePubsig)
+		if err != nil {
+			return err
+		}
+		userID = authPubSignals.UserID.BigInt()
+	default:
+		return errors.Errorf("'%s' unknow circuit ID. can't verify msg sender", token.CircuitID)
+	}
+	id, err := core.IDFromInt(userID)
+	if err != nil {
+		return err
+	}
+
+	if msg.From != id.String() {
+		return errors.Errorf("sender of message is not used for jwz token creation, expected: '%s' got: '%s", msg.From, userID.String())
+	}
+
+	return nil
 }
 
 // MediaType for iden3comm that returns MediaTypeZKPMessage

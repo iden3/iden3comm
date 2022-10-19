@@ -1,6 +1,7 @@
 package protocol
 
 import (
+	"encoding/json"
 	"github.com/iden3/go-rapidsnark/types"
 	"github.com/iden3/iden3comm"
 )
@@ -29,6 +30,7 @@ type AuthorizationResponseMessage struct {
 
 // AuthorizationMessageResponseBody is struct the represents authorization response data
 type AuthorizationMessageResponseBody struct {
+	DIDDoc  json.RawMessage              `json:"did_doc,omitempty"`
 	Message string                       `json:"message,omitempty"`
 	Scope   []ZeroKnowledgeProofResponse `json:"scope"`
 }
@@ -50,6 +52,7 @@ type AuthorizationRequestMessageBody struct {
 	CallbackURL string                      `json:"callbackUrl"`
 	Reason      string                      `json:"reason,omitempty"`
 	Message     string                      `json:"message,omitempty"`
+	DIDDoc      json.RawMessage             `json:"did_doc,omitempty"`
 	Scope       []ZeroKnowledgeProofRequest `json:"scope"`
 }
 
