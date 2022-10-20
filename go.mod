@@ -4,9 +4,9 @@ go 1.18
 
 require (
 	github.com/gofrs/uuid v3.3.0+incompatible
-	github.com/iden3/go-circuits v0.1.0
+	github.com/iden3/go-circuits v0.1.1-0.20221020114837-1da2f9fdbd5f
 	github.com/iden3/go-iden3-core v0.1.0
-	github.com/iden3/go-jwz v0.1.3
+	github.com/iden3/go-jwz v0.1.4-0.20221020141641-8086ddeaccc7
 	github.com/iden3/go-rapidsnark/types v0.0.1
 	github.com/iden3/go-schema-processor v0.1.0
 	github.com/pkg/errors v0.9.1
