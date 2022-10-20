@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/iden3/go-circuits"
 	core "github.com/iden3/go-iden3-core"
@@ -34,21 +35,6 @@ func (f VerificationHandlerFunc) Verify(id circuits.CircuitID, pubsignals []stri
 // StateVerificationFunc must verify pubsignals for circuit id
 type StateVerificationFunc func(id circuits.CircuitID, pubsignals []string) error
 
-type VerificationKey struct {
-	CircuitID circuits.CircuitID
-	Alg       string
-}
-
-var AuthGroth16Key = NewVerificationKey(circuits.AuthCircuitID, jwz.Groth16)
-var AuthV2Groth16Key = NewVerificationKey(circuits.AuthV2CircuitID, jwz.Groth16)
-
-func NewVerificationKey(circuitID circuits.CircuitID, alg string) VerificationKey {
-	return VerificationKey{
-		CircuitID: circuitID,
-		Alg:       alg,
-	}
-}
-
 // VerificationParam defined the verification function and the verification key for ZKP full verification
 type VerificationParam struct {
 	Key            []byte
@@ -64,35 +50,35 @@ func NewVerificationParam(key []byte, verifier VerificationHandlerFunc) Verifica
 
 // ZKPPacker is  packer that use JWZ
 type ZKPPacker struct {
-	Prover       ProvingParam
-	Verification map[VerificationKey]VerificationParam
+	Prover       map[jwz.ProvingMethodAlg]ProvingParam
+	Verification map[jwz.ProvingMethodAlg]VerificationParam
 }
 
 // ProvingParams packer parameters for ZKP generation
 type ProvingParam struct {
-	DataPreparer  DataPreparerHandlerFunc
-	ProvingMethod jwz.ProvingMethod
-	ProvingKey    []byte
-	Wasm          []byte
+	DataPreparer DataPreparerHandlerFunc
+	ProvingKey   []byte
+	Wasm         []byte
 }
 
 // NewProvingParams defines the ZK proving parameters for ZKP generation
-func NewProvingParam(dataPreparer DataPreparerHandlerFunc, provingMethod jwz.ProvingMethod, provingKey []byte, wasm []byte) ProvingParam {
+func NewProvingParam(dataPreparer DataPreparerHandlerFunc, provingKey []byte, wasm []byte) ProvingParam {
 	return ProvingParam{
-		DataPreparer:  dataPreparer,
-		ProvingMethod: provingMethod,
-		ProvingKey:    provingKey,
-		Wasm:          wasm,
+		DataPreparer: dataPreparer,
+		ProvingKey:   provingKey,
+		Wasm:         wasm,
 	}
 }
 
 // ZKPPackerParams is params for zkp packer
 type ZKPPackerParams struct {
-	SenderID *core.ID
+	SenderID         *core.ID
+	ProvingMethodAlg jwz.ProvingMethodAlg
 	iden3comm.PackerParams
 }
 
-func NewZKPPacker(provingParams ProvingParam, verification map[VerificationKey]VerificationParam) *ZKPPacker {
+func NewZKPPacker(provingParams map[jwz.ProvingMethodAlg]ProvingParam,
+	verification map[jwz.ProvingMethodAlg]VerificationParam) *ZKPPacker {
 	return &ZKPPacker{
 		Prover:       provingParams,
 		Verification: verification,
@@ -111,9 +97,19 @@ func (p *ZKPPacker) Pack(payload []byte, params iden3comm.PackerParams) ([]byte,
 		return nil, errors.New("can't cast params to zkp packer params")
 	}
 
-	token, err = jwz.NewWithPayload(p.Prover.ProvingMethod, payload, func(hash []byte,
+	if strings.Trim(zkpParams.ProvingMethodAlg.Alg, " ") == "" {
+		return nil, errors.New("proving method alg is nil")
+	}
+
+	if strings.Trim(zkpParams.ProvingMethodAlg.CircuitID, " ") == "" {
+		return nil, errors.New("proving method CircuitID is nil")
+	}
+
+	method := jwz.GetProvingMethod(zkpParams.ProvingMethodAlg)
+
+	token, err = jwz.NewWithPayload(method, payload, func(hash []byte,
 		circuitID circuits.CircuitID) ([]byte, error) {
-		return p.Prover.DataPreparer.Prepare(hash, zkpParams.SenderID, circuitID)
+		return p.Prover[zkpParams.ProvingMethodAlg].DataPreparer.Prepare(hash, zkpParams.SenderID, circuitID)
 	})
 	if err != nil {
 		return nil, err
@@ -124,7 +120,7 @@ func (p *ZKPPacker) Pack(payload []byte, params iden3comm.PackerParams) ([]byte,
 		return nil, err
 	}
 
-	tokenStr, err := token.Prove(p.Prover.ProvingKey, p.Prover.Wasm)
+	tokenStr, err := token.Prove(p.Prover[zkpParams.ProvingMethodAlg].ProvingKey, p.Prover[zkpParams.ProvingMethodAlg].Wasm)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +136,7 @@ func (p *ZKPPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 		return nil, err
 	}
 
-	verificationKey, ok := p.Verification[NewVerificationKey(circuits.CircuitID(token.CircuitID), token.Alg)]
+	verificationKey, ok := p.Verification[jwz.ProvingMethodAlg{token.Alg, token.CircuitID}]
 	if !ok {
 		return nil, fmt.Errorf("message was packed with unsupported circuit `%s` and alg `%s`", token.CircuitID, token.Alg)
 	}
