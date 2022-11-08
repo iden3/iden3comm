@@ -67,11 +67,16 @@ func PrepareAuthInputs(hash []byte, id *core.ID, circuitID circuits.CircuitID) (
 
 	inputs := circuits.AuthInputs{
 		ID: identifier,
-		AuthClaim: circuits.Claim{
-			Claim:       claim,
-			Proof:       claimEntryMTP,
-			TreeState:   treeState,
-			NonRevProof: &circuits.ClaimNonRevStatus{TreeState: treeState, Proof: claimNonRevMTP},
+		AuthClaim: circuits.ClaimWithMTPProof{
+			Claim: claim,
+			IncProof: circuits.MTProof{
+				TreeState: treeState,
+				Proof:     claimEntryMTP,
+			},
+			NonRevProof: circuits.MTProof{
+				TreeState: treeState,
+				Proof:     claimNonRevMTP,
+			},
 		},
 		Signature: signature,
 		Challenge: challenge,
