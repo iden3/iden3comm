@@ -3,7 +3,6 @@ package packers
 import (
 	"encoding/json"
 	"fmt"
-	"math/big"
 	"strings"
 
 	"github.com/iden3/go-circuits"
@@ -35,35 +34,36 @@ func (f VerificationHandlerFunc) Verify(id circuits.CircuitID, pubsignals []stri
 // StateVerificationFunc must verify pubsignals for circuit id
 type StateVerificationFunc func(id circuits.CircuitID, pubsignals []string) error
 
-// VerificationParam defined the verification function and the verification key for ZKP full verification
-type VerificationParam struct {
+// VerificationParams defined the verification function and the verification key for ZKP full verification
+type VerificationParams struct {
 	Key            []byte
 	VerificationFn VerificationHandlerFunc
 }
 
-func NewVerificationParam(key []byte, verifier VerificationHandlerFunc) VerificationParam {
-	return VerificationParam{
+// NewVerificationParams creates new verification params
+func NewVerificationParams(key []byte, verifier VerificationHandlerFunc) VerificationParams {
+	return VerificationParams{
 		Key:            key,
 		VerificationFn: verifier,
 	}
 }
 
-// ZKPPacker is  packer that use JWZ
+// ZKPPacker is packer that use JWZ
 type ZKPPacker struct {
-	Prover       map[jwz.ProvingMethodAlg]ProvingParam
-	Verification map[jwz.ProvingMethodAlg]VerificationParam
+	Prover       map[jwz.ProvingMethodAlg]ProvingParams
+	Verification map[jwz.ProvingMethodAlg]VerificationParams
 }
 
 // ProvingParams packer parameters for ZKP generation
-type ProvingParam struct {
+type ProvingParams struct {
 	DataPreparer DataPreparerHandlerFunc
 	ProvingKey   []byte
 	Wasm         []byte
 }
 
 // NewProvingParams defines the ZK proving parameters for ZKP generation
-func NewProvingParam(dataPreparer DataPreparerHandlerFunc, provingKey []byte, wasm []byte) ProvingParam {
-	return ProvingParam{
+func NewProvingParams(dataPreparer DataPreparerHandlerFunc, provingKey, wasm []byte) ProvingParams {
+	return ProvingParams{
 		DataPreparer: dataPreparer,
 		ProvingKey:   provingKey,
 		Wasm:         wasm,
@@ -77,8 +77,9 @@ type ZKPPackerParams struct {
 	iden3comm.PackerParams
 }
 
-func NewZKPPacker(provingParams map[jwz.ProvingMethodAlg]ProvingParam,
-	verification map[jwz.ProvingMethodAlg]VerificationParam) *ZKPPacker {
+// NewZKPPacker creates new zkp packer instance
+func NewZKPPacker(provingParams map[jwz.ProvingMethodAlg]ProvingParams,
+	verification map[jwz.ProvingMethodAlg]VerificationParams) *ZKPPacker {
 	return &ZKPPacker{
 		Prover:       provingParams,
 		Verification: verification,
@@ -136,7 +137,7 @@ func (p *ZKPPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 		return nil, err
 	}
 
-	verificationKey, ok := p.Verification[jwz.ProvingMethodAlg{token.Alg, token.CircuitID}]
+	verificationKey, ok := p.Verification[jwz.ProvingMethodAlg{Alg: token.Alg, CircuitID: token.CircuitID}]
 	if !ok {
 		return nil, fmt.Errorf("message was packed with unsupported circuit `%s` and alg `%s`", token.CircuitID, token.Alg)
 	}
@@ -170,15 +171,16 @@ func (p *ZKPPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 }
 func verifySender(token *jwz.Token, msg iden3comm.BasicMessage) error {
 
+	var err error
 	switch circuits.CircuitID(token.CircuitID) {
 	case circuits.AuthCircuitID:
-		verifyAuthSender(msg.From, token.ZkProof.PubSignals)
+		err = verifyAuthSender(msg.From, token.ZkProof.PubSignals)
 	case circuits.AuthV2CircuitID:
-		verifyAuthV2Sender(msg.From, token.ZkProof.PubSignals)
+		err = verifyAuthV2Sender(msg.From, token.ZkProof.PubSignals)
 	default:
 		return errors.Errorf("'%s' unknow circuit ID. can't verify msg sender", token.CircuitID)
 	}
-	return nil
+	return err
 }
 
 func verifyAuthSender(from string, pubSignals []string) error {
@@ -211,7 +213,7 @@ func verifyAuthV2Sender(from string, pubSignals []string) error {
 		return err
 	}
 
-	return checkSender(from, authPubSignals.UserID.BigInt())
+	return checkSender(from, authPubSignals.UserID)
 }
 
 func checkSender(from string, id *core.ID) error {
@@ -221,7 +223,7 @@ func checkSender(from string, id *core.ID) error {
 		return err
 	}
 	if from != did.String() {
-		return errors.Errorf("sender of message is not used for jwz token creation, expected: '%s' got: '%s", msg.From, did.String())
+		return errors.Errorf("sender of message is not used for jwz token creation, expected: '%s' got: '%s", from, did.String())
 	}
 	return nil
 }

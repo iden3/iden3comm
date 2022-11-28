@@ -1,7 +1,9 @@
+// Package protocol defines core protocol messages
 package protocol
 
 import (
 	"encoding/json"
+
 	"github.com/iden3/go-rapidsnark/types"
 	"github.com/iden3/iden3comm"
 )
@@ -61,7 +63,7 @@ type ZeroKnowledgeProofRequest struct {
 	ID        uint32                 `json:"id"` // unique request id
 	CircuitID string                 `json:"circuit_id"`
 	Optional  *bool                  `json:"optional,omitempty"`
-	Rules     map[string]interface{} `json:"rules"`
+	Query     map[string]interface{} `json:"query"`
 }
 
 // ZeroKnowledgeProofResponse represents structure of zkp response

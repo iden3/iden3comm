@@ -1,7 +1,9 @@
+// Package packers defines core 3 protocol packers: anoncrypt, plain and zkp
 package packers
 
 import (
 	"encoding/json"
+
 	"github.com/iden3/iden3comm"
 	"github.com/pkg/errors"
 

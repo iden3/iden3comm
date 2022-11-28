@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"testing"
 
-	"fmt"
 	"github.com/iden3/go-circuits"
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-jwz"
@@ -17,9 +16,9 @@ func TestZKPPacker_Pack(t *testing.T) {
 	t.Skip("TODO: fix this test")
 
 	// mocked keys
-	verifications := make(map[jwz.ProvingMethodAlg]VerificationParam)
+	verifications := make(map[jwz.ProvingMethodAlg]VerificationParams)
 
-	verifications[jwz.AuthGroth16Alg] = NewVerificationParam([]byte(""), func(id circuits.CircuitID,
+	verifications[jwz.AuthGroth16Alg] = NewVerificationParams([]byte(""), func(id circuits.CircuitID,
 		pubsignals []string) error {
 		return nil
 	})
@@ -27,18 +26,18 @@ func TestZKPPacker_Pack(t *testing.T) {
 	provingKey := []byte{}
 	wasm := []byte{}
 
-	mockedProvingMethod := &mock.ProvingMethodGroth16Auth{jwz.ProvingMethodAlg{Alg: "groth16-mock", CircuitID: "auth"}}
+	mockedProvingMethod := &mock.ProvingMethodGroth16Auth{ProvingMethodAlg: jwz.ProvingMethodAlg{Alg: "groth16-mock", CircuitID: "auth"}}
 
 	jwz.RegisterProvingMethod(mockedProvingMethod.ProvingMethodAlg, func() jwz.ProvingMethod {
 		return mockedProvingMethod
 	})
 
-	param := ProvingParam{
+	param := ProvingParams{
 		DataPreparer: mock.PrepareAuthInputs,
 		ProvingKey:   provingKey,
 		Wasm:         wasm,
 	}
-	provingParam := make(map[jwz.ProvingMethodAlg]ProvingParam)
+	provingParam := make(map[jwz.ProvingMethodAlg]ProvingParams)
 	provingParam[jwz.AuthGroth16Alg] = param
 	p := NewZKPPacker(provingParam, verifications)
 
@@ -49,9 +48,8 @@ func TestZKPPacker_Pack(t *testing.T) {
 	assert.Nil(t, err)
 
 	b, err := p.Pack(msgBytes, ZKPPackerParams{
-		SenderID: senderDID,
+		SenderID:         senderDID,
 		ProvingMethodAlg: jwz.ProvingMethodAlg{Alg: "groth16-mock", CircuitID: "auth"},
-
 	})
 	assert.Nil(t, err)
 
@@ -71,9 +69,8 @@ func TestZKPPacker_Pack(t *testing.T) {
 
 func TestPlainMessagePacker_Unpack(t *testing.T) {
 	t.Skip("TODO: fix this test")
-	//keys := map[circuits.CircuitID][]byte{circuits.AuthCircuitID: []byte{}}
-	verifications := make(map[jwz.ProvingMethodAlg]VerificationParam)
-	verifications[jwz.NewProvingMethodAlg("auth", "groth16-mock")] = NewVerificationParam([]byte(""),
+	verifications := make(map[jwz.ProvingMethodAlg]VerificationParams)
+	verifications[jwz.NewProvingMethodAlg("auth", "groth16-mock")] = NewVerificationParams([]byte(""),
 		func(id circuits.CircuitID,
 			pubsignals []string) error {
 			return nil
@@ -82,21 +79,20 @@ func TestPlainMessagePacker_Unpack(t *testing.T) {
 	provingKey := []byte{}
 	wasm := []byte{}
 
-	mockedProvingMethod := &mock.ProvingMethodGroth16Auth{jwz.ProvingMethodAlg{Alg: "groth16-mock",
+	mockedProvingMethod := &mock.ProvingMethodGroth16Auth{ProvingMethodAlg: jwz.ProvingMethodAlg{Alg: "groth16-mock",
 		CircuitID: "auth"}}
 
-	provingParam := ProvingParam{
+	provingParam := ProvingParams{
 		DataPreparer: mock.PrepareAuthInputs,
 		ProvingKey:   provingKey,
 		Wasm:         wasm,
 	}
-	provingParams := make(map[jwz.ProvingMethodAlg]ProvingParam)
+	provingParams := make(map[jwz.ProvingMethodAlg]ProvingParams)
 	provingParams[jwz.NewProvingMethodAlg("auth", "groth16-mock")] = provingParam
 
 	jwz.RegisterProvingMethod(mockedProvingMethod.ProvingMethodAlg, func() jwz.ProvingMethod {
 		return mockedProvingMethod
 	})
-	//p := NewZKPPacker(mockedProvingMethod, mock.PrepareAuthInputs, mock.VerifyState, provingKey, wasm, keys)
 	p := NewZKPPacker(provingParams, verifications)
 
 	msgZKP := []byte(`eyJhbGciOiJncm90aDE2LW1vY2siLCJjaXJjdWl0SWQiOiJhdXRoIiwiY3JpdCI6WyJjaXJjdWl0SWQiXSwidHlwIjoiYXBwbGljYXRpb24vaWRlbjMtemtwLWpzb24ifQ.eyJ0eXBlIjoiaHR0cHM6Ly9pZGVuMy1jb21tdW5pY2F0aW9uLmlvL2F1dGhvcml6YXRpb24vMS4wL3Jlc3BvbnNlIiwiZnJvbSI6ImRpZDppZGVuMzpwb2x5Z29uOm11bWJhaTo0UnpxaUtZdFpqV3U4eGYxam50czNGVHBQbndUelcxSHlVc2RER2NERVI2IiwiYm9keSI6eyJzY29wZSI6W3sidHlwZSI6Inplcm9rbm93bGVkZ2UiLCJjaXJjdWl0X2lkIjoiYXV0aCIsInB1Yl9zaWduYWxzIjpbIjEiLCIxODMxMTU2MDUyNTM4MzMxOTcxOTMxMTM5NDk1NzA2NDgyMDA5MTM1NDk3NjMxMDU5OTgxODc5NzE1NzE4OTU2ODYyMTQ2Njk1MDgxMSIsIjMyMzQxNjkyNTI2NDY2NjIxNzYxNzI4ODU2OTc0MjU2NDcwMzYzMjg1MDgxNjAzNTc2MTA4NDAwMjcyMDA5MDM3NzM1MzI5NzkyMCJdLCJwcm9vZl9kYXRhIjp7InBpX2EiOlsiMTExMzA4NDMxNTA1NDA3ODkyOTk0NTg5OTA1ODYwMjAwMDA3MTkyODAyNDYxNTM3OTc4ODI4NDMyMTQyOTA1NDE5ODA1MjIzNzUwNzIiLCIxMzAwODQxOTEyOTQzNzgxNzIzMDIyMDMyMzU1ODM2ODkzODMxMTMyOTIwNzgzNzg4NDU1NTMxODM4MjU0NDY1Nzg0NjA1NzYyNzEzIiwiMSJdLCJwaV9iIjpbWyIyMDYxNTc2ODUzNjk4ODQzODMzNjUzNzc3NzkwOTA0MjM1MjA1NjM5Mjg2MjI1MTc4NTcyMjc5NjYzNzU5MDIxMjE2MDU2MTM1MTY1NiIsIjEwMzcxMTQ0ODA2MTA3Nzc4ODkwNTM4ODU3NzAwODU1MTA4NjY3NjIyMDQyMjE1MDk2OTcxNzQ3MjAzMTA1OTk3NDU0NjI1ODE0MDgwIl0sWyIxOTU5ODU0MTM1MDgwNDQ3ODU0OTE0MTIwNzgzNTAyODY3MTExMTA2MzkxNTYzNTU4MDY3OTY5NDkwNzYzNTkxNDI3OTkyODY3NzgxMiIsIjE1MjY0NTUzMDQ1NTE3MDY1NjY5MTcxNTg0OTQzOTY0MzIyMTE3Mzk3NjQ1MTQ3MDA2OTA5MTY3NDI3ODA5ODM3OTI5NDU4MDEyOTEzIl0sWyIxIiwiMCJdXSwicGlfYyI6WyIxNjQ0MzMwOTI3OTgyNTUwODg5MzA4NjI1MTI5MDAwMzkzNjkzNTA3NzM0ODc1NDA5NzQ3MDgxODUyMzU1ODA4MjUwMjM2NDgyMjA0OSIsIjI5ODQxODAyMjc3NjYwNDgxMDA1MTAxMjA0MDcxNTA3NTIwNTIzMzQ1NzE4NzY2ODEzMDQ5OTk1OTU1NDQxMzgxNTU2MTE5NjMyNzMiLCIxIl0sInByb3RvY29sIjoiIn19XX19.eyJwcm9vZiI6eyJwaV9hIjpudWxsLCJwaV9iIjpudWxsLCJwaV9jIjpudWxsLCJwcm90b2NvbCI6Imdyb3RoMTYifSwicHViX3NpZ25hbHMiOlsiMSIsIjE4NjU2MTQ3NTQ2NjY2OTQ0NDg0NDUzODk5MjQxOTE2NDY5NTQ0MDkwMjU4ODEwMTkyODAzOTQ5NTIyNzk0NDkwNDkzMjcxMDA1MzEzIiwiMzI2OTUwNjM5OTMzMjA5OTg0MDk2ODc4MTIwNjQ0NzM2NjE3MDQ2Mjc1NzIzMjA5MzUzMzg2OTA3NjQ1MTE3Nzg0NTgwNjIwNzY5Il19`)

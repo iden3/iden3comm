@@ -1,12 +1,14 @@
 package iden3comm_test
 
 import (
+	"context"
 	"encoding/json"
 	"math/big"
 	"testing"
 
 	"github.com/gofrs/uuid"
 	"github.com/iden3/go-circuits"
+	circuitsTesting "github.com/iden3/go-circuits/testing"
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-jwz"
 	"github.com/iden3/iden3comm"
@@ -15,10 +17,9 @@ import (
 	"github.com/iden3/iden3comm/protocol"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
-func MockPrepareAuthInputs(hash []byte, id *core.ID, circuitID circuits.CircuitID) ([]byte, error) {
+func MockPrepareAuthInputs(hash []byte, id *core.DID, circuitID circuits.CircuitID) ([]byte, error) {
 	challenge := new(big.Int).SetBytes(hash)
 
 	ctx := context.Background()
@@ -94,10 +95,6 @@ func TestPackagerPlainPacker(t *testing.T) {
 func TestPackagerZKPPacker(t *testing.T) {
 	pm := initPackageManager(t)
 
-	err = pm.RegisterPackers(packers.NewZKPPacker(mockedProvingMethod, mock.PrepareAuthInputs, mock.VerifyState, []byte{}, []byte{}, keys))
-	assert.NoError(t, err)
-
-	identifier := "did:iden3:polygon:mumbai:4RzqiKYtZjWu8xf1jnts3FTpPnwTzW1HyUsdDGcDER6"
 	identifier := "did:iden3:polygon:mumbai:4RzqiKYtZjWu8xf1jnts3FTpPnwTzW1HyUsdDGcDER6"
 
 	senderDID, err := core.ParseDID(identifier)
@@ -111,7 +108,7 @@ func TestPackagerZKPPacker(t *testing.T) {
 	marshalledMsg, err := createFetchCredentialMessage(packers.MediaTypeZKPMessage, senderDID, targetID)
 	assert.NoError(t, err)
 
-	envelope, err := pm.Pack(packers.MediaTypeZKPMessage, marshalledMsg, packers.ZKPPackerParams{SenderID: &senderID,
+	envelope, err := pm.Pack(packers.MediaTypeZKPMessage, marshalledMsg, packers.ZKPPackerParams{SenderID: senderDID,
 		ProvingMethodAlg: jwz.ProvingMethodAlg{Alg: "groth16-mock", CircuitID: "auth"}})
 	assert.NoError(t, err)
 
@@ -129,10 +126,6 @@ func TestPackagerAnonryptPacker(t *testing.T) {
 	// nolint :
 
 	identifier := "did:iden3:polygon:mumbai:4RzkkAj2G1ugUEdSo676p5ot7dgQqZ8riTfv4Ev1YX2"
-	id, err := core.IDFromString(identifier)
-	assert.NoError(t, err)
-
-	targetIdentifier := "did:iden3:polygon:mumbai:4RzqWLqUWKL8ERhUnvvdn5HZcMVfeWKsdunJsBFJtTQ"
 
 	senderDID, err := core.ParseDID(identifier)
 	assert.NoError(t, err)
@@ -197,7 +190,6 @@ func TestUnpackWithType(t *testing.T) {
 
 	pm := initPackageManager(t)
 
-
 	identifier := "did:iden3:polygon:mumbai:4RzqiKYtZjWu8xf1jnts3FTpPnwTzW1HyUsdDGcDER6"
 
 	senderDID, err := core.ParseDID(identifier)
@@ -249,24 +241,22 @@ func createFetchCredentialMessage(typ iden3comm.MediaType, from, to *core.DID) (
 
 func initPackageManager(t *testing.T) *iden3comm.PackageManager {
 	pm := iden3comm.NewPackageManager()
-	pm.RegisterPackers(&packers.PlainMessagePacker{})
-
-	mockedProvingMethod := &mock.ProvingMethodGroth16Auth{jwz.ProvingMethodAlg{Alg: "groth16-mock", CircuitID: "auth"}}
+	err := pm.RegisterPackers(&packers.PlainMessagePacker{})
+	require.NoError(t, err)
+	mockedProvingMethod := &mock.ProvingMethodGroth16Auth{ProvingMethodAlg: jwz.ProvingMethodAlg{Alg: "groth16-mock", CircuitID: "auth"}}
 
 	jwz.RegisterProvingMethod(mockedProvingMethod.ProvingMethodAlg, func() jwz.ProvingMethod {
 		return mockedProvingMethod
 	})
-	//vk := packers.NewVerificationKey(circuits.CircuitID(mockedProvingMethod.ProvingMethodAlg.CircuitID),
-	//	mockedProvingMethod.Alg())
 
-	mockVerificationParam := make(map[jwz.ProvingMethodAlg]packers.VerificationParam)
-	mockVerificationParam[mockedProvingMethod.ProvingMethodAlg] = packers.NewVerificationParam([]byte(""), mock.VerifyState)
+	mockVerificationParam := make(map[jwz.ProvingMethodAlg]packers.VerificationParams)
+	mockVerificationParam[mockedProvingMethod.ProvingMethodAlg] = packers.NewVerificationParams([]byte(""), mock.VerifyState)
 
-	mockProvingParamMap := make(map[jwz.ProvingMethodAlg]packers.ProvingParam)
-	mockProvingParamMap[mockedProvingMethod.ProvingMethodAlg] = packers.NewProvingParam(mock.PrepareAuthInputs, []byte{}, []byte{})
+	mockProvingParamMap := make(map[jwz.ProvingMethodAlg]packers.ProvingParams)
+	mockProvingParamMap[mockedProvingMethod.ProvingMethodAlg] = packers.NewProvingParams(mock.PrepareAuthInputs, []byte{}, []byte{})
 
-	err := pm.RegisterPackers(packers.NewZKPPacker(mockProvingParamMap, mockVerificationParam))
-	assert.NoError(t, err)
+	err = pm.RegisterPackers(packers.NewZKPPacker(mockProvingParamMap, mockVerificationParam))
+	require.NoError(t, err)
 
 	return pm
 }

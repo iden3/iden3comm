@@ -1,3 +1,4 @@
+// Package mock defines mocks for protocol testing
 package mock
 
 import (
