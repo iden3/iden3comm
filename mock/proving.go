@@ -4,28 +4,29 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"crypto/elliptic"
+	"math/big"
+
 	"github.com/iden3/go-circuits"
 	circuitsTesting "github.com/iden3/go-circuits/testing"
 	core "github.com/iden3/go-iden3-core"
+	"github.com/iden3/go-jwz"
 	"github.com/iden3/go-rapidsnark/types"
 	"gopkg.in/square/go-jose.v2"
-	"math/big"
 )
 
 // ProvingMethodGroth16Auth proving method to avoid using of proving key and wasm files
 type ProvingMethodGroth16Auth struct {
-	Algorithm string
-	Circuit   string
+	jwz.ProvingMethodAlg
 }
 
 // Alg returns current zk alg
 func (m *ProvingMethodGroth16Auth) Alg() string {
-	return m.Algorithm
+	return m.ProvingMethodAlg.Alg
 }
 
 // CircuitID returns name of circuit
 func (m *ProvingMethodGroth16Auth) CircuitID() string {
-	return m.Circuit
+	return m.ProvingMethodAlg.CircuitID
 }
 
 // Verify return no error for any proof
@@ -66,11 +67,16 @@ func PrepareAuthInputs(hash []byte, _ *core.DID, _ circuits.CircuitID) ([]byte, 
 
 	inputs := circuits.AuthInputs{
 		ID: identifier,
-		AuthClaim: circuits.Claim{
-			Claim:       claim,
-			Proof:       claimEntryMTP,
-			TreeState:   treeState,
-			NonRevProof: &circuits.ClaimNonRevStatus{TreeState: treeState, Proof: claimNonRevMTP},
+		AuthClaim: circuits.ClaimWithMTPProof{
+			Claim: claim,
+			IncProof: circuits.MTProof{
+				TreeState: treeState,
+				Proof:     claimEntryMTP,
+			},
+			NonRevProof: circuits.MTProof{
+				TreeState: treeState,
+				Proof:     claimNonRevMTP,
+			},
 		},
 		Signature: signature,
 		Challenge: challenge,
