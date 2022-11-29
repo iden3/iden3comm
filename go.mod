@@ -6,6 +6,7 @@ require (
 	github.com/gofrs/uuid v3.3.0+incompatible
 	github.com/iden3/go-circuits v1.0.1-alpha.2.0.20221129125030-ca82c0ca4839
 	github.com/iden3/go-iden3-core v0.1.1-0.20221108150644-c0b53ebc36d1
+	github.com/iden3/go-iden3-crypto v0.0.13
 	github.com/iden3/go-jwz v0.1.4-0.20221129141428-312a907ea598
 	github.com/iden3/go-rapidsnark/types v0.0.2
 	github.com/iden3/go-schema-processor v0.2.1-0.20221108160946-1b71a2d1b644
@@ -19,7 +20,6 @@ require (
 	github.com/dchest/blake512 v1.0.0 // indirect
 	github.com/ethereum/go-ethereum v1.10.26 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
-	github.com/iden3/go-iden3-crypto v0.0.13 // indirect
 	github.com/iden3/go-merkletree-sql/v2 v2.0.0 // indirect
 	github.com/iden3/go-rapidsnark/prover v0.0.8-0.20221129112904-b9f8680ca8e2 // indirect
 	github.com/iden3/go-rapidsnark/verifier v0.0.4-0.20221129112904-b9f8680ca8e2 // indirect
