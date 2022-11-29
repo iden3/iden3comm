@@ -1,14 +1,10 @@
 package iden3comm_test
 
 import (
-	"context"
 	"encoding/json"
-	"math/big"
 	"testing"
 
 	"github.com/gofrs/uuid"
-	"github.com/iden3/go-circuits"
-	circuitsTesting "github.com/iden3/go-circuits/testing"
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-jwz"
 	"github.com/iden3/iden3comm"
@@ -19,52 +15,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func MockPrepareAuthInputs(hash []byte, id *core.DID, circuitID circuits.CircuitID) ([]byte, error) {
-	challenge := new(big.Int).SetBytes(hash)
-
-	ctx := context.Background()
-	privKeyHex := "28156abe7fe2fd433dc9df969286b96666489bac508612d0e16593e944c4f69f"
-	identifier, claim, state, claimsTree, revTree, rootsTree, claimEntryMTP, claimNonRevMTP, signature, err := circuitsTesting.AuthClaimFullInfo(ctx, privKeyHex, challenge)
-	if err != nil {
-		return nil, err
-	}
-	treeState := circuits.TreeState{
-		State:          state,
-		ClaimsRoot:     claimsTree.Root(),
-		RevocationRoot: revTree.Root(),
-		RootOfRoots:    rootsTree.Root(),
-	}
-
-	inputs := circuits.AuthInputs{
-		ID: identifier,
-		AuthClaim: circuits.ClaimWithMTPProof{
-			Claim: claim,
-			IncProof: circuits.MTProof{
-				Proof:     claimEntryMTP,
-				TreeState: treeState,
-			},
-			NonRevProof: circuits.MTProof{
-				TreeState: treeState,
-				Proof:     claimNonRevMTP,
-			},
-		},
-		Signature: signature,
-		Challenge: challenge,
-	}
-	return inputs.InputsMarshal()
-}
-
 func TestPackagerPlainPacker(t *testing.T) {
 	pm := iden3comm.NewPackageManager()
 	err := pm.RegisterPackers(&packers.PlainMessagePacker{})
 	assert.NoError(t, err)
 
-	identifier := "did:iden3:polygon:mumbai:4RzkkAj2G1ugUEdSo676p5ot7dgQqZ8riTfv4Ev1YX2"
+	identifier := "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29"
 
 	senderDID, err := core.ParseDID(identifier)
 	assert.NoError(t, err)
 
-	targetIdentifier := "did:iden3:polygon:mumbai:4RzqWLqUWKL8ERhUnvvdn5HZcMVfeWKsdunJsBFJtTQ"
+	targetIdentifier := "did:iden3:polygon:mumbai:wzWeGdtjvKtUP1oTxQP5t5iZGDX3HNfEU5xR8MZAt"
 
 	targetID, err := core.ParseDID(targetIdentifier)
 	assert.NoError(t, err)
@@ -95,12 +56,12 @@ func TestPackagerPlainPacker(t *testing.T) {
 func TestPackagerZKPPacker(t *testing.T) {
 	pm := initPackageManager(t)
 
-	identifier := "did:iden3:polygon:mumbai:4RzqiKYtZjWu8xf1jnts3FTpPnwTzW1HyUsdDGcDER6"
+	identifier := "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29"
 
 	senderDID, err := core.ParseDID(identifier)
 	assert.NoError(t, err)
 
-	targetIdentifier := "did:iden3:polygon:mumbai:4RzqWLqUWKL8ERhUnvvdn5HZcMVfeWKsdunJsBFJtTQ"
+	targetIdentifier := "did:iden3:polygon:mumbai:wzWeGdtjvKtUP1oTxQP5t5iZGDX3HNfEU5xR8MZAt"
 
 	targetID, err := core.ParseDID(targetIdentifier)
 	assert.NoError(t, err)
@@ -109,7 +70,7 @@ func TestPackagerZKPPacker(t *testing.T) {
 	assert.NoError(t, err)
 
 	envelope, err := pm.Pack(packers.MediaTypeZKPMessage, marshalledMsg, packers.ZKPPackerParams{SenderID: senderDID,
-		ProvingMethodAlg: jwz.ProvingMethodAlg{Alg: "groth16-mock", CircuitID: "auth"}})
+		ProvingMethodAlg: jwz.ProvingMethodAlg{Alg: "groth16-mock", CircuitID: "authV2"}})
 	assert.NoError(t, err)
 
 	unpackedMsg, unpackerType, err := pm.Unpack(envelope)
@@ -125,12 +86,12 @@ func TestPackagerAnonryptPacker(t *testing.T) {
 	pm.RegisterPackers(packers.NewAnoncryptPacker(mock.ResolveEncPrivateKey), &packers.PlainMessagePacker{})
 	// nolint :
 
-	identifier := "did:iden3:polygon:mumbai:4RzkkAj2G1ugUEdSo676p5ot7dgQqZ8riTfv4Ev1YX2"
+	identifier := "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29"
 
 	senderDID, err := core.ParseDID(identifier)
 	assert.NoError(t, err)
 
-	targetIdentifier := "did:iden3:polygon:mumbai:4RzqWLqUWKL8ERhUnvvdn5HZcMVfeWKsdunJsBFJtTQ"
+	targetIdentifier := "did:iden3:polygon:mumbai:wzWeGdtjvKtUP1oTxQP5t5iZGDX3HNfEU5xR8MZAt"
 
 	targetID, err := core.ParseDID(targetIdentifier)
 	assert.NoError(t, err)
@@ -159,12 +120,12 @@ func TestPackagerZKPPacker_OtherMessageTypeInBody(t *testing.T) {
 
 	pm := initPackageManager(t)
 
-	identifier := "did:iden3:polygon:mumbai:4RzqiKYtZjWu8xf1jnts3FTpPnwTzW1HyUsdDGcDER6"
+	identifier := "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29"
 
 	senderDID, err := core.ParseDID(identifier)
 	assert.NoError(t, err)
 
-	targetIdentifier := "did:iden3:polygon:mumbai:4RzqWLqUWKL8ERhUnvvdn5HZcMVfeWKsdunJsBFJtTQ"
+	targetIdentifier := "did:iden3:polygon:mumbai:wzWeGdtjvKtUP1oTxQP5t5iZGDX3HNfEU5xR8MZAt"
 
 	targetID, err := core.ParseDID(targetIdentifier)
 	assert.NoError(t, err)
@@ -174,7 +135,7 @@ func TestPackagerZKPPacker_OtherMessageTypeInBody(t *testing.T) {
 
 	envelope, err := pm.Pack(packers.MediaTypeZKPMessage, marshalledMsg, packers.ZKPPackerParams{
 		SenderID:         senderDID,
-		ProvingMethodAlg: jwz.ProvingMethodAlg{Alg: "groth16-mock", CircuitID: "auth"},
+		ProvingMethodAlg: jwz.ProvingMethodAlg{Alg: "groth16-mock", CircuitID: "authV2"},
 	})
 	assert.NoError(t, err)
 
@@ -190,10 +151,11 @@ func TestUnpackWithType(t *testing.T) {
 
 	pm := initPackageManager(t)
 
-	identifier := "did:iden3:polygon:mumbai:4RzqiKYtZjWu8xf1jnts3FTpPnwTzW1HyUsdDGcDER6"
+	identifier := "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29"
 
 	senderDID, err := core.ParseDID(identifier)
 	assert.NoError(t, err)
+
 	var msg protocol.CredentialFetchRequestMessage
 	msg.From = identifier
 	msg.To = identifier
@@ -211,7 +173,7 @@ func TestUnpackWithType(t *testing.T) {
 
 	envelope, err := pm.Pack(packers.MediaTypeZKPMessage, marshalledMsg, packers.ZKPPackerParams{
 		SenderID:         senderDID,
-		ProvingMethodAlg: jwz.ProvingMethodAlg{Alg: "groth16-mock", CircuitID: "auth"},
+		ProvingMethodAlg: jwz.ProvingMethodAlg{Alg: "groth16-mock", CircuitID: "authV2"},
 	})
 	assert.NoError(t, err)
 
@@ -243,7 +205,7 @@ func initPackageManager(t *testing.T) *iden3comm.PackageManager {
 	pm := iden3comm.NewPackageManager()
 	err := pm.RegisterPackers(&packers.PlainMessagePacker{})
 	require.NoError(t, err)
-	mockedProvingMethod := &mock.ProvingMethodGroth16Auth{ProvingMethodAlg: jwz.ProvingMethodAlg{Alg: "groth16-mock", CircuitID: "auth"}}
+	mockedProvingMethod := &mock.ProvingMethodGroth16AuthV2{ProvingMethodAlg: jwz.ProvingMethodAlg{Alg: "groth16-mock", CircuitID: "authV2"}}
 
 	jwz.RegisterProvingMethod(mockedProvingMethod.ProvingMethodAlg, func() jwz.ProvingMethod {
 		return mockedProvingMethod
