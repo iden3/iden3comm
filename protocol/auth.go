@@ -61,7 +61,7 @@ type AuthorizationRequestMessageBody struct {
 // ZeroKnowledgeProofRequest represents structure of zkp request object
 type ZeroKnowledgeProofRequest struct {
 	ID        uint32                 `json:"id"` // unique request id
-	CircuitID string                 `json:"circuit_id"`
+	CircuitID string                 `json:"circuitId"`
 	Optional  *bool                  `json:"optional,omitempty"`
 	Query     map[string]interface{} `json:"query"`
 }
@@ -69,6 +69,6 @@ type ZeroKnowledgeProofRequest struct {
 // ZeroKnowledgeProofResponse represents structure of zkp response
 type ZeroKnowledgeProofResponse struct {
 	ID        uint32 `json:"id"` // unique id to present unique proof request
-	CircuitID string `json:"circuit_id"`
+	CircuitID string `json:"circuitId"`
 	types.ZKProof
 }
