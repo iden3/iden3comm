@@ -2,7 +2,6 @@ package packers
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/iden3/iden3comm/mock"
@@ -32,8 +31,6 @@ func TestAnoncryptPacker_Pack(t *testing.T) {
 	require.NoError(t, err)
 	require.EqualValues(t, jwe.Header.ExtraHeaders[jose.HeaderType], MediaTypeEncryptedMessage)
 
-	s, _ := jwe.CompactSerialize()
-	fmt.Println(s)
 	iden3BytesMsg, err := jwe.Decrypt(privKey)
 	require.NoError(t, err)
 	require.Equal(t, msgBytes, iden3BytesMsg)
