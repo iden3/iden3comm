@@ -2,6 +2,7 @@ package protocol
 
 import (
 	"encoding/json"
+
 	"github.com/iden3/iden3comm"
 
 	"github.com/iden3/go-schema-processor/verifiable"
@@ -82,7 +83,7 @@ type CredentialIssuanceMessage struct {
 
 // IssuanceMessageBody is struct the represents message when credential is issued
 type IssuanceMessageBody struct {
-	Credential verifiable.Iden3Credential `json:"credential"`
+	Credential verifiable.W3CCredential `json:"credential"`
 }
 
 // CredentialFetchRequestMessage represent Iden3message for credential fetch request
