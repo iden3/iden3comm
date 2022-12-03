@@ -5,11 +5,11 @@ go 1.18
 require (
 	github.com/gofrs/uuid v3.3.0+incompatible
 	github.com/iden3/go-circuits v1.0.1-alpha.2.0.20221129125030-ca82c0ca4839
-	github.com/iden3/go-iden3-core v0.1.1-0.20221108150644-c0b53ebc36d1
+	github.com/iden3/go-iden3-core v0.1.1-0.20221202150047-1dcbfdda8b90
 	github.com/iden3/go-iden3-crypto v0.0.13
 	github.com/iden3/go-jwz v0.1.4-0.20221129141428-312a907ea598
 	github.com/iden3/go-rapidsnark/types v0.0.2
-	github.com/iden3/go-schema-processor v0.2.1-0.20221108160946-1b71a2d1b644
+	github.com/iden3/go-schema-processor v0.2.1-0.20221202150832-91826307609c
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.4
 	gopkg.in/square/go-jose.v2 v2.6.0
