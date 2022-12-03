@@ -1,7 +1,9 @@
+// Package protocol defines core protocol messages
 package protocol
 
 import (
 	"encoding/json"
+
 	"github.com/iden3/go-rapidsnark/types"
 	"github.com/iden3/iden3comm"
 )
@@ -10,6 +12,8 @@ const (
 
 	// AuthorizationRequestMessageType defines auth request type of the communication protocol
 	AuthorizationRequestMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "authorization/1.0/request"
+	// AuthorizationV2RequestMessageType defines auth V2 request type of the communication protocol
+	AuthorizationV2RequestMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "authorization/2.0/request"
 	// AuthorizationResponseMessageType defines auth response type of the communication protocol
 	AuthorizationResponseMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "authorization/1.0/response"
 )
@@ -57,14 +61,14 @@ type AuthorizationRequestMessageBody struct {
 // ZeroKnowledgeProofRequest represents structure of zkp request object
 type ZeroKnowledgeProofRequest struct {
 	ID        uint32                 `json:"id"` // unique request id
-	CircuitID string                 `json:"circuit_id"`
+	CircuitID string                 `json:"circuitId"`
 	Optional  *bool                  `json:"optional,omitempty"`
-	Rules     map[string]interface{} `json:"rules"`
+	Query     map[string]interface{} `json:"query"`
 }
 
 // ZeroKnowledgeProofResponse represents structure of zkp response
 type ZeroKnowledgeProofResponse struct {
 	ID        uint32 `json:"id"` // unique id to present unique proof request
-	CircuitID string `json:"circuit_id"`
+	CircuitID string `json:"circuitId"`
 	types.ZKProof
 }

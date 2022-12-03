@@ -1,3 +1,4 @@
+// Package iden3comm defines core structures and intefaces for the messaging protocol
 package iden3comm
 
 import (
@@ -5,8 +6,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/pkg/errors"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 // Packer converts message to encrypted or encoded form
