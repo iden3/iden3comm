@@ -41,6 +41,7 @@ type VerificationParam struct {
 	VerificationFn VerificationHandlerFunc
 }
 
+// NewVerificationParam create new params for verification handler.
 func NewVerificationParam(key []byte, verifier VerificationHandlerFunc) VerificationParam {
 	return VerificationParam{
 		Key:            key,
@@ -54,15 +55,15 @@ type ZKPPacker struct {
 	Verification map[jwz.ProvingMethodAlg]VerificationParam
 }
 
-// ProvingParams packer parameters for ZKP generation
+// ProvingParam packer parameters for ZKP generation
 type ProvingParam struct {
 	DataPreparer DataPreparerHandlerFunc
 	ProvingKey   []byte
 	Wasm         []byte
 }
 
-// NewProvingParams defines the ZK proving parameters for ZKP generation
-func NewProvingParam(dataPreparer DataPreparerHandlerFunc, provingKey []byte, wasm []byte) ProvingParam {
+// NewProvingParam defines the ZK proving parameters for ZKP generation
+func NewProvingParam(dataPreparer DataPreparerHandlerFunc, provingKey, wasm []byte) ProvingParam {
 	return ProvingParam{
 		DataPreparer: dataPreparer,
 		ProvingKey:   provingKey,
@@ -77,6 +78,7 @@ type ZKPPackerParams struct {
 	iden3comm.PackerParams
 }
 
+// NewZKPPacker create new zkp packer.
 func NewZKPPacker(provingParams map[jwz.ProvingMethodAlg]ProvingParam,
 	verification map[jwz.ProvingMethodAlg]VerificationParam) *ZKPPacker {
 	return &ZKPPacker{
@@ -136,7 +138,7 @@ func (p *ZKPPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 		return nil, err
 	}
 
-	verificationKey, ok := p.Verification[jwz.ProvingMethodAlg{token.Alg, token.CircuitID}]
+	verificationKey, ok := p.Verification[jwz.ProvingMethodAlg{Alg: token.Alg, CircuitID: token.CircuitID}]
 	if !ok {
 		return nil, fmt.Errorf("message was packed with unsupported circuit `%s` and alg `%s`", token.CircuitID, token.Alg)
 	}
@@ -172,8 +174,10 @@ func verifySender(token *jwz.Token, msg iden3comm.BasicMessage) error {
 
 	switch circuits.CircuitID(token.CircuitID) {
 	case circuits.AuthCircuitID:
+		//nolint:gosec // fixed on main branch
 		verifyAuthSender(msg.From, token.ZkProof.PubSignals)
 	case circuits.AuthV2CircuitID:
+		//nolint:gosec // fixed on main branch
 		verifyAuthV2Sender(msg.From, token.ZkProof.PubSignals)
 	default:
 		return errors.Errorf("'%s' unknow circuit ID. can't verify msg sender", token.CircuitID)

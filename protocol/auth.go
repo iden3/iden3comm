@@ -10,8 +10,6 @@ const (
 
 	// AuthorizationRequestMessageType defines auth request type of the communication protocol
 	AuthorizationRequestMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "authorization/1.0/request"
-	// AuthorizationV2RequestMessageType defines auth V2 request type of the communication protocol
-	AuthorizationV2RequestMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "authorization/2.0/request"
 	// AuthorizationResponseMessageType defines auth response type of the communication protocol
 	AuthorizationResponseMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "authorization/1.0/response"
 )
