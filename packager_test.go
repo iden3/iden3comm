@@ -241,12 +241,17 @@ func initPackageManager(t *testing.T) *iden3comm.PackageManager {
 	pm := iden3comm.NewPackageManager()
 	pm.RegisterPackers(&packers.PlainMessagePacker{})
 
-	mockedProvingMethod := &mock.ProvingMethodGroth16Auth{jwz.ProvingMethodAlg{Alg: "groth16-mock", CircuitID: "auth"}}
+	mockedProvingMethod := &mock.ProvingMethodGroth16Auth{
+		ProvingMethodAlg: jwz.ProvingMethodAlg{
+			Alg:       "groth16-mock",
+			CircuitID: "auth",
+		},
+	}
 
 	jwz.RegisterProvingMethod(mockedProvingMethod.ProvingMethodAlg, func() jwz.ProvingMethod {
 		return mockedProvingMethod
 	})
-	//vk := packers.NewVerificationKey(circuits.CircuitID(mockedProvingMethod.ProvingMethodAlg.CircuitID),
+	// vk := packers.NewVerificationKey(circuits.CircuitID(mockedProvingMethod.ProvingMethodAlg.CircuitID),
 	//	mockedProvingMethod.Alg())
 
 	mockVerificationParam := make(map[jwz.ProvingMethodAlg]packers.VerificationParam)
