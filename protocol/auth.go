@@ -30,10 +30,9 @@ type AuthorizationResponseMessage struct {
 
 // AuthorizationMessageResponseBody is struct the represents authorization response data
 type AuthorizationMessageResponseBody struct {
-	DIDDoc                 json.RawMessage              `json:"did_doc,omitempty"`
-	Message                string                       `json:"message,omitempty"`
-	Scope                  []ZeroKnowledgeProofResponse `json:"scope"`
-	VerifiablePresentation json.RawMessage              `json:"verifiablePresentation,omitempty"`
+	DIDDoc  json.RawMessage              `json:"did_doc,omitempty"`
+	Message string                       `json:"message,omitempty"`
+	Scope   []ZeroKnowledgeProofResponse `json:"scope"`
 }
 
 // AuthorizationRequestMessage is struct the represents iden3message authorization request
@@ -67,7 +66,8 @@ type ZeroKnowledgeProofRequest struct {
 
 // ZeroKnowledgeProofResponse represents structure of zkp response
 type ZeroKnowledgeProofResponse struct {
-	ID        uint32 `json:"id"` // unique id to present unique proof request
-	CircuitID string `json:"circuitId"`
+	ID                     uint32          `json:"id"` // unique id to present unique proof request
+	CircuitID              string          `json:"circuitId"`
+	VerifiablePresentation json.RawMessage `json:"verifiablePresentation,omitempty"`
 	types.ZKProof
 }
