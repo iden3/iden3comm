@@ -30,10 +30,10 @@ type AuthorizationResponseMessage struct {
 
 // AuthorizationMessageResponseBody is struct the represents authorization response data
 type AuthorizationMessageResponseBody struct {
-	DIDDoc              json.RawMessage              `json:"did_doc,omitempty"`
-	Message             string                       `json:"message,omitempty"`
-	Scope               []ZeroKnowledgeProofResponse `json:"scope"`
-	SelectiveDisclosure string                       `json:"selective_disclosure,omitempty"`
+	DIDDoc                 json.RawMessage              `json:"did_doc,omitempty"`
+	Message                string                       `json:"message,omitempty"`
+	Scope                  []ZeroKnowledgeProofResponse `json:"scope"`
+	VerifiablePresentation json.RawMessage              `json:"verifiablePresentation,omitempty"`
 }
 
 // AuthorizationRequestMessage is struct the represents iden3message authorization request
