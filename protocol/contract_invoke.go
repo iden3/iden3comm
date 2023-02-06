@@ -9,28 +9,7 @@ import (
 const (
 	// ContractInvokeRequestMessageType defines contract invoke request type of the communication protocol
 	ContractInvokeRequestMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "proofs/1.0/contract-invoke-request"
-	// ContractInvokeResponseMessageType defines contract invoke response type of the communication protocol
-	ContractInvokeResponseMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "proofs/1.0/contract-invoke-response"
 )
-
-// ContractInvokeResponseMessage is struct the represents iden3message contract invoke response
-type ContractInvokeResponseMessage struct {
-	ID       string                            `json:"id"`
-	Typ      iden3comm.MediaType               `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage         `json:"type"`
-	ThreadID string                            `json:"thid,omitempty"`
-	Body     ContractInvokeMessageResponseBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-}
-
-// ContractInvokeMessageResponseBody is struct the represents contract invoke response data
-type ContractInvokeMessageResponseBody struct {
-	DIDDoc  json.RawMessage              `json:"did_doc,omitempty"`
-	Message string                       `json:"message,omitempty"`
-	Scope   []ZeroKnowledgeProofResponse `json:"scope"`
-}
 
 // ContractInvokeRequestMessage is struct the represents iden3message contract invoke request
 type ContractInvokeRequestMessage struct {
@@ -46,7 +25,6 @@ type ContractInvokeRequestMessage struct {
 
 // ContractInvokeRequestMessageBody is body for contract invoke request
 type ContractInvokeRequestMessageBody struct {
-	CallbackURL     string                      `json:"callbackUrl"`
 	Reason          string                      `json:"reason,omitempty"`
 	Message         string                      `json:"message,omitempty"`
 	TransactionData TransactionData             `json:"transaction_data"`
