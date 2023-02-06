@@ -8,9 +8,9 @@ import (
 
 const (
 	// ContractInvokeRequestMessageType defines contract invoke request type of the communication protocol
-	ContractInvokeRequestMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "contract/invoke/1.0/request"
+	ContractInvokeRequestMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "proofs/1.0/contract-invoke-request"
 	// ContractInvokeResponseMessageType defines contract invoke response type of the communication protocol
-	ContractInvokeResponseMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "contract/invoke/1.0/response"
+	ContractInvokeResponseMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "proofs/1.0/contract-invoke-response"
 )
 
 // ContractInvokeResponseMessage is struct the represents iden3message contract invoke response
