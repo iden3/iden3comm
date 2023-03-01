@@ -68,6 +68,6 @@ type ZeroKnowledgeProofRequest struct {
 type ZeroKnowledgeProofResponse struct {
 	ID                     uint32          `json:"id"` // unique id to present unique proof request
 	CircuitID              string          `json:"circuitId"`
-	VerifiablePresentation json.RawMessage `json:"verifiablePresentation,omitempty"`
+	VerifiablePresentation json.RawMessage `json:"vp,omitempty"`
 	types.ZKProof
 }
