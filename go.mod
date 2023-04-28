@@ -7,7 +7,7 @@ require (
 	github.com/iden3/go-circuits v1.0.3
 	github.com/iden3/go-iden3-core v1.0.2
 	github.com/iden3/go-iden3-crypto v0.0.15
-	github.com/iden3/go-jwz v1.0.0-beta.0.0.20230428114551-647e94c0f9e3
+	github.com/iden3/go-jwz v1.0.0
 	github.com/iden3/go-rapidsnark/types v0.0.3
 	github.com/iden3/go-schema-processor v1.1.5
 	github.com/pkg/errors v0.9.1
