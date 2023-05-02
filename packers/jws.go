@@ -1,13 +1,51 @@
+//go:build jwx_es256k
+// +build jwx_es256k
+
 package packers
 
 import (
+	"crypto"
+	"crypto/ecdsa"
+	"encoding/hex"
 	"encoding/json"
+	"math/big"
 
+	"github.com/decred/dcrd/dcrec/secp256k1"
+	bjj "github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-schema-processor/verifiable"
 	"github.com/iden3/iden3comm"
+	"github.com/lestrrat-go/jwx/v2/jwa"
+	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v2/jws"
+	"github.com/mr-tron/base58"
 	"github.com/pkg/errors"
-	"gopkg.in/go-jose/go-jose.v2"
 )
+
+type verificationType string
+
+const (
+	JsonWebKey2020                    verificationType = "JsonWebKey2020"
+	EcdsaSecp256k1VerificationKey2019 verificationType = "EcdsaSecp256k1VerificationKey2019"
+	EcdsaSecp256k1RecoveryMethod2020  verificationType = "EcdsaSecp256k1RecoveryMethod2020"
+	EddsaBN256VerificaonKey           verificationType = "EddsaBN256VerificaonKey"
+)
+
+var supportedAlgorithms = map[jwa.SignatureAlgorithm]map[verificationType]struct{}{
+	jwa.ES256K: {
+		JsonWebKey2020:                    {},
+		EcdsaSecp256k1VerificationKey2019: {},
+		EcdsaSecp256k1RecoveryMethod2020:  {},
+	},
+	jwa.ES256: {
+		JsonWebKey2020:                    {},
+		EcdsaSecp256k1VerificationKey2019: {},
+		EcdsaSecp256k1RecoveryMethod2020:  {},
+	},
+	BJJAlg: {
+		EddsaBN256VerificaonKey: {},
+		// "JsonWebKey2020":                    {}, for future use
+	},
+}
 
 // MediaTypeSignedMessage is media type for jws
 const MediaTypeSignedMessage iden3comm.MediaType = "application/iden3-signed-json"
@@ -20,29 +58,22 @@ func (f DIDResolverHandlerFunc) Resolve(did string) (*verifiable.DIDDocument, er
 	return f(did)
 }
 
-type OpaqueSignerResolverHandlerFunc func(kid string) (jose.OpaqueSigner, error)
+type SignerResolverHandlerFunc func(kid string) (crypto.Signer, error)
 
-func (f OpaqueSignerResolverHandlerFunc) Resolve(kid string) (jose.OpaqueSigner, error) {
+func (f SignerResolverHandlerFunc) Resolve(kid string) (crypto.Signer, error) {
 	return f(kid)
-}
-
-type OpaqueVerifierResolverHandlerFunc func(vm *verifiable.CommonVerificationMethod) (jose.OpaqueVerifier, error)
-
-func (f OpaqueVerifierResolverHandlerFunc) Resolve(vm *verifiable.CommonVerificationMethod) (jose.OpaqueVerifier, error) {
-	return f(vm)
 }
 
 // JWSPacker is packer that use jws
 type JWSPacker struct {
-	didResolverHandler                DIDResolverHandlerFunc
-	opaqueSignerResolverHandlerFunc   OpaqueSignerResolverHandlerFunc
-	opaqueVerifierResolverHandlerFunc OpaqueVerifierResolverHandlerFunc
+	didResolverHandler        DIDResolverHandlerFunc
+	signerResolverHandlerFunc SignerResolverHandlerFunc
 }
 
 // SigningParams packer parameters for jws generation
 type SigningParams struct {
 	SenderDID string
-	Alg       jose.SignatureAlgorithm
+	Alg       jwa.SignatureAlgorithm
 	KID       string
 	DIDDoc    *verifiable.DIDDocument
 	iden3comm.PackerParams
@@ -53,16 +84,26 @@ func NewSigningParams() SigningParams {
 	return SigningParams{}
 }
 
+func (s *SigningParams) Verify() error {
+	if s.Alg == "" {
+		return errors.New("alg is required for signing params")
+	}
+	if s.SenderDID == "" {
+		return errors.New("sender did is required for signing params")
+	}
+	return nil
+}
+
 // NewJWSPacker creates new jws packer instance
 func NewJWSPacker(
 	didResolverHandler DIDResolverHandlerFunc,
-	opaqueSignerResolverHandlerFunc OpaqueSignerResolverHandlerFunc,
-	opaqueVerifierResolverHandlerFunc OpaqueVerifierResolverHandlerFunc,
+	opaqueSignerResolverHandlerFunc SignerResolverHandlerFunc,
+	// opaqueVerifierResolverHandlerFunc OpaqueVerifierResolverHandlerFunc,
 ) *JWSPacker {
 	return &JWSPacker{
 		didResolverHandler,
 		opaqueSignerResolverHandlerFunc,
-		opaqueVerifierResolverHandlerFunc,
+		// opaqueVerifierResolverHandlerFunc,
 	}
 }
 
@@ -70,19 +111,16 @@ func NewJWSPacker(
 func (p *JWSPacker) Pack(
 	payload []byte, params iden3comm.PackerParams) ([]byte, error) {
 
-	// create hash of message
-	var (
-		err   error
-		token *jose.JSONWebSignature
-	)
-
 	signingParams, ok := params.(SigningParams)
 	if !ok {
 		return nil, errors.New("params must be SigningParams")
 	}
+	if err := signingParams.Verify(); err != nil {
+		return nil, err
+	}
 
 	bm := &iden3comm.BasicMessage{}
-	err = json.Unmarshal(payload, &bm)
+	err := json.Unmarshal(payload, &bm)
 	if err != nil {
 		return nil, errors.Errorf("invalid message payload: %v", err)
 	}
@@ -99,7 +137,7 @@ func (p *JWSPacker) Pack(
 		}
 	}
 
-	vm, err := lookForKid(didDoc, signingParams.KID)
+	vm, err := lookupForKid(didDoc, signingParams.KID)
 	if err != nil {
 		return nil, err
 	}
@@ -110,62 +148,63 @@ func (p *JWSPacker) Pack(
 	} else {
 		kid = vm.ID
 	}
+	if kid == "" {
+		return nil, errors.New("kid is required")
+	}
 
-	// TODO(illia-korotia): i think better to find key by vm
-	opaqueSigner, err := p.opaqueSignerResolverHandlerFunc.Resolve(kid)
+	signer, err := p.signerResolverHandlerFunc.Resolve(kid)
 	if err != nil {
 		return nil, errors.New("can't resolve key")
 	}
 
-	signer, err := jose.NewSigner(
-		// TODO(illia-korotia): get alg from did doc
-		jose.SigningKey{Algorithm: jose.ES256, Key: opaqueSigner},
-		&jose.SignerOptions{
-			ExtraHeaders: map[jose.HeaderKey]interface{}{
-				jose.HeaderKey("kid"): kid,
-			},
-		})
-	if err != nil {
-		return nil, errors.Errorf("can't create signer: %v", err)
-	}
+	hdrs := jws.NewHeaders()
+	hdrs.Set(`kid`, kid)
 
-	token, err = signer.Sign(payload)
+	token, err := jws.Sign(
+		payload,
+		jws.WithKey(
+			jwa.KeyAlgorithmFrom(signingParams.Alg),
+			signer,
+			jws.WithProtectedHeaders(hdrs),
+		),
+	)
 	if err != nil {
 		return nil, errors.Errorf("can't sign: %v", err)
 
 	}
 
-	t, err := token.CompactSerialize()
-	if err != nil {
-		return nil, errors.Errorf("can't serialize: %v", err)
-	}
-	return []byte(t), nil
+	return []byte(token), nil
 }
 
 // Unpack returns unpacked message from transport envelope with verification of signature
 func (p *JWSPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 
-	token, err := jose.ParseSigned(string(envelope))
-	if err != nil {
-		return nil, err
-	}
-
-	if len(token.Signatures) != 1 {
-		return nil, errors.New("invalid number of signatures")
-	}
-	kid := token.Signatures[0].Header.KeyID
-	if kid == "" {
-		return nil, errors.New("kid is empty")
-	}
-
-	msg := &iden3comm.BasicMessage{}
-	err = json.Unmarshal(token.UnsafePayloadWithoutVerification(), msg)
+	token, err := jws.Parse(envelope)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
+	sigs := token.Signatures()
+	if len(sigs) != 1 {
+		return nil, errors.New("invalid number of signatures")
+	}
+	kid := sigs[0].ProtectedHeaders().KeyID()
+	if kid == "" {
+		return nil, errors.New("kid header is required")
+	}
+	alg := sigs[0].ProtectedHeaders().Algorithm()
+	if alg == "" {
+		return nil, errors.New("alg header is required")
+	}
+
+	msg := &iden3comm.BasicMessage{}
+	err = json.Unmarshal(token.Payload(), msg)
+	if err != nil {
+		return nil, errors.Errorf("invalid message payload: %v", err)
+	}
+
 	if msg.From == "" {
-		return nil, errors.New("from field is empty")
+		return nil, errors.New("from field in did docuemnt is required")
 	}
 
 	didDoc, err := p.didResolverHandler.Resolve(msg.From)
@@ -173,17 +212,17 @@ func (p *JWSPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 		return nil, errors.WithStack(err)
 	}
 
-	vm, err := lookForKid(didDoc, kid)
+	vm, err := lookupForKid(didDoc, kid)
 	if err != nil {
 		return nil, err
 	}
 
-	v, err := p.opaqueVerifierResolverHandlerFunc.Resolve(vm)
+	wk, err := extractVerifyKey(alg, vm)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, err
 	}
 
-	_, err = token.Verify(v)
+	_, err = jws.Verify(envelope, wk)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -196,8 +235,8 @@ func (p *JWSPacker) MediaType() iden3comm.MediaType {
 	return MediaTypeSignedMessage
 }
 
-// lookForKid looks for a verification method in the DID document that matches the given jwk kid or DID.
-func lookForKid(didDoc *verifiable.DIDDocument, kid string) (*verifiable.CommonVerificationMethod, error) {
+// lookupForKid looks for a verification method in the DID document that matches the given jwk kid or DID.
+func lookupForKid(didDoc *verifiable.DIDDocument, kid string) (*verifiable.CommonVerificationMethod, error) {
 	vms := make([]verifiable.CommonVerificationMethod, 0,
 		len(didDoc.VerificationMethod)+len(didDoc.Authentication))
 	for _, auth := range didDoc.Authentication {
@@ -243,4 +282,94 @@ func resolveAuthToVM(
 		}
 	}
 	return nil
+}
+
+func extractVerifyKey(alg jwa.SignatureAlgorithm, vm *verifiable.CommonVerificationMethod) (jws.VerifyOption, error) {
+	supportedAlg, ok := supportedAlgorithms[alg]
+	if !ok {
+		return nil, errors.Errorf("unsupported algorithm: '%s'", alg)
+	}
+	_, ok = supportedAlg[verificationType(vm.Type)]
+	if !ok {
+		return nil, errors.Errorf("unsupported verification type: '%s'", vm.Type)
+	}
+
+	if len(vm.PublicKeyJwk) > 0 {
+		vm.PublicKeyJwk["alg"] = alg
+		bytesJWK, err := json.Marshal(vm.PublicKeyJwk)
+		if err != nil {
+			return nil, errors.Errorf("failed to marshal jwk: %v", err)
+		}
+		jwkKey, err := jwk.ParseKey(bytesJWK)
+		if err != nil {
+			return nil, errors.Errorf("failed to parse jwk: %v", err)
+		}
+		if jwkKey.Algorithm() != BJJAlg {
+			return jws.WithKey(
+				jwkKey.Algorithm(),
+				jwkKey,
+			), nil
+		}
+		bjjKey, err := parseBJJKey(jwkKey)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		return jws.WithKey(
+			jwkKey.Algorithm(),
+			bjjKey,
+		), nil
+	}
+
+	if vm.PublicKeyHex != "" {
+		encodedKey, err := hex.DecodeString(vm.PublicKeyHex)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		return jws.WithKey(
+			jwa.KeyAlgorithmFrom(alg),
+			newecdsa(encodedKey),
+		), nil
+	}
+
+	if vm.PublicKeyBase58 != "" {
+		encodedKey, err := base58.Decode(vm.PublicKeyBase58)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		return jws.WithKey(
+			jwa.KeyAlgorithmFrom(alg),
+			newecdsa(encodedKey),
+		), nil
+	}
+
+	return nil, errors.New("can't find public key")
+}
+
+func newecdsa(encodedKey []byte) ecdsa.PublicKey {
+	return ecdsa.PublicKey{
+		Curve: secp256k1.S256(),
+		X:     new(big.Int).SetBytes(encodedKey[:32]),
+		Y:     new(big.Int).SetBytes(encodedKey[32:]),
+	}
+}
+
+func parseBJJKey(jwkKey jwk.Key) (*bjj.PublicKey, error) {
+	ux, ok := jwkKey.Get("x")
+	if !ok {
+		return nil, errors.New("can't find x")
+	}
+	uy, _ := jwkKey.Get("y")
+	if !ok {
+		return nil, errors.New("can't find y")
+	}
+	x := big.NewInt(0).SetBytes(ux.([]byte))
+	y := big.NewInt(0).SetBytes(uy.([]byte))
+
+	bjjPoint := bjj.Point{X: x, Y: y}
+	if !bjjPoint.InCurve() {
+		return nil, errors.New("point is not in curve")
+	}
+	bjj := bjj.PublicKey(bjjPoint)
+
+	return &bjj, nil
 }
