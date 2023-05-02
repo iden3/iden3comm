@@ -2,6 +2,7 @@ package packers
 
 import (
 	"encoding/json"
+
 	"github.com/iden3/iden3comm"
 	"github.com/pkg/errors"
 )
@@ -19,7 +20,7 @@ type PlainPackerParams struct {
 }
 
 // Pack returns packed message to transport envelope
-func (p *PlainMessagePacker) Pack(payload []byte, params iden3comm.PackerParams) ([]byte, error) {
+func (p *PlainMessagePacker) Pack(payload []byte, _ iden3comm.PackerParams) ([]byte, error) {
 
 	var msgMap map[string]interface{}
 	err := json.Unmarshal(payload, &msgMap)

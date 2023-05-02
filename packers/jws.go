@@ -23,8 +23,9 @@ import (
 
 type verificationType string
 
+// List of supported verification types
 const (
-	JsonWebKey2020                    verificationType = "JsonWebKey2020"
+	JSONWebKey2020                    verificationType = "JsonWebKey2020"
 	EcdsaSecp256k1VerificationKey2019 verificationType = "EcdsaSecp256k1VerificationKey2019"
 	EcdsaSecp256k1RecoveryMethod2020  verificationType = "EcdsaSecp256k1RecoveryMethod2020"
 	EddsaBN256VerificaonKey           verificationType = "EddsaBN256VerificaonKey"
@@ -32,12 +33,12 @@ const (
 
 var supportedAlgorithms = map[jwa.SignatureAlgorithm]map[verificationType]struct{}{
 	jwa.ES256K: {
-		JsonWebKey2020:                    {},
+		JSONWebKey2020:                    {},
 		EcdsaSecp256k1VerificationKey2019: {},
 		EcdsaSecp256k1RecoveryMethod2020:  {},
 	},
 	jwa.ES256: {
-		JsonWebKey2020:                    {},
+		JSONWebKey2020:                    {},
 		EcdsaSecp256k1VerificationKey2019: {},
 		EcdsaSecp256k1RecoveryMethod2020:  {},
 	},
@@ -58,8 +59,10 @@ func (f DIDResolverHandlerFunc) Resolve(did string) (*verifiable.DIDDocument, er
 	return f(did)
 }
 
+// SignerResolverHandlerFunc resolves signer
 type SignerResolverHandlerFunc func(kid string) (crypto.Signer, error)
 
+// Resolve function return signer by kid
 func (f SignerResolverHandlerFunc) Resolve(kid string) (crypto.Signer, error) {
 	return f(kid)
 }
@@ -84,6 +87,7 @@ func NewSigningParams() SigningParams {
 	return SigningParams{}
 }
 
+// Verify checks if signing params are valid
 func (s *SigningParams) Verify() error {
 	if s.Alg == "" {
 		return errors.New("alg is required for signing params")
@@ -158,7 +162,9 @@ func (p *JWSPacker) Pack(
 	}
 
 	hdrs := jws.NewHeaders()
-	hdrs.Set(`kid`, kid)
+	if err = hdrs.Set(`kid`, kid); err != nil {
+		return nil, errors.Errorf("can't set kid: %v", err)
+	}
 
 	token, err := jws.Sign(
 		payload,
@@ -173,7 +179,7 @@ func (p *JWSPacker) Pack(
 
 	}
 
-	return []byte(token), nil
+	return token, nil
 }
 
 // Unpack returns unpacked message from transport envelope with verification of signature
@@ -236,55 +242,58 @@ func (p *JWSPacker) MediaType() iden3comm.MediaType {
 }
 
 // lookupForKid looks for a verification method in the DID document that matches the given jwk kid or DID.
-func lookupForKid(didDoc *verifiable.DIDDocument, kid string) (*verifiable.CommonVerificationMethod, error) {
+func lookupForKid(didDoc *verifiable.DIDDocument, kid string) (verifiable.CommonVerificationMethod, error) {
 	vms := make([]verifiable.CommonVerificationMethod, 0,
 		len(didDoc.VerificationMethod)+len(didDoc.Authentication))
-	for _, auth := range didDoc.Authentication {
-		vm := resolveAuthToVM(auth, didDoc.VerificationMethod)
-		if vm == nil {
+	for i := range didDoc.Authentication {
+		vm, err := resolveAuthToVM(
+			didDoc.Authentication[i],
+			didDoc.VerificationMethod,
+		)
+		if err != nil {
 			continue
 		}
-		vms = append(vms, *vm)
+		vms = append(vms, vm)
 	}
 	vms = append(vms, didDoc.VerificationMethod...)
 
 	if len(vms) == 0 {
-		return nil, errors.New("no verification methods")
+		return verifiable.CommonVerificationMethod{}, errors.New("no verification methods")
 	}
 
 	if kid == "" {
-		return &vms[0], nil
+		return vms[0], nil
 	}
 
-	for _, vm := range vms {
-		if vm.ID == kid {
-			return &vm, nil
+	for i := range vms {
+		if vms[i].ID == kid {
+			return vms[i], nil
 		}
-		if id, ok := vm.PublicKeyJwk["kid"]; ok && id == kid {
-			return &vm, nil
+		if id, ok := vms[i].PublicKeyJwk["kid"]; ok && id == kid {
+			return vms[i], nil
 		}
 	}
 
-	return nil, errors.New("can't find kid")
+	return verifiable.CommonVerificationMethod{}, errors.New("can't find kid")
 }
 
 func resolveAuthToVM(
 	auth verifiable.Authentication,
 	vms []verifiable.CommonVerificationMethod,
-) *verifiable.CommonVerificationMethod {
+) (verifiable.CommonVerificationMethod, error) {
 	if !auth.IsDID() {
-		return &auth.CommonVerificationMethod
+		return auth.CommonVerificationMethod, nil
 	}
 	// make keys from authenication section more priority
-	for _, vm := range vms {
-		if auth.DID() == vm.ID {
-			return &vm
+	for i := range vms {
+		if auth.DID() == vms[i].ID {
+			return vms[i], nil
 		}
 	}
-	return nil
+	return verifiable.CommonVerificationMethod{}, errors.New("not found")
 }
 
-func extractVerifyKey(alg jwa.SignatureAlgorithm, vm *verifiable.CommonVerificationMethod) (jws.VerifyOption, error) {
+func extractVerifyKey(alg jwa.SignatureAlgorithm, vm verifiable.CommonVerificationMethod) (jws.VerifyOption, error) {
 	supportedAlg, ok := supportedAlgorithms[alg]
 	if !ok {
 		return nil, errors.Errorf("unsupported algorithm: '%s'", alg)
@@ -369,7 +378,7 @@ func parseBJJKey(jwkKey jwk.Key) (*bjj.PublicKey, error) {
 	if !bjjPoint.InCurve() {
 		return nil, errors.New("point is not in curve")
 	}
-	bjj := bjj.PublicKey(bjjPoint)
+	pubKey := bjj.PublicKey(bjjPoint)
 
-	return &bjj, nil
+	return &pubKey, nil
 }

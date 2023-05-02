@@ -93,7 +93,7 @@ func TestBJJKey(t *testing.T) {
 						Type:       "EddsaBN256VerificaonKey",
 						Controller: "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29",
 						PublicKeyJwk: map[string]interface{}{
-							"kty": "OKP",
+							"kty": "EC",
 							"crv": "BJJ",
 							"x":   "Iunwi3h0Y34DT8zAvKKSt_QrMkL9d3Ow0XygV253UfE=",
 							"y":   "CvilGVOsA_Fsq9IeGFYI2jkRKCcnWO_z9MtaOhN9PNc=",
@@ -151,13 +151,13 @@ func TestLookForKid(t *testing.T) {
 		name           string
 		didDocFileName string
 		kid            string
-		expectedKey    *verifiable.CommonVerificationMethod
+		expectedKey    verifiable.CommonVerificationMethod
 	}{
 		{
 			name:           "Try to find vm by did",
 			didDocFileName: "diddocument_with_jws_did.json",
 			kid:            "#vm-1",
-			expectedKey: &verifiable.CommonVerificationMethod{
+			expectedKey: verifiable.CommonVerificationMethod{
 				ID:         "#vm-1",
 				Controller: "did:test:EiClkZMDxPKqC9c-umQfTkR8vvZ9JPhl_xLDI9Nfk38w5w",
 				Type:       "EcdsaSecp256k1VerificationKey2019",
@@ -174,7 +174,7 @@ func TestLookForKid(t *testing.T) {
 			name:           "Try to find vm by kid in jwk",
 			didDocFileName: "diddocument_with_jws_kid.json",
 			kid:            "umQfTkR8vvZ9JPhl",
-			expectedKey: &verifiable.CommonVerificationMethod{
+			expectedKey: verifiable.CommonVerificationMethod{
 				ID:         "#someKeyId",
 				Controller: "did:test:EiClkZMDxPKqC9c-umQfTkR8vvZ9JPhl_xLDI9Nfk38w5w",
 				Type:       "EcdsaSecp256k1VerificationKey2019",
@@ -192,7 +192,7 @@ func TestLookForKid(t *testing.T) {
 			name:           "Try to find vm by did from list",
 			didDocFileName: "diddocument_with_list_of_did.json",
 			kid:            "#vm-1",
-			expectedKey: &verifiable.CommonVerificationMethod{
+			expectedKey: verifiable.CommonVerificationMethod{
 				ID:         "#vm-1",
 				Controller: "did:test:1",
 				Type:       "EcdsaSecp256k1VerificationKey2019",
@@ -209,7 +209,7 @@ func TestLookForKid(t *testing.T) {
 			name:           "More priority vm should be from authentication section",
 			didDocFileName: "diddocument_with_list_of_did.json",
 			kid:            "", // empty kid
-			expectedKey: &verifiable.CommonVerificationMethod{
+			expectedKey: verifiable.CommonVerificationMethod{
 				ID:         "#vm-1",
 				Controller: "did:test:1",
 				Type:       "EcdsaSecp256k1VerificationKey2019",
@@ -226,7 +226,7 @@ func TestLookForKid(t *testing.T) {
 			name:           "Vm in auth section",
 			didDocFileName: "diddocument_with_wm_on_authentication_section.json",
 			kid:            "#vm-2",
-			expectedKey: &verifiable.CommonVerificationMethod{
+			expectedKey: verifiable.CommonVerificationMethod{
 				ID:         "#vm-2",
 				Controller: "did:test:2",
 				Type:       "EcdsaSecp256k1VerificationKey2019",

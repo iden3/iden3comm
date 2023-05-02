@@ -3,7 +3,6 @@ package packers
 import (
 	"crypto"
 	"crypto/rand"
-	"encoding/hex"
 	"errors"
 	"fmt"
 
@@ -13,8 +12,10 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jws"
 )
 
+// BJJAlg signature algorithm
 const BJJAlg jwa.SignatureAlgorithm = "BJJ"
 
+//nolint:gochecknoinits // Need to register BJJAlg
 func init() {
 	bjjp := &BjjProvider{}
 	jws.RegisterSigner(
@@ -33,12 +34,15 @@ func init() {
 	)
 }
 
+// BjjProvider is a signer and verifier for BJJAlg
 type BjjProvider struct{}
 
+// Algorithm returns BJJAlg
 func (b *BjjProvider) Algorithm() jwa.SignatureAlgorithm {
 	return BJJAlg
 }
 
+// Sign signs payload with BJJ private key
 func (b *BjjProvider) Sign(payload []byte, opts interface{}) ([]byte, error) {
 	signer, ok := opts.(crypto.Signer)
 	if !ok {
@@ -55,11 +59,10 @@ func (b *BjjProvider) Sign(payload []byte, opts interface{}) ([]byte, error) {
 		return nil, fmt.Errorf("failed to sign payload: %v", err)
 	}
 
-	fmt.Println("sig digest:", digest)
-
-	return sig[:], nil
+	return sig, nil
 }
 
+// Verify verifies signature with BJJ public key
 func (b *BjjProvider) Verify(payload, signature []byte, opts interface{}) error {
 	var bjjPubKey *bjj.PublicKey
 	// we can expande opts here
@@ -77,16 +80,13 @@ func (b *BjjProvider) Verify(payload, signature []byte, opts interface{}) error 
 		return fmt.Errorf("failed get poseidon hash for payload: %v", err)
 	}
 	poseidonComSig := &bjj.SignatureComp{}
-	if err := poseidonComSig.UnmarshalText(signature); err != nil {
+	if err = poseidonComSig.UnmarshalText(signature); err != nil {
 		return fmt.Errorf("can't unmarshal bjj signature: %v", err)
 	}
 	poseidonDecSig, err := poseidonComSig.Decompress()
 	if err != nil {
 		return fmt.Errorf("can't decompress bjj signature: %v", err)
 	}
-
-	fmt.Println("verify digest:", digest)
-	fmt.Println("verify poseidonComSig:", hex.EncodeToString(poseidonComSig[:]))
 
 	if !bjjPubKey.VerifyPoseidon(digest, poseidonDecSig) {
 		return fmt.Errorf("invalid signature")

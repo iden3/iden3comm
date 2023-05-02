@@ -5,6 +5,8 @@ run:
   timeout: 2m
   skip-dirs:
     - vendor
+  build-tags:
+    - "jwx_es256k"
 
 linters-settings:
   govet:
