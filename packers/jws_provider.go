@@ -12,11 +12,12 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jws"
 )
 
-// BJJAlg signature algorithm
-const BJJAlg jwa.SignatureAlgorithm = "BJJ"
-
 //nolint:gochecknoinits // Need to register BJJAlg
 func init() {
+	registerBJJProvider()
+}
+
+func registerBJJProvider() {
 	bjjp := &BjjProvider{}
 	jws.RegisterSigner(
 		bjjp.Algorithm(),
@@ -33,6 +34,11 @@ func init() {
 			}),
 	)
 }
+
+const (
+	// BJJAlg signature algorithm
+	BJJAlg jwa.SignatureAlgorithm = "BJJ"
+)
 
 // BjjProvider is a signer and verifier for BJJAlg
 type BjjProvider struct{}

@@ -1,6 +1,3 @@
-//go:build jwx_es256k
-// +build jwx_es256k
-
 package packers
 
 import (
@@ -28,7 +25,7 @@ const (
 	JSONWebKey2020                    verificationType = "JsonWebKey2020"
 	EcdsaSecp256k1VerificationKey2019 verificationType = "EcdsaSecp256k1VerificationKey2019"
 	EcdsaSecp256k1RecoveryMethod2020  verificationType = "EcdsaSecp256k1RecoveryMethod2020"
-	EddsaBN256VerificaonKey           verificationType = "EddsaBN256VerificaonKey"
+	EddsaBN256VerificationKey         verificationType = "EddsaBN256VerificationKey"
 )
 
 var supportedAlgorithms = map[jwa.SignatureAlgorithm]map[verificationType]struct{}{
@@ -43,13 +40,13 @@ var supportedAlgorithms = map[jwa.SignatureAlgorithm]map[verificationType]struct
 		EcdsaSecp256k1RecoveryMethod2020:  {},
 	},
 	BJJAlg: {
-		EddsaBN256VerificaonKey: {},
+		EddsaBN256VerificationKey: {},
 		// "JsonWebKey2020":                    {}, for future use
 	},
 }
 
 // MediaTypeSignedMessage is media type for jws
-const MediaTypeSignedMessage iden3comm.MediaType = "application/iden3-signed-json"
+const MediaTypeSignedMessage iden3comm.MediaType = "application/iden3comm-signed-json"
 
 // DIDResolverHandlerFunc resolves did
 type DIDResolverHandlerFunc func(did string) (*verifiable.DIDDocument, error)
@@ -75,10 +72,10 @@ type JWSPacker struct {
 
 // SigningParams packer parameters for jws generation
 type SigningParams struct {
-	SenderDID string
-	Alg       jwa.SignatureAlgorithm
-	KID       string
-	DIDDoc    *verifiable.DIDDocument
+	SenderDIDstr string
+	Alg          jwa.SignatureAlgorithm
+	KID          string
+	DIDDoc       *verifiable.DIDDocument
 	iden3comm.PackerParams
 }
 
@@ -92,7 +89,7 @@ func (s *SigningParams) Verify() error {
 	if s.Alg == "" {
 		return errors.New("alg is required for signing params")
 	}
-	if s.SenderDID == "" {
+	if s.SenderDIDstr == "" {
 		return errors.New("sender did is required for signing params")
 	}
 	return nil
@@ -101,13 +98,11 @@ func (s *SigningParams) Verify() error {
 // NewJWSPacker creates new jws packer instance
 func NewJWSPacker(
 	didResolverHandler DIDResolverHandlerFunc,
-	opaqueSignerResolverHandlerFunc SignerResolverHandlerFunc,
-	// opaqueVerifierResolverHandlerFunc OpaqueVerifierResolverHandlerFunc,
+	signerResolverHandlerFunc SignerResolverHandlerFunc,
 ) *JWSPacker {
 	return &JWSPacker{
 		didResolverHandler,
-		opaqueSignerResolverHandlerFunc,
-		// opaqueVerifierResolverHandlerFunc,
+		signerResolverHandlerFunc,
 	}
 }
 
@@ -129,13 +124,13 @@ func (p *JWSPacker) Pack(
 		return nil, errors.Errorf("invalid message payload: %v", err)
 	}
 
-	if bm.From != signingParams.SenderDID {
+	if bm.From != signingParams.SenderDIDstr {
 		return nil, errors.New("msg singer must me be msg sender")
 	}
 
 	didDoc := signingParams.DIDDoc
 	if didDoc == nil {
-		didDoc, err = p.didResolverHandler.Resolve(signingParams.SenderDID)
+		didDoc, err = p.didResolverHandler.Resolve(signingParams.SenderDIDstr)
 		if err != nil {
 			return nil, errors.Errorf("resolve did failed: %v", err)
 		}
@@ -223,7 +218,7 @@ func (p *JWSPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 		return nil, err
 	}
 
-	wk, err := extractVerifyKey(alg, vm)
+	wk, err := extractVerificationKey(alg, vm)
 	if err != nil {
 		return nil, err
 	}
@@ -293,7 +288,7 @@ func resolveAuthToVM(
 	return verifiable.CommonVerificationMethod{}, errors.New("not found")
 }
 
-func extractVerifyKey(alg jwa.SignatureAlgorithm, vm verifiable.CommonVerificationMethod) (jws.VerifyOption, error) {
+func extractVerificationKey(alg jwa.SignatureAlgorithm, vm verifiable.CommonVerificationMethod) (jws.VerifyOption, error) {
 	supportedAlg, ok := supportedAlgorithms[alg]
 	if !ok {
 		return nil, errors.Errorf("unsupported algorithm: '%s'", alg)

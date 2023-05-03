@@ -71,8 +71,8 @@ func TestPKHKey(t *testing.T) {
 	token, err := p.Pack(
 		msgBytes,
 		SigningParams{
-			SenderDID: `did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29`,
-			Alg:       jwa.ES256,
+			SenderDIDstr: `did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29`,
+			Alg:          jwa.ES256,
 		})
 	require.NoError(t, err)
 
@@ -90,7 +90,7 @@ func TestBJJKey(t *testing.T) {
 				VerificationMethod: []verifiable.CommonVerificationMethod{
 					{
 						ID:         "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29#key-1",
-						Type:       "EddsaBN256VerificaonKey",
+						Type:       "EddsaBN256VerificationKey",
 						Controller: "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29",
 						PublicKeyJwk: map[string]interface{}{
 							"kty": "EC",
@@ -121,8 +121,8 @@ func TestBJJKey(t *testing.T) {
 	token, err := p.Pack(
 		msgBytes,
 		SigningParams{
-			SenderDID: `did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29`,
-			Alg:       BJJAlg,
+			SenderDIDstr: `did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29`,
+			Alg:          BJJAlg,
 		})
 	require.NoError(t, err)
 
