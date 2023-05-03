@@ -1,4 +1,4 @@
-package packers
+package bjj
 
 import (
 	"crypto"
@@ -9,47 +9,21 @@ import (
 	bjj "github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-iden3-crypto/poseidon"
 	"github.com/lestrrat-go/jwx/v2/jwa"
-	"github.com/lestrrat-go/jwx/v2/jws"
 )
 
-//nolint:gochecknoinits // Need to register BJJAlg
-func init() {
-	registerBJJProvider()
-}
+// Alg signature algorithm
+const Alg jwa.SignatureAlgorithm = "BJJ"
 
-func registerBJJProvider() {
-	bjjp := &BjjProvider{}
-	jws.RegisterSigner(
-		bjjp.Algorithm(),
-		jws.SignerFactoryFn(
-			func() (jws.Signer, error) {
-				return bjjp, nil
-			},
-		))
-	jws.RegisterVerifier(
-		bjjp.Algorithm(),
-		jws.VerifierFactoryFn(
-			func() (jws.Verifier, error) {
-				return bjjp, nil
-			}),
-	)
-}
-
-const (
-	// BJJAlg signature algorithm
-	BJJAlg jwa.SignatureAlgorithm = "BJJ"
-)
-
-// BjjProvider is a signer and verifier for BJJAlg
-type BjjProvider struct{}
+// Provider is a signer and verifier for BJJ
+type Provider struct{}
 
 // Algorithm returns BJJAlg
-func (b *BjjProvider) Algorithm() jwa.SignatureAlgorithm {
-	return BJJAlg
+func (p *Provider) Algorithm() jwa.SignatureAlgorithm {
+	return Alg
 }
 
 // Sign signs payload with BJJ private key
-func (b *BjjProvider) Sign(payload []byte, opts interface{}) ([]byte, error) {
+func (p *Provider) Sign(payload []byte, opts interface{}) ([]byte, error) {
 	signer, ok := opts.(crypto.Signer)
 	if !ok {
 		return nil, errors.New("bjj signer opts support only signer interface")
@@ -69,7 +43,7 @@ func (b *BjjProvider) Sign(payload []byte, opts interface{}) ([]byte, error) {
 }
 
 // Verify verifies signature with BJJ public key
-func (b *BjjProvider) Verify(payload, signature []byte, opts interface{}) error {
+func (p *Provider) Verify(payload, signature []byte, opts interface{}) error {
 	var bjjPubKey *bjj.PublicKey
 	// we can expande opts here
 	switch v := opts.(type) {
@@ -79,6 +53,10 @@ func (b *BjjProvider) Verify(payload, signature []byte, opts interface{}) error 
 		bjjPubKey = &v
 	default:
 		return errors.New("provide bjj public key for verification signature")
+	}
+
+	if !bjjPubKey.Point().InCurve() {
+		return errors.New("public key is not on curve")
 	}
 
 	digest, err := poseidon.HashBytes(payload)

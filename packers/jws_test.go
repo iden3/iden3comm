@@ -2,40 +2,17 @@ package packers
 
 import (
 	"crypto"
-	"crypto/ecdsa"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io"
-	"math/big"
 	"os"
 	"testing"
 
-	"github.com/decred/dcrd/dcrec/secp256k1/v4"
-	bjj "github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-schema-processor/verifiable"
+	"github.com/iden3/iden3comm/packers/providers/bjj"
+	"github.com/iden3/iden3comm/packers/providers/es256k"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/stretchr/testify/require"
 )
-
-type BjjSignWrapper struct {
-	pk *bjj.PrivateKey
-}
-
-func (s *BjjSignWrapper) Public() crypto.PublicKey {
-	return nil
-}
-
-func (s *BjjSignWrapper) Sign(_ io.Reader, buf []byte, _ crypto.SignerOpts) ([]byte, error) {
-	digest := big.NewInt(0).SetBytes(buf)
-	compressed := s.pk.SignPoseidon(digest).Compress()
-
-	sig, err := compressed.MarshalText()
-	if err != nil {
-		return nil, err
-	}
-	return sig, nil
-}
 
 const exampleDidDoc = `{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/secp256k1recovery-2020/v2"],"id":"did:example:123","verificationMethod":[{"id":"did:example:123#vm-1","controller":"did:example:123","type":"EcdsaSecp256k1VerificationKey2019","publicKeyJwk":{"crv":"secp256k1","kid":"JUvpllMEYUZ2joO59UNui_XYDqxVqiFLLAJ8klWuPBw","kty":"EC","x":"YEwwxb2s2kjvKodwoW3II8JhcvYk-51hD74Kkq63syc=","y":"fCIyEltvzDs0JZnL25-YyyDgLrbZTw9y3lM2BLDhQbU="}}],"authentication":["did:example:123#vm-1"]}`
 const exampleDidDocJS = `{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/secp256k1recovery-2020/v2"],"id":"did:example:123","verificationMethod":[{"id":"did:example:123#vm-1","controller":"did:example:123","type":"EcdsaSecp256k1VerificationKey2019","publicKeyJwk":{"crv":"secp256k1","kid":"JUvpllMEYUZ2joO59UNui_XYDqxVqiFLLAJ8klWuPBw","kty":"EC","x":"_dV63sPUOOojf-RrM-4eAW7aa1hcPifqZmhsLqU1hHk","y":"Rjk_gUUlLupor-Z-KHs-2bMWhbpsOwAGCnO5sSQtaPc"}}],"authentication":["did:example:123#vm-1"]}`
@@ -51,18 +28,8 @@ func TestPKHKey(t *testing.T) {
 		}),
 
 		signerResolverHandlerFunc: SignerResolverHandlerFunc(func(kid string) (crypto.Signer, error) {
-			D, _ := big.NewInt(0).SetString(
-				"58356905918113884252537723315263545219814949716680947267522788415477306764885", 10,
-			)
-
-			pk := &ecdsa.PrivateKey{
-				D: D,
-				PublicKey: ecdsa.PublicKey{
-					Curve: secp256k1.S256(),
-				},
-			}
-
-			return pk, nil
+			return es256k.PrivateKeyFromHex(
+				"8104d697aa619dd4df4b80df650d4eca0c63fcc2a423c151112aefd562122e55")
 		}),
 	}
 
@@ -72,7 +39,7 @@ func TestPKHKey(t *testing.T) {
 		msgBytes,
 		SigningParams{
 			SenderDIDstr: `did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29`,
-			Alg:          jwa.ES256,
+			Alg:          jwa.ES256K,
 		})
 	require.NoError(t, err)
 
@@ -104,15 +71,8 @@ func TestBJJKey(t *testing.T) {
 		}),
 
 		signerResolverHandlerFunc: SignerResolverHandlerFunc(func(kid string) (crypto.Signer, error) {
-			rawPK, err := hex.DecodeString("d115b0481a020428b5de28196513e1b28aa0475c0ac064d73243321cd7b9200c")
-			if err != nil {
-				return nil, err
-			}
-
-			var pk bjj.PrivateKey
-			copy(pk[:], rawPK)
-
-			return &BjjSignWrapper{&pk}, nil
+			return bjj.GoSignerFromPrivHex(
+				"d115b0481a020428b5de28196513e1b28aa0475c0ac064d73243321cd7b9200c")
 		}),
 	}
 
@@ -122,7 +82,7 @@ func TestBJJKey(t *testing.T) {
 		msgBytes,
 		SigningParams{
 			SenderDIDstr: `did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29`,
-			Alg:          BJJAlg,
+			Alg:          bjj.Alg,
 		})
 	require.NoError(t, err)
 
@@ -144,6 +104,22 @@ func TestJWS(t *testing.T) {
 
 	_, err := p.Unpack([]byte(token))
 	require.NoError(t, err)
+}
+
+func TestJWS_InvalidCase(t *testing.T) {
+	const token = `eyJhbGciOiJFUzI1NksiLCJraWQiOiJkaWQ6ZXhhbXBsZToxMjMjdm0tMSIsInR5cCI6ImFwcGxpY2F0aW9uL2lkZW4zY29tbS1zaWduZWQtanNvbiJ9.eyJ0eXBlIjoiaHR0cHM6Ly9pZGVuMy1jb21tdW5pY2F0aW9uLmlvL2F1dGhvcml6YXRpb24vMS4wL3Jlc3BvbnNlIiwiZnJvbSI6ImRpZDpleGFtcGxlOjEyMyIsImJvZHkiOnsic2NvcGUiOlt7InR5cGUiOiJ6ZXJva25vd2xlZGdlIiwiY2lyY3VpdF9pZCI6ImF1dGgiLCJwdWJfc2lnbmFscyI6WyIxIiwiMTgzMTE1NjA1MjUzODMzMTk3MTkzMTEzOTQ5NTcwNjQ4MjAwOTEzNTQ5NzYzMTA1OTk4MTg3OTcxNTcxODk1Njg2MjE0NjY5NTA4MTEiLCIzMjM0MTY5MjUyNjQ2NjYyMTc2MTcyODg1Njk3NDI1NjQ3MDM2MzI4NTA4MTYwMzU3NjEwODQwMDI3MjAwOTAzNzczNTMyOTc5MjAiXSwicHJvb2ZfZGF0YSI6eyJwaV9hIjpbIjExMTMwODQzMTUwNTQwNzg5Mjk5NDU4OTkwNTg2MDIwMDAwNzE5MjgwMjQ2MTUzNzk3ODgyODQzMjE0MjkwNTQxOTgwNTIyMzc1MDcyIiwiMTMwMDg0MTkxMjk0Mzc4MTcyMzAyMjAzMjM1NTgzNjg5MzgzMTEzMjkyMDc4Mzc4ODQ1NTUzMTgzODI1NDQ2NTc4NDYwNTc2MjcxMyIsIjEiXSwicGlfYiI6W1siMjA2MTU3Njg1MzY5ODg0MzgzMzY1Mzc3Nzc5MDkwNDIzNTIwNTYzOTI4NjIyNTE3ODU3MjI3OTY2Mzc1OTAyMTIxNjA1NjEzNTE2NTYiLCIxMDM3MTE0NDgwNjEwNzc3ODg5MDUzODg1NzcwMDg1NTEwODY2NzYyMjA0MjIxNTA5Njk3MTc0NzIwMzEwNTk5NzQ1NDYyNTgxNDA4MCJdLFsiMTk1OTg1NDEzNTA4MDQ0Nzg1NDkxNDEyMDc4MzUwMjg2NzExMTEwNjM5MTU2MzU1ODA2Nzk2OTQ5MDc2MzU5MTQyNzk5Mjg2Nzc4MTIiLCIxNTI2NDU1MzA0NTUxNzA2NTY2OTE3MTU4NDk0Mzk2NDMyMjExNzM5NzY0NTE0NzAwNjkwOTE2NzQyNzgwOTgzNzkyOTQ1ODAxMjkxMyJdLFsiMSIsIjAiXV0sInBpX2MiOlsiMTY0NDMzMDkyNzk4MjU1MDg4OTMwODYyNTEyOTAwMDM5MzY5MzUwNzczNDg3NTQwOTc0NzA4MTg1MjM1NTgwODI1MDIzNjQ4MjIwNDkiLCIyOTg0MTgwMjI3NzY2MDQ4MTAwNTEwMTIwNDA3MTUwNzUyMDUyMzM0NTcxODc2NjgxMzA0OTk5NTk1NTQ0MTM4MTU1NjExOTYzMjczIiwiMSJdLCJwcm90b2NvbCI6IiJ9fV19fQ.de_qaDM7VYFaPUCNDGsvwF04tT4S4nXBO8dqXnU8XAof0Uip5LDCe4-IjEBPxu0sLh8BxcvPHMYMjx_pvPcqWX`
+	p := JWSPacker{
+		didResolverHandler: DIDResolverHandlerFunc(func(did string) (*verifiable.DIDDocument, error) {
+			didDoc := &verifiable.DIDDocument{}
+			err := json.Unmarshal([]byte(exampleDidDocJS), didDoc)
+			require.NoError(t, err)
+			return didDoc, nil
+		}),
+	}
+
+	_, err := p.Unpack([]byte(token))
+	require.ErrorContains(t, err,
+		"could not verify message using any of the signatures or keys")
 }
 
 func TestLookForKid(t *testing.T) {

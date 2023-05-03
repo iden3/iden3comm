@@ -8,9 +8,10 @@ import (
 	"math/big"
 
 	"github.com/decred/dcrd/dcrec/secp256k1"
-	bjj "github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-schema-processor/verifiable"
 	"github.com/iden3/iden3comm"
+	"github.com/iden3/iden3comm/packers/providers/bjj"
+	"github.com/iden3/iden3comm/packers/providers/es256k"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jws"
@@ -34,12 +35,7 @@ var supportedAlgorithms = map[jwa.SignatureAlgorithm]map[verificationType]struct
 		EcdsaSecp256k1VerificationKey2019: {},
 		EcdsaSecp256k1RecoveryMethod2020:  {},
 	},
-	jwa.ES256: {
-		JSONWebKey2020:                    {},
-		EcdsaSecp256k1VerificationKey2019: {},
-		EcdsaSecp256k1RecoveryMethod2020:  {},
-	},
-	BJJAlg: {
+	bjj.Alg: {
 		EddsaBN256VerificationKey: {},
 		// "JsonWebKey2020":                    {}, for future use
 	},
@@ -77,6 +73,31 @@ type SigningParams struct {
 	KID          string
 	DIDDoc       *verifiable.DIDDocument
 	iden3comm.PackerParams
+}
+
+// Register custom providers for jwx
+//
+//nolint:gochecknoinits // Need to register BJJAlg
+func init() {
+	registerBJJProvider()
+}
+
+func registerBJJProvider() {
+	bp := &bjj.Provider{}
+	jws.RegisterSigner(
+		bp.Algorithm(),
+		jws.SignerFactoryFn(
+			func() (jws.Signer, error) {
+				return bp, nil
+			},
+		))
+	jws.RegisterVerifier(
+		bp.Algorithm(),
+		jws.VerifierFactoryFn(
+			func() (jws.Verifier, error) {
+				return bp, nil
+			}),
+	)
 }
 
 // NewSigningParams defines the signing parameters for jws generation
@@ -298,33 +319,10 @@ func extractVerificationKey(alg jwa.SignatureAlgorithm, vm verifiable.CommonVeri
 		return nil, errors.Errorf("unsupported verification type: '%s'", vm.Type)
 	}
 
-	if len(vm.PublicKeyJwk) > 0 {
-		vm.PublicKeyJwk["alg"] = alg
-		bytesJWK, err := json.Marshal(vm.PublicKeyJwk)
-		if err != nil {
-			return nil, errors.Errorf("failed to marshal jwk: %v", err)
-		}
-		jwkKey, err := jwk.ParseKey(bytesJWK)
-		if err != nil {
-			return nil, errors.Errorf("failed to parse jwk: %v", err)
-		}
-		if jwkKey.Algorithm() != BJJAlg {
-			return jws.WithKey(
-				jwkKey.Algorithm(),
-				jwkKey,
-			), nil
-		}
-		bjjKey, err := parseBJJKey(jwkKey)
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-		return jws.WithKey(
-			jwkKey.Algorithm(),
-			bjjKey,
-		), nil
-	}
-
-	if vm.PublicKeyHex != "" {
+	switch {
+	case len(vm.PublicKeyJwk) > 0:
+		return processJWK(string(alg), vm)
+	case vm.PublicKeyHex != "":
 		encodedKey, err := hex.DecodeString(vm.PublicKeyHex)
 		if err != nil {
 			return nil, errors.WithStack(err)
@@ -333,9 +331,7 @@ func extractVerificationKey(alg jwa.SignatureAlgorithm, vm verifiable.CommonVeri
 			jwa.KeyAlgorithmFrom(alg),
 			newecdsa(encodedKey),
 		), nil
-	}
-
-	if vm.PublicKeyBase58 != "" {
+	case vm.PublicKeyBase58 != "":
 		encodedKey, err := base58.Decode(vm.PublicKeyBase58)
 		if err != nil {
 			return nil, errors.WithStack(err)
@@ -349,31 +345,45 @@ func extractVerificationKey(alg jwa.SignatureAlgorithm, vm verifiable.CommonVeri
 	return nil, errors.New("can't find public key")
 }
 
+func processJWK(alg string, vm verifiable.CommonVerificationMethod) (jws.VerifyOption, error) {
+	vm.PublicKeyJwk["alg"] = alg
+	bytesJWK, err := json.Marshal(vm.PublicKeyJwk)
+	if err != nil {
+		return nil, errors.Errorf("failed to marshal jwk: %v", err)
+	}
+	jwkKey, err := jwk.ParseKey(bytesJWK)
+	if err != nil {
+		return nil, errors.Errorf("failed to parse jwk: %v", err)
+	}
+
+	var withKey jws.VerifyOption
+	switch jwkKey.Algorithm() {
+	case bjj.Alg:
+		bjjKey, err := bjj.ParseKey(jwkKey)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		withKey = jws.WithKey(jwkKey.Algorithm(), bjjKey)
+	case jwa.ES256K:
+		// to ensure the support of es256k while parsing jwk key,
+		// it is advisable to manually generate the key for es256k
+		// rather than relying on build tags.
+		ecdsaKey, err := es256k.ParseKey(jwkKey)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		withKey = jws.WithKey(jwkKey.Algorithm(), ecdsaKey)
+	default:
+		return nil, errors.Errorf("unsupported algorithm: %s", jwkKey.Algorithm())
+	}
+
+	return withKey, nil
+}
+
 func newecdsa(encodedKey []byte) ecdsa.PublicKey {
 	return ecdsa.PublicKey{
 		Curve: secp256k1.S256(),
 		X:     new(big.Int).SetBytes(encodedKey[:32]),
 		Y:     new(big.Int).SetBytes(encodedKey[32:]),
 	}
-}
-
-func parseBJJKey(jwkKey jwk.Key) (*bjj.PublicKey, error) {
-	ux, ok := jwkKey.Get("x")
-	if !ok {
-		return nil, errors.New("can't find x")
-	}
-	uy, _ := jwkKey.Get("y")
-	if !ok {
-		return nil, errors.New("can't find y")
-	}
-	x := big.NewInt(0).SetBytes(ux.([]byte))
-	y := big.NewInt(0).SetBytes(uy.([]byte))
-
-	bjjPoint := bjj.Point{X: x, Y: y}
-	if !bjjPoint.InCurve() {
-		return nil, errors.New("point is not in curve")
-	}
-	pubKey := bjj.PublicKey(bjjPoint)
-
-	return &pubKey, nil
 }

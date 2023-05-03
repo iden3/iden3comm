@@ -12,6 +12,7 @@ require (
 	github.com/iden3/go-jwz v1.0.0
 	github.com/iden3/go-rapidsnark/types v0.0.3
 	github.com/iden3/go-schema-processor v1.1.4-0.20230501135302-1930e16d4d4d
+	github.com/lestrrat-go/jwx v1.2.25
 	github.com/lestrrat-go/jwx/v2 v2.0.9-0.20230429214153-5090ec1bd2cd
 	github.com/mr-tron/base58 v1.2.0
 	github.com/pkg/errors v0.9.1
