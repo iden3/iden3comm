@@ -7,7 +7,7 @@ import (
 	"github.com/iden3/iden3comm/mock"
 
 	"github.com/stretchr/testify/require"
-	"gopkg.in/square/go-jose.v2"
+	"gopkg.in/go-jose/go-jose.v2"
 )
 
 func TestAnoncryptPacker_Pack(t *testing.T) {

@@ -1,0 +1,9 @@
+{
+    "id": "did:test:EiClkZMDxPKqC9c-umQfTkR8vvZ9JPhl_xLDI9Nfk38w5w",
+    "@context": [
+        "https://www.w3.org/ns/did/v1"
+    ],
+    "service": [],
+    "verificationMethod": [],
+    "authentication": []
+}

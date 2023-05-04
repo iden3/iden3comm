@@ -13,7 +13,7 @@ import (
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-jwz"
 	"github.com/iden3/go-rapidsnark/types"
-	"gopkg.in/square/go-jose.v2"
+	"gopkg.in/go-jose/go-jose.v2"
 )
 
 // ProvingMethodGroth16AuthV2 proving method to avoid using of proving key and wasm files

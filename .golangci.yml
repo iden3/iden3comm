@@ -69,7 +69,7 @@ issues:
       linters:
         - stylecheck
   #    - Fix and remove
-    - text: "should have a package comment, unless it's in another file for this package"
+    - text: "package-comments: should have a package comment"
       linters:
         - revive
     - path: _test\.go

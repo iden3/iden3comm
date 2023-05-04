@@ -7,7 +7,7 @@ import (
 	"github.com/iden3/iden3comm"
 	"github.com/pkg/errors"
 
-	jose "gopkg.in/square/go-jose.v2"
+	jose "gopkg.in/go-jose/go-jose.v2"
 )
 
 // MediaTypeEncryptedMessage is media type for ecnrypted message

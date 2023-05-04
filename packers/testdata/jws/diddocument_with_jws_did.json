@@ -1,0 +1,24 @@
+{
+    "id": "did:test:EiClkZMDxPKqC9c-umQfTkR8vvZ9JPhl_xLDI9Nfk38w5w",
+    "@context": [
+        "https://www.w3.org/ns/did/v1"
+    ],
+    "service": [],
+    "verificationMethod": [
+        {
+        "id": "#vm-1",
+        "controller": "did:test:EiClkZMDxPKqC9c-umQfTkR8vvZ9JPhl_xLDI9Nfk38w5w",
+        "type": "EcdsaSecp256k1VerificationKey2019",
+        "publicKeyJwk": {
+                "testID": "1",
+                "kty": "EC",
+                "crv": "secp256k1",
+                "x": "WfY7Px6AgH6x-_dgAoRbg8weYRJA36ON-gQiFnETrqw",
+                "y": "IzFx3BUGztK0cyDStiunXbrZYYTtKbOUzx16SUK0sAY"
+            }
+        }
+    ],
+    "authentication": [
+        "#vm-1"
+    ]
+}
