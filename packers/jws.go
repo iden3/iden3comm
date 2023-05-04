@@ -23,7 +23,7 @@ const (
 	JSONWebKey2020                    verificationType = "JsonWebKey2020"
 	EcdsaSecp256k1VerificationKey2019 verificationType = "EcdsaSecp256k1VerificationKey2019"
 	EcdsaSecp256k1RecoveryMethod2020  verificationType = "EcdsaSecp256k1RecoveryMethod2020"
-	EddsaBN254VerificationKey         verificationType = "EddsaBN254VerificationKey"
+	EddsaBJJVerificationKey           verificationType = "EddsaBJJVerificationKey"
 )
 
 var supportedAlgorithms = map[jwa.SignatureAlgorithm]map[verificationType]struct{}{
@@ -33,7 +33,7 @@ var supportedAlgorithms = map[jwa.SignatureAlgorithm]map[verificationType]struct
 		EcdsaSecp256k1RecoveryMethod2020:  {},
 	},
 	bjj.Alg: {
-		EddsaBN254VerificationKey: {},
+		EddsaBJJVerificationKey: {},
 		// "JsonWebKey2020":                    {}, for future use
 	},
 }
