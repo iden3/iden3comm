@@ -4,7 +4,7 @@ import (
 	"crypto/ecdsa"
 	"math/big"
 
-	"github.com/decred/dcrd/dcrec/secp256k1"
+	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/pkg/errors"
 )
@@ -49,4 +49,13 @@ func PrivateKeyFromHex(h string) (*ecdsa.PrivateKey, error) {
 			Curve: secp256k1.S256(),
 		},
 	}, nil
+}
+
+// NewECDSA creates ecdsa public key from encoded key
+func NewECDSA(encodedKey []byte) ecdsa.PublicKey {
+	return ecdsa.PublicKey{
+		Curve: secp256k1.S256(),
+		X:     new(big.Int).SetBytes(encodedKey[:32]),
+		Y:     new(big.Int).SetBytes(encodedKey[32:]),
+	}
 }

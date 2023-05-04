@@ -57,7 +57,7 @@ func TestBJJKey(t *testing.T) {
 				VerificationMethod: []verifiable.CommonVerificationMethod{
 					{
 						ID:         "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29#key-1",
-						Type:       "EddsaBN256VerificationKey",
+						Type:       string(EddsaBN254VerificationKey),
 						Controller: "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29",
 						PublicKeyJwk: map[string]interface{}{
 							"kty": "EC",

@@ -2,12 +2,9 @@ package packers
 
 import (
 	"crypto"
-	"crypto/ecdsa"
 	"encoding/hex"
 	"encoding/json"
-	"math/big"
 
-	"github.com/decred/dcrd/dcrec/secp256k1"
 	"github.com/iden3/go-schema-processor/verifiable"
 	"github.com/iden3/iden3comm"
 	"github.com/iden3/iden3comm/packers/providers/bjj"
@@ -26,7 +23,7 @@ const (
 	JSONWebKey2020                    verificationType = "JsonWebKey2020"
 	EcdsaSecp256k1VerificationKey2019 verificationType = "EcdsaSecp256k1VerificationKey2019"
 	EcdsaSecp256k1RecoveryMethod2020  verificationType = "EcdsaSecp256k1RecoveryMethod2020"
-	EddsaBN256VerificationKey         verificationType = "EddsaBN256VerificationKey"
+	EddsaBN254VerificationKey         verificationType = "EddsaBN254VerificationKey"
 )
 
 var supportedAlgorithms = map[jwa.SignatureAlgorithm]map[verificationType]struct{}{
@@ -36,7 +33,7 @@ var supportedAlgorithms = map[jwa.SignatureAlgorithm]map[verificationType]struct
 		EcdsaSecp256k1RecoveryMethod2020:  {},
 	},
 	bjj.Alg: {
-		EddsaBN256VerificationKey: {},
+		EddsaBN254VerificationKey: {},
 		// "JsonWebKey2020":                    {}, for future use
 	},
 }
@@ -329,7 +326,7 @@ func extractVerificationKey(alg jwa.SignatureAlgorithm, vm verifiable.CommonVeri
 		}
 		return jws.WithKey(
 			jwa.KeyAlgorithmFrom(alg),
-			newecdsa(encodedKey),
+			es256k.NewECDSA(encodedKey),
 		), nil
 	case vm.PublicKeyBase58 != "":
 		encodedKey, err := base58.Decode(vm.PublicKeyBase58)
@@ -338,7 +335,7 @@ func extractVerificationKey(alg jwa.SignatureAlgorithm, vm verifiable.CommonVeri
 		}
 		return jws.WithKey(
 			jwa.KeyAlgorithmFrom(alg),
-			newecdsa(encodedKey),
+			es256k.NewECDSA(encodedKey),
 		), nil
 	}
 
@@ -378,12 +375,4 @@ func processJWK(alg string, vm verifiable.CommonVerificationMethod) (jws.VerifyO
 	}
 
 	return withKey, nil
-}
-
-func newecdsa(encodedKey []byte) ecdsa.PublicKey {
-	return ecdsa.PublicKey{
-		Curve: secp256k1.S256(),
-		X:     new(big.Int).SetBytes(encodedKey[:32]),
-		Y:     new(big.Int).SetBytes(encodedKey[32:]),
-	}
 }
