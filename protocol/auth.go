@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/iden3/go-rapidsnark/types"
-	"github.com/iden3/iden3comm"
+	"github.com/iden3/iden3comm/v2"
 )
 
 const (

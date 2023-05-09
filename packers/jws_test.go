@@ -7,9 +7,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/iden3/go-schema-processor/verifiable"
-	"github.com/iden3/iden3comm/packers/providers/bjj"
-	"github.com/iden3/iden3comm/packers/providers/es256k"
+	"github.com/iden3/go-schema-processor/v2/verifiable"
+	"github.com/iden3/iden3comm/v2/packers/providers/bjj"
+	"github.com/iden3/iden3comm/v2/packers/providers/es256k"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/stretchr/testify/require"
 )

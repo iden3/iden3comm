@@ -8,10 +8,10 @@ import (
 	"encoding/json"
 	"math/big"
 
-	"github.com/iden3/go-circuits"
-	core "github.com/iden3/go-iden3-core"
+	"github.com/iden3/go-circuits/v2"
+	did "github.com/iden3/go-iden3-core/v2/did"
 	"github.com/iden3/go-iden3-crypto/babyjub"
-	"github.com/iden3/go-jwz"
+	"github.com/iden3/go-jwz/v2"
 	"github.com/iden3/go-rapidsnark/types"
 	"gopkg.in/go-jose/go-jose.v2"
 )
@@ -46,12 +46,14 @@ func (m *ProvingMethodGroth16AuthV2) Prove(_, _, _ []byte) (*types.ZKProof, erro
 			C:        nil,
 			Protocol: "groth16",
 		},
-		PubSignals: []string{"19229084873704550357232887142774605442297337229176579229011342091594174977", "6110517768249559238193477435454792024732173865488900270849624328650765691494", "1243904711429961858774220647610724273798918457991486031567244100767259239747"},
+		PubSignals: []string{"19229084873704550357232887142774605442297337229176579229011342091594174977",
+			"6110517768249559238193477435454792024732173865488900270849624328650765691494",
+			"1243904711429961858774220647610724273798918457991486031567244100767259239747"},
 	}, nil
 }
 
 // PrepareAuthInputs returns mocked inputs for auth circuit
-func PrepareAuthInputs(hash []byte, _ *core.DID, _ circuits.CircuitID) ([]byte, error) {
+func PrepareAuthInputs(hash []byte, _ *did.DID, _ circuits.CircuitID) ([]byte, error) {
 	challenge := new(big.Int).SetBytes(hash)
 
 	userMockedPK := "28156abe7fe2fd433dc9df969286b96666489bac508612d0e16593e944c4f69e"

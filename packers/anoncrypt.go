@@ -4,10 +4,9 @@ package packers
 import (
 	"encoding/json"
 
-	"github.com/iden3/iden3comm"
+	"github.com/iden3/iden3comm/v2"
 	"github.com/pkg/errors"
-
-	jose "gopkg.in/go-jose/go-jose.v2"
+	"gopkg.in/go-jose/go-jose.v2"
 )
 
 // MediaTypeEncryptedMessage is media type for ecnrypted message

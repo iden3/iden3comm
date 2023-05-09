@@ -5,17 +5,19 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/iden3/go-circuits"
-	core "github.com/iden3/go-iden3-core"
-	"github.com/iden3/go-jwz"
-	"github.com/iden3/iden3comm/mock"
-	"github.com/iden3/iden3comm/protocol"
+	"github.com/iden3/go-circuits/v2"
+	core "github.com/iden3/go-iden3-core/v2"
+	"github.com/iden3/go-iden3-core/v2/did"
+	"github.com/iden3/go-jwz/v2"
+	"github.com/iden3/iden3comm/v2/mock"
+	"github.com/iden3/iden3comm/v2/protocol"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestZKPPacker_Pack(t *testing.T) {
 
-	mockedProvingMethod := &mock.ProvingMethodGroth16AuthV2{ProvingMethodAlg: jwz.ProvingMethodAlg{Alg: "groth16-mock", CircuitID: "authV2"}}
+	mockedProvingMethod := &mock.ProvingMethodGroth16AuthV2{ProvingMethodAlg: jwz.ProvingMethodAlg{Alg: "groth16-mock",
+		CircuitID: "authV2"}}
 
 	jwz.RegisterProvingMethod(mockedProvingMethod.ProvingMethodAlg, func() jwz.ProvingMethod {
 		return mockedProvingMethod
@@ -25,7 +27,8 @@ func TestZKPPacker_Pack(t *testing.T) {
 	mockVerificationParam[mockedProvingMethod.ProvingMethodAlg] = NewVerificationParams([]byte(""), mock.VerifyState)
 
 	mockProvingParamMap := make(map[jwz.ProvingMethodAlg]ProvingParams)
-	mockProvingParamMap[mockedProvingMethod.ProvingMethodAlg] = NewProvingParams(mock.PrepareAuthInputs, []byte{}, []byte{})
+	mockProvingParamMap[mockedProvingMethod.ProvingMethodAlg] = NewProvingParams(mock.PrepareAuthInputs, []byte{},
+		[]byte{})
 
 	p := NewZKPPacker(mockProvingParamMap, mockVerificationParam)
 
@@ -33,7 +36,7 @@ func TestZKPPacker_Pack(t *testing.T) {
 
 	identifier := "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29"
 
-	senderDID, err := core.ParseDID(identifier)
+	senderDID, err := did.Parse(identifier)
 	assert.NoError(t, err)
 
 	b, err := p.Pack(msgBytes, ZKPPackerParams{
@@ -58,7 +61,8 @@ func TestZKPPacker_Pack(t *testing.T) {
 }
 
 func TestPlainMessagePacker_Unpack(t *testing.T) {
-	mockedProvingMethod := &mock.ProvingMethodGroth16AuthV2{ProvingMethodAlg: jwz.ProvingMethodAlg{Alg: "groth16-mock", CircuitID: "authV2"}}
+	mockedProvingMethod := &mock.ProvingMethodGroth16AuthV2{ProvingMethodAlg: jwz.ProvingMethodAlg{Alg: "groth16-mock",
+		CircuitID: "authV2"}}
 
 	jwz.RegisterProvingMethod(mockedProvingMethod.ProvingMethodAlg, func() jwz.ProvingMethod {
 		return mockedProvingMethod
@@ -68,7 +72,8 @@ func TestPlainMessagePacker_Unpack(t *testing.T) {
 	mockVerificationParam[mockedProvingMethod.ProvingMethodAlg] = NewVerificationParams([]byte(""), mock.VerifyState)
 
 	mockProvingParamMap := make(map[jwz.ProvingMethodAlg]ProvingParams)
-	mockProvingParamMap[mockedProvingMethod.ProvingMethodAlg] = NewProvingParams(mock.PrepareAuthInputs, []byte{}, []byte{})
+	mockProvingParamMap[mockedProvingMethod.ProvingMethodAlg] = NewProvingParams(mock.PrepareAuthInputs, []byte{},
+		[]byte{})
 
 	jwz.RegisterProvingMethod(mockedProvingMethod.ProvingMethodAlg, func() jwz.ProvingMethod {
 		return mockedProvingMethod

@@ -1,6 +1,6 @@
 package protocol
 
-import "github.com/iden3/iden3comm"
+import "github.com/iden3/iden3comm/v2"
 
 const (
 	// MessageFetchRequestMessageType defines message fetch request type of the communication protocol.
@@ -22,5 +22,5 @@ type MessageFetchRequestMessage struct {
 
 // MessageFetchRequestMessageBody is struct the represents body for message fetch request.
 type MessageFetchRequestMessageBody struct {
-	ID	string `json:"id"`
+	ID string `json:"id"`
 }

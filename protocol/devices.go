@@ -1,6 +1,6 @@
 package protocol
 
-import "github.com/iden3/iden3comm"
+import "github.com/iden3/iden3comm/v2"
 
 const (
 	// DeviceRegistrationRequestMessageType defines device registration request type of the communication protocol
@@ -22,6 +22,6 @@ type DeviceRegistrationRequestMessage struct {
 
 // DeviceRegistrationRequestMessageBody is struct the represents body for register device request request
 type DeviceRegistrationRequestMessageBody struct {
-	AppID  string `json:"app_id"`
-	PushToken  string `json:"push_token"`
+	AppID     string `json:"app_id"`
+	PushToken string `json:"push_token"`
 }

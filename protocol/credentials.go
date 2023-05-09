@@ -3,9 +3,8 @@ package protocol
 import (
 	"encoding/json"
 
-	"github.com/iden3/iden3comm"
-
-	"github.com/iden3/go-schema-processor/verifiable"
+	"github.com/iden3/go-schema-processor/v2/verifiable"
+	"github.com/iden3/iden3comm/v2"
 )
 
 const (

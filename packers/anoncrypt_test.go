@@ -4,8 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/iden3/iden3comm/mock"
-
+	"github.com/iden3/iden3comm/v2/mock"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/go-jose/go-jose.v2"
 )
