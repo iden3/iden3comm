@@ -221,13 +221,13 @@ func verifyAuthV2Sender(from string, pubSignals []string) error {
 
 func checkSender(from string, id *core.ID) error {
 
-	did, err := core.ParseDIDFromID(*id)
+	senderDID, err := core.ParseDIDFromID(*id)
 	if err != nil {
 		return err
 	}
-	if from != did.String() {
+	if from != senderDID.String() {
 		return errors.Errorf("sender of message is not used for jwz token creation, expected: '%s' got: '%s", from,
-			did.String())
+			senderDID.String())
 	}
 	return nil
 }
