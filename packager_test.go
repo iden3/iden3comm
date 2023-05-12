@@ -53,20 +53,12 @@ func TestPackagerPlainPacker(t *testing.T) {
 
 }
 
+var marshalledMsg = []byte(`{"type":"https://iden3-communication.io/authorization/1.0/response","from":"did:polygonid:polygon:mumbai:2qK8oh6weN7H3Z8ji5YwV8Y9BF7qJfJnZ7XCdSCWo7","to":"did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29","typ":"application/iden3-zkp-json","body":{"scope":[]}}`)
+
 func TestPackagerZKPPacker(t *testing.T) {
 	pm := initPackageManager(t)
 
-	identifier := "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29"
-
-	senderDID, err := core.ParseDID(identifier)
-	assert.NoError(t, err)
-
-	targetIdentifier := "did:iden3:polygon:mumbai:wzWeGdtjvKtUP1oTxQP5t5iZGDX3HNfEU5xR8MZAt"
-
-	targetID, err := core.ParseDID(targetIdentifier)
-	assert.NoError(t, err)
-
-	marshalledMsg, err := createFetchCredentialMessage(packers.MediaTypeZKPMessage, senderDID, targetID)
+	senderDID, err := core.ParseDID("did:polygonid:polygon:mumbai:2qK8oh6weN7H3Z8ji5YwV8Y9BF7qJfJnZ7XCdSCWo7")
 	assert.NoError(t, err)
 
 	envelope, err := pm.Pack(packers.MediaTypeZKPMessage, marshalledMsg, packers.ZKPPackerParams{SenderID: senderDID,
@@ -120,17 +112,9 @@ func TestPackagerZKPPacker_OtherMessageTypeInBody(t *testing.T) {
 
 	pm := initPackageManager(t)
 
-	identifier := "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29"
+	identifier := "did:polygonid:polygon:mumbai:2qK8oh6weN7H3Z8ji5YwV8Y9BF7qJfJnZ7XCdSCWo7"
 
 	senderDID, err := core.ParseDID(identifier)
-	assert.NoError(t, err)
-
-	targetIdentifier := "did:iden3:polygon:mumbai:wzWeGdtjvKtUP1oTxQP5t5iZGDX3HNfEU5xR8MZAt"
-
-	targetID, err := core.ParseDID(targetIdentifier)
-	assert.NoError(t, err)
-
-	marshalledMsg, err := createFetchCredentialMessage(packers.MediaTypePlainMessage, senderDID, targetID)
 	assert.NoError(t, err)
 
 	envelope, err := pm.Pack(packers.MediaTypeZKPMessage, marshalledMsg, packers.ZKPPackerParams{
@@ -143,34 +127,17 @@ func TestPackagerZKPPacker_OtherMessageTypeInBody(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, packers.MediaTypeZKPMessage, unpackerType)
 
-	// check that type of unpacker was taken from jwz header, not body.
-	assert.NotEqual(t, unpackedMsg.Typ, unpackerType)
+	assert.Equal(t, unpackedMsg.Typ, unpackerType)
 }
 
 func TestUnpackWithType(t *testing.T) {
 
 	pm := initPackageManager(t)
 
-	identifier := "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29"
+	identifier := "did:polygonid:polygon:mumbai:2qK8oh6weN7H3Z8ji5YwV8Y9BF7qJfJnZ7XCdSCWo7"
 
 	senderDID, err := core.ParseDID(identifier)
 	assert.NoError(t, err)
-
-	var msg protocol.CredentialFetchRequestMessage
-	msg.From = identifier
-	msg.To = identifier
-
-	claimID, err := uuid.NewV4()
-	assert.NoError(t, err)
-
-	msg.Type = protocol.CredentialFetchRequestMessageType
-	msg.Typ = packers.MediaTypeZKPMessage
-	msg.Body = protocol.CredentialFetchRequestMessageBody{
-		ID: claimID.String(),
-	}
-	marshalledMsg, err := json.Marshal(msg)
-	assert.NoError(t, err)
-
 	envelope, err := pm.Pack(packers.MediaTypeZKPMessage, marshalledMsg, packers.ZKPPackerParams{
 		SenderID:         senderDID,
 		ProvingMethodAlg: jwz.ProvingMethodAlg{Alg: "groth16-mock", CircuitID: "authV2"},

@@ -229,6 +229,10 @@ func (p *JWSPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 		return nil, errors.New("from field in did docuemnt is required")
 	}
 
+	if msg.From != kid {
+		return nil, errors.New("msg singer must me be msg sender")
+	}
+
 	didDoc, err := p.didResolverHandler.Resolve(msg.From)
 	if err != nil {
 		return nil, errors.WithStack(err)
