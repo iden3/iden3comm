@@ -53,7 +53,7 @@ func TestPackagerPlainPacker(t *testing.T) {
 
 }
 
-var marshalledMsg = []byte(`{"type":"https://iden3-communication.io/authorization/1.0/response","from":"did:polygonid:polygon:mumbai:2qK8oh6weN7H3Z8ji5YwV8Y9BF7qJfJnZ7XCdSCWo7","to":"did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29","typ":"application/iden3-zkp-json","body":{"scope":[]}}`)
+var msgBytes = []byte(`{"type":"https://iden3-communication.io/authorization/1.0/response","from":"did:polygonid:polygon:mumbai:2qK8oh6weN7H3Z8ji5YwV8Y9BF7qJfJnZ7XCdSCWo7","to":"did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29","typ":"application/iden3-zkp-json","body":{"scope":[]}}`)
 
 func TestPackagerZKPPacker(t *testing.T) {
 	pm := initPackageManager(t)
@@ -61,7 +61,7 @@ func TestPackagerZKPPacker(t *testing.T) {
 	senderDID, err := core.ParseDID("did:polygonid:polygon:mumbai:2qK8oh6weN7H3Z8ji5YwV8Y9BF7qJfJnZ7XCdSCWo7")
 	assert.NoError(t, err)
 
-	envelope, err := pm.Pack(packers.MediaTypeZKPMessage, marshalledMsg, packers.ZKPPackerParams{SenderID: senderDID,
+	envelope, err := pm.Pack(packers.MediaTypeZKPMessage, msgBytes, packers.ZKPPackerParams{SenderID: senderDID,
 		ProvingMethodAlg: jwz.ProvingMethodAlg{Alg: "groth16-mock", CircuitID: "authV2"}})
 	assert.NoError(t, err)
 
@@ -117,7 +117,7 @@ func TestPackagerZKPPacker_OtherMessageTypeInBody(t *testing.T) {
 	senderDID, err := core.ParseDID(identifier)
 	assert.NoError(t, err)
 
-	envelope, err := pm.Pack(packers.MediaTypeZKPMessage, marshalledMsg, packers.ZKPPackerParams{
+	envelope, err := pm.Pack(packers.MediaTypeZKPMessage, msgBytes, packers.ZKPPackerParams{
 		SenderID:         senderDID,
 		ProvingMethodAlg: jwz.ProvingMethodAlg{Alg: "groth16-mock", CircuitID: "authV2"},
 	})
@@ -138,7 +138,7 @@ func TestUnpackWithType(t *testing.T) {
 
 	senderDID, err := core.ParseDID(identifier)
 	assert.NoError(t, err)
-	envelope, err := pm.Pack(packers.MediaTypeZKPMessage, marshalledMsg, packers.ZKPPackerParams{
+	envelope, err := pm.Pack(packers.MediaTypeZKPMessage, msgBytes, packers.ZKPPackerParams{
 		SenderID:         senderDID,
 		ProvingMethodAlg: jwz.ProvingMethodAlg{Alg: "groth16-mock", CircuitID: "authV2"},
 	})
