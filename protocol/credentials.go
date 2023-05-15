@@ -3,9 +3,8 @@ package protocol
 import (
 	"encoding/json"
 
-	"github.com/iden3/iden3comm"
-
 	"github.com/iden3/go-schema-processor/verifiable"
+	"github.com/iden3/iden3comm"
 )
 
 const (
@@ -21,6 +20,9 @@ const (
 
 	// CredentialIssuanceResponseMessageType is type for message with a credential issuance
 	CredentialIssuanceResponseMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/1.0/issuance-response"
+
+	// CredentialRevocationMessageType is type of message with credential revocation information
+	CredentialRevocationMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/1.0/revocation"
 )
 
 // CredentialIssuanceRequestMessage represent Iden3message for credential request
@@ -108,4 +110,23 @@ type Schema struct {
 	Hash string `json:"hash,omitempty"`
 	URL  string `json:"url"`
 	Type string `json:"type"`
+}
+
+// CredentialRevocationMessage represent revocation info about credential
+type CredentialRevocationMessage struct {
+	ID       string                    `json:"id"`
+	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
+	Type     iden3comm.ProtocolMessage `json:"type"`
+	ThreadID string                    `json:"thid,omitempty"`
+
+	Body CredentialRevocationMessageBody `json:"body,omitempty"`
+
+	From string `json:"from,omitempty"`
+	To   string `json:"to,omitempty"`
+}
+
+// CredentialRevocationMessageBody the structure that represents the revocation message
+type CredentialRevocationMessageBody struct {
+	ID   string                      `json:"id"`
+	Info verifiable.RevocationStatus `json:"info"`
 }
