@@ -220,15 +220,21 @@ func verifyAuthV2Sender(from string, pubSignals []string) error {
 }
 
 func checkSender(from string, id *core.ID) error {
-
-	senderDID, err := core.ParseDIDFromID(*id)
+	senderDID, err := did.Parse(from)
 	if err != nil {
 		return err
 	}
-	if from != senderDID.String() {
-		return errors.Errorf("sender of message is not used for jwz token creation, expected: '%s' got: '%s", from,
-			senderDID.String())
+
+	senderID, err := core.IDFromDID(*senderDID)
+	if err != nil {
+		return err
 	}
+
+	if !senderID.Equals(id) {
+		return errors.Errorf("sender of message is not used for jwz token creation, expected sender ID: '%s' got: '%s",
+			senderID.String(), id.String())
+	}
+
 	return nil
 }
 
