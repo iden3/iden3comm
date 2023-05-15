@@ -170,6 +170,7 @@ func (p *ZKPPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 
 	return &msg, err
 }
+
 func verifySender(token *jwz.Token, msg iden3comm.BasicMessage) error {
 
 	if circuits.CircuitID(token.CircuitID) == circuits.AuthV2CircuitID {
