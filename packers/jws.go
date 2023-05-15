@@ -230,7 +230,7 @@ func (p *JWSPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 	}
 
 	if msg.From != kid {
-		return nil, errors.New("msg singer must me be msg sender")
+		return nil, errors.New("message signer must be the message sender")
 	}
 
 	didDoc, err := p.didResolverHandler.Resolve(msg.From)

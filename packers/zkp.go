@@ -172,35 +172,11 @@ func (p *ZKPPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 }
 func verifySender(token *jwz.Token, msg iden3comm.BasicMessage) error {
 
-	switch circuits.CircuitID(token.CircuitID) {
-	case circuits.AuthCircuitID:
-		return verifyAuthSender(msg.From, token.ZkProof.PubSignals)
-	case circuits.AuthV2CircuitID:
+	if circuits.CircuitID(token.CircuitID) == circuits.AuthV2CircuitID {
 		return verifyAuthV2Sender(msg.From, token)
-	default:
-		return errors.Errorf("'%s' unknow circuit ID. can't verify msg sender", token.CircuitID)
-	}
-}
-
-func verifyAuthSender(from string, pubSignals []string) error {
-
-	authPubSignals := circuits.AuthPubSignals{}
-
-	if err := unmarshalPubSignals(&authPubSignals, pubSignals); err != nil {
-		return err
 	}
 
-	id, err := core.IDFromInt(authPubSignals.UserID.BigInt())
-	if err != nil {
-		return err
-	}
-
-	if from != id.String() {
-		return errors.Errorf("sender of message is not used for jwz token creation, expected: '%s' got: '%s", from,
-			id.String())
-	}
-
-	return nil
+	return errors.Errorf("'%s' unknow circuit ID. can't verify msg sender", token.CircuitID)
 }
 
 func verifyAuthV2Sender(from string, token *jwz.Token) error {
@@ -228,7 +204,7 @@ func verifyAuthV2Sender(from string, token *jwz.Token) error {
 	}
 
 	if challenge.Cmp(authPubSignals.Challenge) != 0 {
-		return errors.Errorf("challenge is not used for proof creation, expected , expected %s, challenge from public signals: %s}", challenge.String(), authPubSignals.Challenge.String())
+		return errors.Errorf("the challenge used for proof creation %s is not equal to the message hash %s", challenge.String(), authPubSignals.Challenge.String())
 	}
 
 	return nil

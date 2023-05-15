@@ -42,7 +42,6 @@ func TestPKHKey(t *testing.T) {
 			Alg:          jwa.ES256K,
 		})
 	require.NoError(t, err)
-	fmt.Println(string(token))
 
 	_, err = p.Unpack(token)
 	require.NoError(t, err)
