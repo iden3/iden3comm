@@ -176,7 +176,7 @@ func verifySender(token *jwz.Token, msg iden3comm.BasicMessage) error {
 		return verifyAuthV2Sender(msg.From, token)
 	}
 
-	return errors.Errorf("'%s' unknow circuit ID. can't verify msg sender", token.CircuitID)
+	return errors.Errorf("'%s' unknown circuit ID. can't verify msg sender", token.CircuitID)
 }
 
 func verifyAuthV2Sender(from string, token *jwz.Token) error {
