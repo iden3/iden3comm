@@ -5,12 +5,12 @@ go 1.18
 require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0
 	github.com/gofrs/uuid v3.3.0+incompatible
-	github.com/iden3/go-circuits/v2 v2.0.0-20230509170938-87ec0426a872
-	github.com/iden3/go-iden3-core/v2 v2.0.0-20230505110120-f4681972ad45
+	github.com/iden3/go-circuits/v2 v2.0.0-20230519130224-2f1dac1ae3f8
+	github.com/iden3/go-iden3-core/v2 v2.0.0-20230519124718-42b31ff46f37
 	github.com/iden3/go-iden3-crypto v0.0.15
-	github.com/iden3/go-jwz/v2 v2.0.0-20230515084017-3015ef593f65
+	github.com/iden3/go-jwz/v2 v2.0.0-20230519132540-75b6744028b1
 	github.com/iden3/go-rapidsnark/types v0.0.3
-	github.com/iden3/go-schema-processor/v2 v2.0.0-20230509182548-f9ee518c3f71
+	github.com/iden3/go-schema-processor/v2 v2.0.0-20230519132955-e2f78dc2eef4
 	github.com/lestrrat-go/jwx/v2 v2.0.9-0.20230429214153-5090ec1bd2cd
 	github.com/mr-tron/base58 v1.2.0
 	github.com/pkg/errors v0.9.1

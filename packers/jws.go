@@ -306,8 +306,9 @@ func resolveAuthToVM(
 	return verifiable.CommonVerificationMethod{}, errors.New("not found")
 }
 
-func extractVerificationKey(alg jwa.SignatureAlgorithm, vm verifiable.CommonVerificationMethod) (jws.VerifyOption,
-	error) {
+func extractVerificationKey(alg jwa.SignatureAlgorithm,
+	vm verifiable.CommonVerificationMethod) (jws.VerifyOption, error) {
+
 	supportedAlg, ok := supportedAlgorithms[alg]
 	if !ok {
 		return nil, errors.Errorf("unsupported algorithm: '%s'", alg)

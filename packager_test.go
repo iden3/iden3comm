@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/gofrs/uuid"
-	"github.com/iden3/go-iden3-core/v2/did"
+	"github.com/iden3/go-iden3-core/v2/w3c"
 	"github.com/iden3/go-jwz/v2"
 	"github.com/iden3/iden3comm/v2"
 	"github.com/iden3/iden3comm/v2/mock"
@@ -22,12 +22,12 @@ func TestPackagerPlainPacker(t *testing.T) {
 
 	identifier := "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29"
 
-	senderDID, err := did.Parse(identifier)
+	senderDID, err := w3c.ParseDID(identifier)
 	assert.NoError(t, err)
 
 	targetIdentifier := "did:iden3:polygon:mumbai:wzWeGdtjvKtUP1oTxQP5t5iZGDX3HNfEU5xR8MZAt"
 
-	targetID, err := did.Parse(targetIdentifier)
+	targetID, err := w3c.ParseDID(targetIdentifier)
 	assert.NoError(t, err)
 
 	marshalledMsg, err := createFetchCredentialMessage(packers.MediaTypePlainMessage, senderDID, targetID)
@@ -58,12 +58,12 @@ func TestPackagerZKPPacker(t *testing.T) {
 
 	identifier := "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29"
 
-	senderDID, err := did.Parse(identifier)
+	senderDID, err := w3c.ParseDID(identifier)
 	assert.NoError(t, err)
 
 	targetIdentifier := "did:iden3:polygon:mumbai:wzWeGdtjvKtUP1oTxQP5t5iZGDX3HNfEU5xR8MZAt"
 
-	targetID, err := did.Parse(targetIdentifier)
+	targetID, err := w3c.ParseDID(targetIdentifier)
 	assert.NoError(t, err)
 
 	marshalledMsg, err := createFetchCredentialMessage(packers.MediaTypeZKPMessage, senderDID, targetID)
@@ -88,12 +88,12 @@ func TestPackagerAnonryptPacker(t *testing.T) {
 
 	identifier := "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29"
 
-	senderDID, err := did.Parse(identifier)
+	senderDID, err := w3c.ParseDID(identifier)
 	assert.NoError(t, err)
 
 	targetIdentifier := "did:iden3:polygon:mumbai:wzWeGdtjvKtUP1oTxQP5t5iZGDX3HNfEU5xR8MZAt"
 
-	targetID, err := did.Parse(targetIdentifier)
+	targetID, err := w3c.ParseDID(targetIdentifier)
 	assert.NoError(t, err)
 
 	marshalledMsg, err := createFetchCredentialMessage(packers.MediaTypeEncryptedMessage, senderDID, targetID)
@@ -123,12 +123,12 @@ func TestPackagerZKPPacker_OtherMessageTypeInBody(t *testing.T) {
 
 	identifier := "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29"
 
-	senderDID, err := did.Parse(identifier)
+	senderDID, err := w3c.ParseDID(identifier)
 	assert.NoError(t, err)
 
 	targetIdentifier := "did:iden3:polygon:mumbai:wzWeGdtjvKtUP1oTxQP5t5iZGDX3HNfEU5xR8MZAt"
 
-	targetID, err := did.Parse(targetIdentifier)
+	targetID, err := w3c.ParseDID(targetIdentifier)
 	assert.NoError(t, err)
 
 	marshalledMsg, err := createFetchCredentialMessage(packers.MediaTypePlainMessage, senderDID, targetID)
@@ -154,7 +154,7 @@ func TestUnpackWithType(t *testing.T) {
 
 	identifier := "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29"
 
-	senderDID, err := did.Parse(identifier)
+	senderDID, err := w3c.ParseDID(identifier)
 	assert.NoError(t, err)
 
 	var msg protocol.CredentialFetchRequestMessage
@@ -183,7 +183,7 @@ func TestUnpackWithType(t *testing.T) {
 	assert.Equal(t, unpackedMsg.Typ, packers.MediaTypeZKPMessage)
 }
 
-func createFetchCredentialMessage(typ iden3comm.MediaType, from, to *did.DID) ([]byte, error) {
+func createFetchCredentialMessage(typ iden3comm.MediaType, from, to *w3c.DID) ([]byte, error) {
 
 	var msg protocol.CredentialFetchRequestMessage
 	msg.From = from.String()

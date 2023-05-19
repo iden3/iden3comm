@@ -7,7 +7,7 @@ import (
 
 	"github.com/iden3/go-circuits/v2"
 	core "github.com/iden3/go-iden3-core/v2"
-	did "github.com/iden3/go-iden3-core/v2/did"
+	"github.com/iden3/go-iden3-core/v2/w3c"
 	"github.com/iden3/go-jwz/v2"
 	"github.com/iden3/iden3comm/v2"
 	"github.com/pkg/errors"
@@ -17,10 +17,10 @@ import (
 const MediaTypeZKPMessage iden3comm.MediaType = "application/iden3-zkp-json"
 
 // DataPreparerHandlerFunc registers the handler function for inputs preparation.
-type DataPreparerHandlerFunc func(hash []byte, id *did.DID, circuitID circuits.CircuitID) ([]byte, error)
+type DataPreparerHandlerFunc func(hash []byte, id *w3c.DID, circuitID circuits.CircuitID) ([]byte, error)
 
 // Prepare function is responsible to call provided handler for inputs preparation
-func (f DataPreparerHandlerFunc) Prepare(hash []byte, id *did.DID, circuitID circuits.CircuitID) ([]byte, error) {
+func (f DataPreparerHandlerFunc) Prepare(hash []byte, id *w3c.DID, circuitID circuits.CircuitID) ([]byte, error) {
 	return f(hash, id, circuitID)
 }
 
@@ -73,7 +73,7 @@ func NewProvingParams(dataPreparer DataPreparerHandlerFunc, provingKey, wasm []b
 
 // ZKPPackerParams is params for zkp packer
 type ZKPPackerParams struct {
-	SenderID         *did.DID
+	SenderID         *w3c.DID
 	ProvingMethodAlg jwz.ProvingMethodAlg
 	iden3comm.PackerParams
 }
@@ -220,12 +220,12 @@ func verifyAuthV2Sender(from string, pubSignals []string) error {
 }
 
 func checkSender(from string, id *core.ID) error {
-	senderDID, err := did.Parse(from)
+	did, err := w3c.ParseDID(from)
 	if err != nil {
 		return err
 	}
 
-	senderID, err := core.IDFromDID(*senderDID)
+	senderID, err := core.IDFromDID(*did)
 	if err != nil {
 		return err
 	}
