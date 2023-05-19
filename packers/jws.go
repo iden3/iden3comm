@@ -175,8 +175,11 @@ func (p *JWSPacker) Pack(
 	}
 
 	hdrs := jws.NewHeaders()
-	if err = hdrs.Set(`kid`, kid); err != nil {
+	if err = hdrs.Set("kid", kid); err != nil {
 		return nil, errors.Errorf("can't set kid: %v", err)
+	}
+	if err = hdrs.Set("typ", string(MediaTypeSignedMessage)); err != nil {
+		return nil, errors.Errorf("can't set typ: %v", err)
 	}
 
 	token, err := jws.Sign(
@@ -224,6 +227,10 @@ func (p *JWSPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 
 	if msg.From == "" {
 		return nil, errors.New("from field in did docuemnt is required")
+	}
+
+	if msg.From != kid {
+		return nil, errors.New("message signer must be the message sender")
 	}
 
 	didDoc, err := p.didResolverHandler.Resolve(msg.From)
