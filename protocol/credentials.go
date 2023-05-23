@@ -21,8 +21,8 @@ const (
 	// CredentialIssuanceResponseMessageType is type for message with a credential issuance
 	CredentialIssuanceResponseMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/1.0/issuance-response"
 
-	// CredentialRevocationMessageType is type of message with credential revocation information
-	CredentialRevocationMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/1.0/revocation"
+	// CredentialRevocationMessageType is type for message with a credential status update
+	CredentialStatusUpdateMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/1.0/status-update"
 )
 
 // CredentialIssuanceRequestMessage represent Iden3message for credential request
@@ -112,21 +112,21 @@ type Schema struct {
 	Type string `json:"type"`
 }
 
-// CredentialRevocationMessage represent revocation info about credential
-type CredentialRevocationMessage struct {
+// CredentialStatusUpdateMessage represents credential status update message
+type CredentialStatusUpdateMessage struct {
 	ID       string                    `json:"id"`
 	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
 	Type     iden3comm.ProtocolMessage `json:"type"`
 	ThreadID string                    `json:"thid,omitempty"`
 
-	Body CredentialRevocationMessageBody `json:"body,omitempty"`
+	Body CredentialStatusUpdateMessageBody `json:"body,omitempty"`
 
 	From string `json:"from,omitempty"`
 	To   string `json:"to,omitempty"`
 }
 
-// CredentialRevocationMessageBody the structure that represents the revocation message
-type CredentialRevocationMessageBody struct {
-	ID   string                      `json:"id"`
-	Info verifiable.RevocationStatus `json:"info"`
+// CredentialStatusUpdateMessageBody the structure that represents the body of credential status update message
+type CredentialStatusUpdateMessageBody struct {
+	ID     string `json:"id"`
+	Reason string `json:"reason"`
 }
