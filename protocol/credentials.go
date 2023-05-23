@@ -21,7 +21,7 @@ const (
 	// CredentialIssuanceResponseMessageType is type for message with a credential issuance
 	CredentialIssuanceResponseMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/1.0/issuance-response"
 
-	// CredentialRevocationMessageType is type for message with a credential status update
+	// CredentialStatusUpdateMessageType is type for message with a credential status update
 	CredentialStatusUpdateMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/1.0/status-update"
 )
 
