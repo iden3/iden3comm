@@ -3,7 +3,7 @@ module github.com/iden3/iden3comm
 go 1.18
 
 require (
-	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0
+	github.com/dustinxie/ecc v0.0.0-20210511000915-959544187564
 	github.com/gofrs/uuid v3.3.0+incompatible
 	github.com/iden3/go-circuits v1.0.3
 	github.com/iden3/go-iden3-core v1.0.2
@@ -19,14 +19,11 @@ require (
 )
 
 require (
-	github.com/btcsuite/btcd/btcec/v2 v2.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dchest/blake512 v1.0.0 // indirect
-	github.com/dustinxie/ecc v0.0.0-20210511000915-959544187564 // indirect
-	github.com/ethereum/go-ethereum v1.12.0 // indirect
+	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
-	github.com/holiman/uint256 v1.2.2-0.20230321075855-87b91420868c // indirect
 	github.com/iden3/go-merkletree-sql/v2 v2.0.4 // indirect
 	github.com/iden3/go-rapidsnark/prover v0.0.10 // indirect
 	github.com/iden3/go-rapidsnark/verifier v0.0.5 // indirect
