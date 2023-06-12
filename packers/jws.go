@@ -2,9 +2,13 @@ package packers
 
 import (
 	"crypto"
+	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"strings"
 
+	"github.com/dustinxie/ecc"
+	"github.com/iden3/go-iden3-crypto/keccak256"
 	"github.com/iden3/go-schema-processor/v2/verifiable"
 	"github.com/iden3/iden3comm/v2"
 	"github.com/iden3/iden3comm/v2/packers/providers/bjj"
@@ -28,6 +32,11 @@ const (
 
 var supportedAlgorithms = map[jwa.SignatureAlgorithm]map[verificationType]struct{}{
 	jwa.ES256K: {
+		JSONWebKey2020:                    {},
+		EcdsaSecp256k1VerificationKey2019: {},
+		EcdsaSecp256k1RecoveryMethod2020:  {},
+	},
+	"ES256K-R": {
 		JSONWebKey2020:                    {},
 		EcdsaSecp256k1VerificationKey2019: {},
 		EcdsaSecp256k1RecoveryMethod2020:  {},
@@ -226,7 +235,7 @@ func (p *JWSPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 	}
 
 	if msg.From == "" {
-		return nil, errors.New("from field in did docuemnt is required")
+		return nil, errors.New("from field in did document is required")
 	}
 
 	if msg.From != kid {
@@ -243,14 +252,49 @@ func (p *JWSPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 		return nil, err
 	}
 
-	wk, err := extractVerificationKey(alg, vm)
+	err = checkAlgorithmSupport(alg, vm)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = jws.Verify(envelope, wk)
-	if err != nil {
-		return nil, errors.WithStack(err)
+	if vm.BlockchainAccountID == "" && vm.EthereumAddress == "" {
+		wk, err := extractVerificationKey(alg, vm)
+		if err != nil {
+			return nil, err
+		}
+		_, err = jws.Verify(envelope, wk)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+	} else {
+		base64Token, err := jws.Compact(token)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		base64TokenParts := strings.Split(string(base64Token), ".")
+		signedData := base64TokenParts[0] + "." + base64TokenParts[1]
+		hash := sha256.Sum256([]byte(signedData))
+		sig := token.Signatures()[0].Signature()
+		recoveredKey, err := ecc.RecoverEthereum(hash[:], sig)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+
+		ethAddress := "0x" + hex.EncodeToString(keccak256.Hash(recoveredKey[1:])[12:])
+
+		if vm.EthereumAddress != "" {
+			if !strings.EqualFold(ethAddress, vm.EthereumAddress) {
+				return nil, errors.New("invalid signature from ethereum address")
+			}
+		} else {
+			blockchainAccountIDParts := strings.Split(vm.BlockchainAccountID, ":")
+			address := blockchainAccountIDParts[len(blockchainAccountIDParts)-1]
+
+			if !strings.EqualFold(address, ethAddress) {
+				return nil, errors.New("invalid signature from blockchain account id")
+			}
+		}
+
 	}
 
 	return msg, nil
@@ -304,7 +348,7 @@ func resolveAuthToVM(
 	if !auth.IsDID() {
 		return auth.CommonVerificationMethod, nil
 	}
-	// make keys from authenication section more priority
+	// make keys from authentication section more priority
 	for i := range vms {
 		if auth.DID() == vms[i].ID {
 			return vms[i], nil
@@ -315,15 +359,6 @@ func resolveAuthToVM(
 
 func extractVerificationKey(alg jwa.SignatureAlgorithm,
 	vm verifiable.CommonVerificationMethod) (jws.VerifyOption, error) {
-
-	supportedAlg, ok := supportedAlgorithms[alg]
-	if !ok {
-		return nil, errors.Errorf("unsupported algorithm: '%s'", alg)
-	}
-	_, ok = supportedAlg[verificationType(vm.Type)]
-	if !ok {
-		return nil, errors.Errorf("unsupported verification type: '%s'", vm.Type)
-	}
 
 	switch {
 	case len(vm.PublicKeyJwk) > 0:
@@ -349,6 +384,18 @@ func extractVerificationKey(alg jwa.SignatureAlgorithm,
 	}
 
 	return nil, errors.New("can't find public key")
+}
+
+func checkAlgorithmSupport(alg jwa.SignatureAlgorithm, vm verifiable.CommonVerificationMethod) error {
+	supportedAlg, ok := supportedAlgorithms[alg]
+	if !ok {
+		return errors.Errorf("unsupported algorithm: '%s'", alg)
+	}
+	_, ok = supportedAlg[verificationType(vm.Type)]
+	if !ok {
+		return errors.Errorf("unsupported verification type: '%s'", vm.Type)
+	}
+	return nil
 }
 
 func processJWK(alg string, vm verifiable.CommonVerificationMethod) (jws.VerifyOption, error) {

@@ -20,6 +20,9 @@ const (
 
 	// CredentialIssuanceResponseMessageType is type for message with a credential issuance
 	CredentialIssuanceResponseMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/1.0/issuance-response"
+
+	// CredentialStatusUpdateMessageType is type for message with a credential status update
+	CredentialStatusUpdateMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/1.0/status-update"
 )
 
 // CredentialIssuanceRequestMessage represent Iden3message for credential request
@@ -107,4 +110,23 @@ type Schema struct {
 	Hash string `json:"hash,omitempty"`
 	URL  string `json:"url"`
 	Type string `json:"type"`
+}
+
+// CredentialStatusUpdateMessage represents credential status update message
+type CredentialStatusUpdateMessage struct {
+	ID       string                    `json:"id"`
+	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
+	Type     iden3comm.ProtocolMessage `json:"type"`
+	ThreadID string                    `json:"thid,omitempty"`
+
+	Body CredentialStatusUpdateMessageBody `json:"body,omitempty"`
+
+	From string `json:"from,omitempty"`
+	To   string `json:"to,omitempty"`
+}
+
+// CredentialStatusUpdateMessageBody the structure that represents the body of credential status update message
+type CredentialStatusUpdateMessageBody struct {
+	ID     string `json:"id"`
+	Reason string `json:"reason"`
 }
