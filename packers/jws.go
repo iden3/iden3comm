@@ -74,10 +74,9 @@ type JWSPacker struct {
 
 // SigningParams packer parameters for jws generation
 type SigningParams struct {
-	SenderDIDstr string
-	Alg          jwa.SignatureAlgorithm
-	KID          string
-	DIDDoc       *verifiable.DIDDocument
+	Alg    jwa.SignatureAlgorithm
+	KID    string
+	DIDDoc *verifiable.DIDDocument
 	iden3comm.PackerParams
 }
 
@@ -119,9 +118,6 @@ func (s *SigningParams) Verify() error {
 	if s.Alg == "" {
 		return errors.New("alg is required for signing params")
 	}
-	if s.SenderDIDstr == "" {
-		return errors.New("sender did is required for signing params")
-	}
 	return nil
 }
 
@@ -154,13 +150,9 @@ func (p *JWSPacker) Pack(
 		return nil, errors.Errorf("invalid message payload: %v", err)
 	}
 
-	if bm.From != signingParams.SenderDIDstr {
-		return nil, errors.New("msg singer must me be msg sender")
-	}
-
 	didDoc := signingParams.DIDDoc
 	if didDoc == nil {
-		didDoc, err = p.didResolverHandler.Resolve(signingParams.SenderDIDstr)
+		didDoc, err = p.didResolverHandler.Resolve(bm.From)
 		if err != nil {
 			return nil, errors.Errorf("resolve did failed: %v", err)
 		}
@@ -232,7 +224,7 @@ func (p *JWSPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 	}
 
 	if msg.From == "" {
-		return nil, errors.New("from field in did docuemnt is required")
+		return nil, errors.New("from field in did document is required")
 	}
 
 	parsedKid := strings.Split(kid, "#")
@@ -263,17 +255,16 @@ func (p *JWSPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 
 	for i := range vms {
 
-		err = checkAlgorithmSupport(alg, vm)
+		err = checkAlgorithmSupport(alg, vms[i])
 		if err != nil {
-			return nil, err
+			// skip verification method check if algorithm is not supported
+			continue
 		}
 		if vms[i].BlockchainAccountID == "" && vms[i].EthereumAddress == "" {
 			wk, err := extractVerificationKey(alg, vms[i])
-
 			if err != nil {
 				continue
 			}
-
 			_, err = jws.Verify(envelope, wk)
 			if err != nil {
 				continue
@@ -281,7 +272,7 @@ func (p *JWSPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 		} else {
 			base64Token, err := jws.Compact(token)
 			if err != nil {
-				return nil, errors.WithStack(err)
+				continue
 			}
 			base64TokenParts := strings.Split(string(base64Token), ".")
 			signedData := base64TokenParts[0] + "." + base64TokenParts[1]
@@ -289,24 +280,26 @@ func (p *JWSPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 			sig := token.Signatures()[0].Signature()
 			recoveredKey, err := ecc.RecoverEthereum(hash[:], sig)
 			if err != nil {
-				return nil, errors.WithStack(err)
+				continue
 			}
 
 			ethAddress := "0x" + hex.EncodeToString(keccak256.Hash(recoveredKey[1:])[12:])
-
-			if vm.EthereumAddress != "" {
-				if !strings.EqualFold(ethAddress, vm.EthereumAddress) {
-					return nil, errors.New("invalid signature from ethereum address")
+			if vms[i].EthereumAddress != "" {
+				if !strings.EqualFold(ethAddress, vms[i].EthereumAddress) {
+					continue
 				}
 			} else {
-				blockchainAccountIDParts := strings.Split(vm.BlockchainAccountID, ":")
+				blockchainAccountIDParts := strings.Split(vms[i].BlockchainAccountID, ":")
 				address := blockchainAccountIDParts[len(blockchainAccountIDParts)-1]
-
 				if !strings.EqualFold(address, ethAddress) {
-					return nil, errors.New("invalid signature from blockchain account id")
+					// skip because of invalid signature from blockchain account id
+					continue
 				}
 			}
+
 		}
+
+		return msg, nil
 	}
 
 	return nil, errors.New("could not verify message using any of the signatures or keys")
