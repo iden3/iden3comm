@@ -4,7 +4,7 @@ import (
 	"crypto/ecdsa"
 	"math/big"
 
-	"github.com/decred/dcrd/dcrec/secp256k1/v4"
+	"github.com/dustinxie/ecc"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/pkg/errors"
 )
@@ -23,7 +23,7 @@ func ParseKey(jwkKey jwk.Key) (*ecdsa.PublicKey, error) {
 	bgy := new(big.Int).SetBytes(y.([]byte))
 
 	pub := ecdsa.PublicKey{
-		Curve: secp256k1.S256(),
+		Curve: ecc.P256k1(),
 		X:     bgx,
 		Y:     bgy,
 	}
@@ -46,7 +46,7 @@ func PrivateKeyFromHex(h string) (*ecdsa.PrivateKey, error) {
 	return &ecdsa.PrivateKey{
 		D: D,
 		PublicKey: ecdsa.PublicKey{
-			Curve: secp256k1.S256(),
+			Curve: ecc.P256k1(),
 		},
 	}, nil
 }
@@ -54,7 +54,7 @@ func PrivateKeyFromHex(h string) (*ecdsa.PrivateKey, error) {
 // NewECDSA creates ecdsa public key from encoded key
 func NewECDSA(encodedKey []byte) ecdsa.PublicKey {
 	return ecdsa.PublicKey{
-		Curve: secp256k1.S256(),
+		Curve: ecc.P256k1(),
 		X:     new(big.Int).SetBytes(encodedKey[:32]),
 		Y:     new(big.Int).SetBytes(encodedKey[32:]),
 	}

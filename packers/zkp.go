@@ -3,6 +3,7 @@ package packers
 import (
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"strings"
 
 	"github.com/iden3/go-circuits"
@@ -169,62 +170,44 @@ func (p *ZKPPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 
 	return &msg, err
 }
+
 func verifySender(token *jwz.Token, msg iden3comm.BasicMessage) error {
 
-	var err error
-	switch circuits.CircuitID(token.CircuitID) {
-	case circuits.AuthCircuitID:
-		err = verifyAuthSender(msg.From, token.ZkProof.PubSignals)
-	case circuits.AuthV2CircuitID:
-		err = verifyAuthV2Sender(msg.From, token.ZkProof.PubSignals)
-	default:
-		return errors.Errorf("'%s' unknow circuit ID. can't verify msg sender", token.CircuitID)
+	if circuits.CircuitID(token.CircuitID) == circuits.AuthV2CircuitID {
+		return verifyAuthV2Sender(msg.From, token)
 	}
-	return err
+
+	return errors.Errorf("'%s' unknown circuit ID. can't verify msg sender", token.CircuitID)
 }
 
-func verifyAuthSender(from string, pubSignals []string) error {
-
-	authPubSignals := circuits.AuthPubSignals{}
-
-	if err := unmarshalPubSignals(&authPubSignals, pubSignals); err != nil {
-		return err
-	}
-
-	id, err := core.IDFromInt(authPubSignals.UserID.BigInt())
-	if err != nil {
-		return err
-	}
-
-	if from != id.String() {
-		return errors.Errorf("sender of message is not used for jwz token creation, expected: '%s' got: '%s", from,
-			id.String())
-	}
-
-	return nil
-}
-
-func verifyAuthV2Sender(from string, pubSignals []string) error {
+func verifyAuthV2Sender(from string, token *jwz.Token) error {
 
 	authPubSignals := circuits.AuthV2PubSignals{}
 
-	err := unmarshalPubSignals(&authPubSignals, pubSignals)
+	err := unmarshalPubSignals(&authPubSignals, token.ZkProof.PubSignals)
+	if err != nil {
+		return err
+	}
+	challengeBytes, err := token.GetMessageHash()
 	if err != nil {
 		return err
 	}
 
-	return checkSender(from, authPubSignals.UserID)
-}
+	challenge := new(big.Int).SetBytes(challengeBytes)
+	did, err := core.ParseDIDFromID(*authPubSignals.UserID)
 
-func checkSender(from string, id *core.ID) error {
-
-	did, err := core.ParseDIDFromID(*id)
 	if err != nil {
 		return err
 	}
+
 	if from != did.String() {
 		return errors.Errorf("sender of message is not used for jwz token creation, expected: '%s' got: '%s", from, did.String())
 	}
+
+	if challenge.Cmp(authPubSignals.Challenge) != 0 {
+		return errors.Errorf("the challenge used for proof creation %s is not equal to the message hash %s", challenge.String(), authPubSignals.Challenge.String())
+	}
+
 	return nil
 }
 
