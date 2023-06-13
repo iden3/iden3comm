@@ -4,6 +4,7 @@ import (
 	"crypto"
 	"encoding/hex"
 	"encoding/json"
+	"strings"
 
 	"github.com/iden3/go-schema-processor/verifiable"
 	"github.com/iden3/iden3comm"
@@ -97,6 +98,9 @@ func registerBJJProvider() {
 	)
 }
 
+// ErrorVerificationMethodNotFound is return where no verification method found for specified kid
+var ErrorVerificationMethodNotFound = errors.New("specified verification method not found")
+
 // NewSigningParams defines the signing parameters for jws generation
 func NewSigningParams() SigningParams {
 	return SigningParams{}
@@ -154,35 +158,17 @@ func (p *JWSPacker) Pack(
 		}
 	}
 
-	// vm, err := lookupForKid(didDoc, signingParams.KID)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	vms, err := resolveAuthVerificationMethods(didDoc)
+	vms, err := resolveVerificationMethods(didDoc)
 	if err != nil {
 		return nil, err
 	}
 
-	var vm = vms[0]
-	for i := range vms {
-		if vms[i].ID == signingParams.KID {
-			vm = vms[i]
-		}
-		if id, ok := vms[i].PublicKeyJwk["kid"]; ok && id == signingParams.KID {
-			vm = vms[i]
-		}
+	vm, err := findVerificationMethodByID(vms, signingParams.KID)
+	if err != nil {
+		return nil, err
 	}
 
-	var kid string
-	if k, ok := vm.PublicKeyJwk["kid"].(string); ok {
-		kid = k
-	} else {
-		kid = vm.ID
-	}
-	if kid == "" {
-		return nil, errors.New("kid is required")
-	}
+	kid := vm.ID
 
 	signer, err := p.signerResolverHandlerFunc.Resolve(kid)
 	if err != nil {
@@ -223,9 +209,6 @@ func (p *JWSPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 		return nil, errors.New("invalid number of signatures")
 	}
 	kid := sigs[0].ProtectedHeaders().KeyID()
-	if kid == "" {
-		return nil, errors.New("kid header is required")
-	}
 	alg := sigs[0].ProtectedHeaders().Algorithm()
 	if alg == "" {
 		return nil, errors.New("alg header is required")
@@ -241,18 +224,34 @@ func (p *JWSPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 		return nil, errors.New("from field in did docuemnt is required")
 	}
 
+	parsedKid := strings.Split(kid, "#")
+	if len(parsedKid) < 1 {
+		return nil, errors.New("kid is expected in format of valid did string")
+	}
+	if kid != "" && parsedKid[0] != msg.From {
+		return nil, errors.New("sender must use equal kid that contains did identifier")
+	}
+
 	didDoc, err := p.didResolverHandler.Resolve(msg.From)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	vms, err := resolveAuthVerificationMethods(didDoc)
+	vms, err := resolveVerificationMethods(didDoc)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, vm := range vms {
-		wk, err := extractVerificationKey(alg, vm)
+	if kid != "" {
+		vm, err := findVerificationMethodByID(vms, kid)
+		if err != nil {
+			return nil, err
+		}
+		vms = []verifiable.CommonVerificationMethod{vm}
+	}
+
+	for i := range vms {
+		wk, err := extractVerificationKey(alg, vms[i])
 		if err != nil {
 			continue
 		}
@@ -273,46 +272,13 @@ func (p *JWSPacker) MediaType() iden3comm.MediaType {
 	return MediaTypeSignedMessage
 }
 
-// lookupForKid looks for a verification method in the DID document that matches the given jwk kid or DID.
-func lookupForKid(didDoc *verifiable.DIDDocument, kid string) (verifiable.CommonVerificationMethod, error) {
-	vms := make([]verifiable.CommonVerificationMethod, 0,
-		len(didDoc.VerificationMethod)+len(didDoc.Authentication))
-	for i := range didDoc.Authentication {
-		vm, err := resolveAuthToVM(
-			didDoc.Authentication[i],
-			didDoc.VerificationMethod,
-		)
-		if err != nil {
-			continue
-		}
-		vms = append(vms, vm)
-	}
-	vms = append(vms, didDoc.VerificationMethod...)
-
-	if len(vms) == 0 {
-		return verifiable.CommonVerificationMethod{}, errors.New("no verification methods")
-	}
-
-	if kid == "" {
-		return vms[0], nil
-	}
-
-	for i := range vms {
-		if vms[i].ID == kid {
-			return vms[i], nil
-		}
-		if id, ok := vms[i].PublicKeyJwk["kid"]; ok && id == kid {
-			return vms[i], nil
-		}
-	}
-
-	return verifiable.CommonVerificationMethod{}, errors.New("can't find kid")
-}
-
-// resolveAuthVerificationMethods looks for all verification methods in the DID document.
-func resolveAuthVerificationMethods(didDoc *verifiable.DIDDocument) ([]verifiable.CommonVerificationMethod, error) {
+// resolveVerificationMethods looks for all verification methods in the DID document.
+func resolveVerificationMethods(didDoc *verifiable.DIDDocument) ([]verifiable.CommonVerificationMethod, error) {
 	vms := make([]verifiable.CommonVerificationMethod, 0,
 		len(didDoc.Authentication))
+
+	// first - add verification methods for authentication
+
 	for i := range didDoc.Authentication {
 		vm, err := resolveAuthToVM(
 			didDoc.Authentication[i],
@@ -322,6 +288,13 @@ func resolveAuthVerificationMethods(didDoc *verifiable.DIDDocument) ([]verifiabl
 			continue
 		}
 		vms = append(vms, vm)
+	}
+	// first - add other methods for authentication
+	for i := range didDoc.VerificationMethod {
+		_, err := findVerificationMethodByID(vms, didDoc.VerificationMethod[i].ID)
+		if err != nil && err == ErrorVerificationMethodNotFound {
+			vms = append(vms, didDoc.VerificationMethod[i])
+		}
 	}
 
 	if len(vms) == 0 {
@@ -345,6 +318,20 @@ func resolveAuthToVM(
 		}
 	}
 	return verifiable.CommonVerificationMethod{}, errors.New("not found")
+}
+func findVerificationMethodByID(
+	vms []verifiable.CommonVerificationMethod,
+	id string,
+) (verifiable.CommonVerificationMethod, error) {
+	if id == "" {
+		return vms[0], nil
+	}
+	for i := range vms {
+		if id == vms[i].ID {
+			return vms[i], nil
+		}
+	}
+	return verifiable.CommonVerificationMethod{}, ErrorVerificationMethodNotFound
 }
 
 func extractVerificationKey(alg jwa.SignatureAlgorithm, vm verifiable.CommonVerificationMethod) (jws.VerifyOption, error) {

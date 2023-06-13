@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const exampleDidDoc = `{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/secp256k1recovery-2020/v2"],"id":"did:example:123","verificationMethod":[{"id":"did:example:123#vm-1","controller":"did:example:123","type":"EcdsaSecp256k1VerificationKey2019","publicKeyJwk":{"crv":"secp256k1","kid":"JUvpllMEYUZ2joO59UNui_XYDqxVqiFLLAJ8klWuPBw","kty":"EC","x":"YEwwxb2s2kjvKodwoW3II8JhcvYk-51hD74Kkq63syc=","y":"fCIyEltvzDs0JZnL25-YyyDgLrbZTw9y3lM2BLDhQbU="}}],"authentication":["did:example:123#vm-1"]}`
+const exampleDidDoc = `{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/secp256k1recovery-2020/v2"],"id":"did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29","verificationMethod":[{"id":"did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29#vm-1","controller":"did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29","type":"EcdsaSecp256k1VerificationKey2019","publicKeyJwk":{"crv":"secp256k1","kid":"JUvpllMEYUZ2joO59UNui_XYDqxVqiFLLAJ8klWuPBw","kty":"EC","x":"YEwwxb2s2kjvKodwoW3II8JhcvYk-51hD74Kkq63syc=","y":"fCIyEltvzDs0JZnL25-YyyDgLrbZTw9y3lM2BLDhQbU="}}],"authentication":["did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29#vm-1"]}`
 const exampleDidDocJS = `{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/secp256k1recovery-2020/v2"],"id":"did:example:123","verificationMethod":[{"id":"did:example:123#vm-1","controller":"did:example:123","type":"EcdsaSecp256k1VerificationKey2019","publicKeyJwk":{"crv":"secp256k1","kid":"JUvpllMEYUZ2joO59UNui_XYDqxVqiFLLAJ8klWuPBw","kty":"EC","x":"_dV63sPUOOojf-RrM-4eAW7aa1hcPifqZmhsLqU1hHk","y":"Rjk_gUUlLupor-Z-KHs-2bMWhbpsOwAGCnO5sSQtaPc"}}],"authentication":["did:example:123#vm-1"]}`
 
 // add kid for select key
@@ -48,6 +48,9 @@ func TestPKHKey(t *testing.T) {
 }
 
 func TestBJJKey(t *testing.T) {
+	auth := &verifiable.Authentication{}
+	err := auth.UnmarshalJSON([]byte("\"did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29#key-1\""))
+	require.NoError(t, err)
 	p := JWSPacker{
 		didResolverHandler: DIDResolverHandlerFunc(func(did string) (*verifiable.DIDDocument, error) {
 			return &verifiable.DIDDocument{
@@ -67,21 +70,7 @@ func TestBJJKey(t *testing.T) {
 						},
 					},
 				},
-				Authentication: []verifiable.Authentication{
-					{
-						CommonVerificationMethod: verifiable.CommonVerificationMethod{
-							ID:         "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29#key-1",
-							Type:       string(EddsaBJJVerificationKey),
-							Controller: "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29",
-							PublicKeyJwk: map[string]interface{}{
-								"kty": "EC",
-								"crv": "BJJ",
-								"x":   "Iunwi3h0Y34DT8zAvKKSt_QrMkL9d3Ow0XygV253UfE=",
-								"y":   "CvilGVOsA_Fsq9IeGFYI2jkRKCcnWO_z9MtaOhN9PNc=",
-							},
-						},
-					},
-				},
+				Authentication: []verifiable.Authentication{*auth},
 			}, nil
 		}),
 
@@ -98,6 +87,7 @@ func TestBJJKey(t *testing.T) {
 		SigningParams{
 			SenderDIDstr: `did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29`,
 			Alg:          bjj.Alg,
+			KID:          "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29#key-1",
 		})
 	require.NoError(t, err)
 
@@ -162,25 +152,7 @@ func TestLookForKid(t *testing.T) {
 			},
 		},
 		{
-			name:           "Try to find vm by kid in jwk",
-			didDocFileName: "diddocument_with_jws_kid.json",
-			kid:            "umQfTkR8vvZ9JPhl",
-			expectedKey: verifiable.CommonVerificationMethod{
-				ID:         "#someKeyId",
-				Controller: "did:test:EiClkZMDxPKqC9c-umQfTkR8vvZ9JPhl_xLDI9Nfk38w5w",
-				Type:       "EcdsaSecp256k1VerificationKey2019",
-				PublicKeyJwk: map[string]interface{}{
-					"testID": "2",
-					"kty":    "EC",
-					"crv":    "secp256k1",
-					"kid":    "umQfTkR8vvZ9JPhl",
-					"x":      "WfY7Px6AgH6x-_dgAoRbg8weYRJA36ON-gQiFnETrqw",
-					"y":      "IzFx3BUGztK0cyDStiunXbrZYYTtKbOUzx16SUK0sAY",
-				},
-			},
-		},
-		{
-			name:           "Try to find vm by did from list",
+			name:           "Vm in auth section (list of vms)",
 			didDocFileName: "diddocument_with_list_of_did.json",
 			kid:            "#vm-1",
 			expectedKey: verifiable.CommonVerificationMethod{
@@ -197,15 +169,15 @@ func TestLookForKid(t *testing.T) {
 			},
 		},
 		{
-			name:           "More priority vm should be from authentication section",
+			name:           "Vm in auth section  (list of vms)",
 			didDocFileName: "diddocument_with_list_of_did.json",
-			kid:            "", // empty kid
+			kid:            "#vm-2",
 			expectedKey: verifiable.CommonVerificationMethod{
-				ID:         "#vm-1",
-				Controller: "did:test:1",
+				ID:         "#vm-2",
+				Controller: "did:test:2",
 				Type:       "EcdsaSecp256k1VerificationKey2019",
 				PublicKeyJwk: map[string]interface{}{
-					"testID": "5",
+					"testID": "6",
 					"kty":    "EC",
 					"crv":    "secp256k1",
 					"x":      "WfY7Px6AgH6x-_dgAoRbg8weYRJA36ON-gQiFnETrqw",
@@ -214,7 +186,7 @@ func TestLookForKid(t *testing.T) {
 			},
 		},
 		{
-			name:           "Vm in auth section",
+			name:           "Vm in auth section (full)",
 			didDocFileName: "diddocument_with_wm_on_authentication_section.json",
 			kid:            "#vm-2",
 			expectedKey: verifiable.CommonVerificationMethod{
@@ -236,9 +208,12 @@ func TestLookForKid(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			didDoc, err := loadDIDDoc(tt.didDocFileName)
 			require.NoError(t, err)
-			key, err := lookupForKid(didDoc, tt.kid)
+			vms, err := resolveVerificationMethods(didDoc)
 			require.NoError(t, err)
-			require.Equal(t, tt.expectedKey, key)
+
+			vm, err := findVerificationMethodByID(vms, tt.kid)
+			require.NoError(t, err)
+			require.Equal(t, tt.expectedKey, vm)
 		})
 	}
 }
