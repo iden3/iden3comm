@@ -246,7 +246,8 @@ func (p *JWSPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 	}
 
 	if kid != "" {
-		vm, err := findVerificationMethodByID(vms, kid)
+		var vm verifiable.CommonVerificationMethod
+		vm, err = findVerificationMethodByID(vms, kid)
 		if err != nil {
 			return nil, err
 		}
