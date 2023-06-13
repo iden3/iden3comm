@@ -67,6 +67,21 @@ func TestBJJKey(t *testing.T) {
 						},
 					},
 				},
+				Authentication: []verifiable.Authentication{
+					{
+						CommonVerificationMethod: verifiable.CommonVerificationMethod{
+							ID:         "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29#key-1",
+							Type:       string(EddsaBJJVerificationKey),
+							Controller: "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29",
+							PublicKeyJwk: map[string]interface{}{
+								"kty": "EC",
+								"crv": "BJJ",
+								"x":   "Iunwi3h0Y34DT8zAvKKSt_QrMkL9d3Ow0XygV253UfE=",
+								"y":   "CvilGVOsA_Fsq9IeGFYI2jkRKCcnWO_z9MtaOhN9PNc=",
+							},
+						},
+					},
+				},
 			}, nil
 		}),
 

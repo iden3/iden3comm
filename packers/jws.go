@@ -154,9 +154,24 @@ func (p *JWSPacker) Pack(
 		}
 	}
 
-	vm, err := lookupForKid(didDoc, signingParams.KID)
+	// vm, err := lookupForKid(didDoc, signingParams.KID)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	vms, err := resolveAuthVerificationMethods(didDoc)
 	if err != nil {
 		return nil, err
+	}
+
+	var vm = vms[0]
+	for i := range vms {
+		if vms[i].ID == signingParams.KID {
+			vm = vms[i]
+		}
+		if id, ok := vms[i].PublicKeyJwk["kid"]; ok && id == signingParams.KID {
+			vm = vms[i]
+		}
 	}
 
 	var kid string
@@ -231,22 +246,26 @@ func (p *JWSPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 		return nil, errors.WithStack(err)
 	}
 
-	vm, err := lookupForKid(didDoc, kid)
+	vms, err := resolveAuthVerificationMethods(didDoc)
 	if err != nil {
 		return nil, err
 	}
 
-	wk, err := extractVerificationKey(alg, vm)
-	if err != nil {
-		return nil, err
+	for _, vm := range vms {
+		wk, err := extractVerificationKey(alg, vm)
+		if err != nil {
+			continue
+		}
+
+		_, err = jws.Verify(envelope, wk)
+		if err != nil {
+			continue
+		}
+
+		return msg, nil
 	}
 
-	_, err = jws.Verify(envelope, wk)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	return msg, nil
+	return nil, errors.New("could not verify message using any of the signatures or keys")
 }
 
 // MediaType for iden3comm that returns MediaTypeSignedMessage
@@ -288,6 +307,28 @@ func lookupForKid(didDoc *verifiable.DIDDocument, kid string) (verifiable.Common
 	}
 
 	return verifiable.CommonVerificationMethod{}, errors.New("can't find kid")
+}
+
+// resolveAuthVerificationMethods looks for all verification methods in the DID document.
+func resolveAuthVerificationMethods(didDoc *verifiable.DIDDocument) ([]verifiable.CommonVerificationMethod, error) {
+	vms := make([]verifiable.CommonVerificationMethod, 0,
+		len(didDoc.Authentication))
+	for i := range didDoc.Authentication {
+		vm, err := resolveAuthToVM(
+			didDoc.Authentication[i],
+			didDoc.VerificationMethod,
+		)
+		if err != nil {
+			continue
+		}
+		vms = append(vms, vm)
+	}
+
+	if len(vms) == 0 {
+		return vms, errors.New("no verification methods")
+	}
+
+	return vms, nil
 }
 
 func resolveAuthToVM(
