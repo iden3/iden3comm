@@ -261,49 +261,64 @@ func (p *JWSPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 			// skip verification method check if algorithm is not supported
 			continue
 		}
-		if vms[i].BlockchainAccountID == "" && vms[i].EthereumAddress == "" {
-			wk, err := extractVerificationKey(alg, vms[i])
-			if err != nil {
-				continue
-			}
-			_, err = jws.Verify(envelope, wk)
-			if err != nil {
-				continue
-			}
-		} else {
-			base64Token, err := jws.Compact(token)
-			if err != nil {
-				continue
-			}
-			base64TokenParts := strings.Split(string(base64Token), ".")
-			signedData := base64TokenParts[0] + "." + base64TokenParts[1]
-			hash := sha256.Sum256([]byte(signedData))
-			sig := token.Signatures()[0].Signature()
-			recoveredKey, err := ecc.RecoverEthereum(hash[:], sig)
-			if err != nil {
-				continue
-			}
 
-			ethAddress := "0x" + hex.EncodeToString(keccak256.Hash(recoveredKey[1:])[12:])
-			if vms[i].EthereumAddress != "" {
-				if !strings.EqualFold(ethAddress, vms[i].EthereumAddress) {
-					continue
-				}
-			} else {
-				blockchainAccountIDParts := strings.Split(vms[i].BlockchainAccountID, ":")
-				address := blockchainAccountIDParts[len(blockchainAccountIDParts)-1]
-				if !strings.EqualFold(address, ethAddress) {
-					// skip because of invalid signature from blockchain account id
-					continue
-				}
-			}
+		// always try extract public key and validate against know public key format
+		err = verifySignatureWithPublicKey(envelope, alg, vms[i])
+		if err != nil && vms[i].BlockchainAccountID == "" && vms[i].EthereumAddress == "" {
+			continue
+		}
 
+		// if previous validation failed but blockchainAccountId or ethereumAddress are set - try to recover address from signature (E256K-R)
+		if err != nil {
+			errRecover := recoverEthereumAddress(token, vms[i])
+			if errRecover != nil {
+				continue
+			}
 		}
 
 		return msg, nil
 	}
 
 	return nil, errors.New("could not verify message using any of the signatures or keys")
+}
+
+func verifySignatureWithPublicKey(envelope []byte, alg jwa.SignatureAlgorithm, vm verifiable.CommonVerificationMethod) error {
+	var verOpt jws.VerifyOption
+	verOpt, err := extractVerificationKey(alg, vm)
+	if err != nil {
+		return errors.New("can't extract public key for given algorithm and verification method")
+	}
+	_, err = jws.Verify(envelope, verOpt)
+	if err != nil {
+		return errors.New("JWS: invalid signature")
+	}
+	return nil
+}
+func recoverEthereumAddress(token *jws.Message, vm verifiable.CommonVerificationMethod) error {
+	base64Token, err := jws.Compact(token)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	base64TokenParts := strings.Split(string(base64Token), ".")
+	if len(base64TokenParts) != 3 {
+		return errors.New("jws should have 3 encoded parts")
+	}
+	signedData := base64TokenParts[0] + "." + base64TokenParts[1]
+	hash := sha256.Sum256([]byte(signedData))
+	sig := token.Signatures()[0].Signature()
+	recoveredKey, err := ecc.RecoverEthereum(hash[:], sig)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	recoveredAddress := "0x" + hex.EncodeToString(keccak256.Hash(recoveredKey[1:])[12:])
+	blockchainAccountIDParts := strings.Split(vm.BlockchainAccountID, ":")
+	address := blockchainAccountIDParts[len(blockchainAccountIDParts)-1]
+	if !strings.EqualFold(address, recoveredAddress) && !strings.EqualFold(vm.EthereumAddress, recoveredAddress) {
+		return errors.New("invalid signature from blockchain account id or ethereum address")
+	}
+
+	return nil
 }
 
 // MediaType for iden3comm that returns MediaTypeSignedMessage
@@ -317,7 +332,6 @@ func resolveVerificationMethods(didDoc *verifiable.DIDDocument) ([]verifiable.Co
 		len(didDoc.Authentication))
 
 	// first - add verification methods for authentication
-
 	for i := range didDoc.Authentication {
 		vm, err := resolveAuthToVM(
 			didDoc.Authentication[i],
@@ -328,7 +342,7 @@ func resolveVerificationMethods(didDoc *verifiable.DIDDocument) ([]verifiable.Co
 		}
 		vms = append(vms, vm)
 	}
-	// first - add other methods for authentication
+	// second - add other methods for authentication
 	for i := range didDoc.VerificationMethod {
 		_, err := findVerificationMethodByID(vms, didDoc.VerificationMethod[i].ID)
 		if err != nil && err == ErrorVerificationMethodNotFound {
