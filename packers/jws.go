@@ -74,10 +74,9 @@ type JWSPacker struct {
 
 // SigningParams packer parameters for jws generation
 type SigningParams struct {
-	SenderDIDstr string
-	Alg          jwa.SignatureAlgorithm
-	KID          string
-	DIDDoc       *verifiable.DIDDocument
+	Alg    jwa.SignatureAlgorithm
+	KID    string
+	DIDDoc *verifiable.DIDDocument
 	iden3comm.PackerParams
 }
 
@@ -106,6 +105,9 @@ func registerBJJProvider() {
 	)
 }
 
+// ErrorVerificationMethodNotFound is return where no verification method found for specified kid
+var ErrorVerificationMethodNotFound = errors.New("specified verification method not found")
+
 // NewSigningParams defines the signing parameters for jws generation
 func NewSigningParams() SigningParams {
 	return SigningParams{}
@@ -115,9 +117,6 @@ func NewSigningParams() SigningParams {
 func (s *SigningParams) Verify() error {
 	if s.Alg == "" {
 		return errors.New("alg is required for signing params")
-	}
-	if s.SenderDIDstr == "" {
-		return errors.New("sender did is required for signing params")
 	}
 	return nil
 }
@@ -151,32 +150,25 @@ func (p *JWSPacker) Pack(
 		return nil, errors.Errorf("invalid message payload: %v", err)
 	}
 
-	if bm.From != signingParams.SenderDIDstr {
-		return nil, errors.New("msg singer must me be msg sender")
-	}
-
 	didDoc := signingParams.DIDDoc
 	if didDoc == nil {
-		didDoc, err = p.didResolverHandler.Resolve(signingParams.SenderDIDstr)
+		didDoc, err = p.didResolverHandler.Resolve(bm.From)
 		if err != nil {
 			return nil, errors.Errorf("resolve did failed: %v", err)
 		}
 	}
 
-	vm, err := lookupForKid(didDoc, signingParams.KID)
+	vms, err := resolveVerificationMethods(didDoc)
 	if err != nil {
 		return nil, err
 	}
 
-	var kid string
-	if k, ok := vm.PublicKeyJwk["kid"].(string); ok {
-		kid = k
-	} else {
-		kid = vm.ID
+	vm, err := findVerificationMethodByID(vms, signingParams.KID)
+	if err != nil {
+		return nil, err
 	}
-	if kid == "" {
-		return nil, errors.New("kid is required")
-	}
+
+	kid := vm.ID
 
 	signer, err := p.signerResolverHandlerFunc.Resolve(kid)
 	if err != nil {
@@ -220,9 +212,6 @@ func (p *JWSPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 		return nil, errors.New("invalid number of signatures")
 	}
 	kid := sigs[0].ProtectedHeaders().KeyID()
-	if kid == "" {
-		return nil, errors.New("kid header is required")
-	}
 	alg := sigs[0].ProtectedHeaders().Algorithm()
 	if alg == "" {
 		return nil, errors.New("alg header is required")
@@ -238,8 +227,12 @@ func (p *JWSPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 		return nil, errors.New("from field in did document is required")
 	}
 
-	if msg.From != kid {
-		return nil, errors.New("message signer must be the message sender")
+	parsedKid := strings.Split(kid, "#")
+	if len(parsedKid) < 1 {
+		return nil, errors.New("kid is expected in format of valid did string")
+	}
+	if kid != "" && parsedKid[0] != msg.From {
+		return nil, errors.New("sender must use equal kid that contains did identifier")
 	}
 
 	didDoc, err := p.didResolverHandler.Resolve(msg.From)
@@ -247,57 +240,85 @@ func (p *JWSPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 		return nil, errors.WithStack(err)
 	}
 
-	vm, err := lookupForKid(didDoc, kid)
+	vms, err := resolveVerificationMethods(didDoc)
 	if err != nil {
 		return nil, err
 	}
 
-	err = checkAlgorithmSupport(alg, vm)
-	if err != nil {
-		return nil, err
-	}
-
-	if vm.BlockchainAccountID == "" && vm.EthereumAddress == "" {
-		wk, err := extractVerificationKey(alg, vm)
+	if kid != "" {
+		var vm verifiable.CommonVerificationMethod
+		vm, err = findVerificationMethodByID(vms, kid)
 		if err != nil {
 			return nil, err
 		}
-		_, err = jws.Verify(envelope, wk)
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-	} else {
-		base64Token, err := jws.Compact(token)
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-		base64TokenParts := strings.Split(string(base64Token), ".")
-		signedData := base64TokenParts[0] + "." + base64TokenParts[1]
-		hash := sha256.Sum256([]byte(signedData))
-		sig := token.Signatures()[0].Signature()
-		recoveredKey, err := ecc.RecoverEthereum(hash[:], sig)
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-
-		ethAddress := "0x" + hex.EncodeToString(keccak256.Hash(recoveredKey[1:])[12:])
-
-		if vm.EthereumAddress != "" {
-			if !strings.EqualFold(ethAddress, vm.EthereumAddress) {
-				return nil, errors.New("invalid signature from ethereum address")
-			}
-		} else {
-			blockchainAccountIDParts := strings.Split(vm.BlockchainAccountID, ":")
-			address := blockchainAccountIDParts[len(blockchainAccountIDParts)-1]
-
-			if !strings.EqualFold(address, ethAddress) {
-				return nil, errors.New("invalid signature from blockchain account id")
-			}
-		}
-
+		vms = []verifiable.CommonVerificationMethod{vm}
 	}
 
-	return msg, nil
+	for i := range vms {
+
+		err = checkAlgorithmSupport(alg, vms[i])
+		if err != nil {
+			// skip verification method check if algorithm is not supported
+			continue
+		}
+
+		// always try extract public key and validate against know public key format
+		err = verifySignatureWithPublicKey(envelope, alg, vms[i])
+		if err != nil && vms[i].BlockchainAccountID == "" && vms[i].EthereumAddress == "" {
+			continue
+		}
+
+		// if previous validation failed but blockchainAccountId or ethereumAddress are set - try to recover address from signature (E256K-R)
+		if err != nil {
+			errRecover := recoverEthereumAddress(token, vms[i])
+			if errRecover != nil {
+				continue
+			}
+		}
+
+		return msg, nil
+	}
+
+	return nil, errors.New("could not verify message using any of the signatures or keys")
+}
+
+func verifySignatureWithPublicKey(envelope []byte, alg jwa.SignatureAlgorithm, vm verifiable.CommonVerificationMethod) error {
+	var verOpt jws.VerifyOption
+	verOpt, err := extractVerificationKey(alg, vm)
+	if err != nil {
+		return errors.New("can't extract public key for given algorithm and verification method")
+	}
+	_, err = jws.Verify(envelope, verOpt)
+	if err != nil {
+		return errors.New("JWS: invalid signature")
+	}
+	return nil
+}
+func recoverEthereumAddress(token *jws.Message, vm verifiable.CommonVerificationMethod) error {
+	base64Token, err := jws.Compact(token)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	base64TokenParts := strings.Split(string(base64Token), ".")
+	if len(base64TokenParts) != 3 {
+		return errors.New("jws should have 3 encoded parts")
+	}
+	signedData := base64TokenParts[0] + "." + base64TokenParts[1]
+	hash := sha256.Sum256([]byte(signedData))
+	sig := token.Signatures()[0].Signature()
+	recoveredKey, err := ecc.RecoverEthereum(hash[:], sig)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	recoveredAddress := "0x" + hex.EncodeToString(keccak256.Hash(recoveredKey[1:])[12:])
+	blockchainAccountIDParts := strings.Split(vm.BlockchainAccountID, ":")
+	address := blockchainAccountIDParts[len(blockchainAccountIDParts)-1]
+	if !strings.EqualFold(address, recoveredAddress) && !strings.EqualFold(vm.EthereumAddress, recoveredAddress) {
+		return errors.New("invalid signature from blockchain account id or ethereum address")
+	}
+
+	return nil
 }
 
 // MediaType for iden3comm that returns MediaTypeSignedMessage
@@ -305,10 +326,12 @@ func (p *JWSPacker) MediaType() iden3comm.MediaType {
 	return MediaTypeSignedMessage
 }
 
-// lookupForKid looks for a verification method in the DID document that matches the given jwk kid or DID.
-func lookupForKid(didDoc *verifiable.DIDDocument, kid string) (verifiable.CommonVerificationMethod, error) {
+// resolveVerificationMethods looks for all verification methods in the DID document.
+func resolveVerificationMethods(didDoc *verifiable.DIDDocument) ([]verifiable.CommonVerificationMethod, error) {
 	vms := make([]verifiable.CommonVerificationMethod, 0,
-		len(didDoc.VerificationMethod)+len(didDoc.Authentication))
+		len(didDoc.Authentication))
+
+	// first - add verification methods for authentication
 	for i := range didDoc.Authentication {
 		vm, err := resolveAuthToVM(
 			didDoc.Authentication[i],
@@ -319,26 +342,19 @@ func lookupForKid(didDoc *verifiable.DIDDocument, kid string) (verifiable.Common
 		}
 		vms = append(vms, vm)
 	}
-	vms = append(vms, didDoc.VerificationMethod...)
+	// second - add other methods for authentication
+	for i := range didDoc.VerificationMethod {
+		_, err := findVerificationMethodByID(vms, didDoc.VerificationMethod[i].ID)
+		if err != nil && err == ErrorVerificationMethodNotFound {
+			vms = append(vms, didDoc.VerificationMethod[i])
+		}
+	}
 
 	if len(vms) == 0 {
-		return verifiable.CommonVerificationMethod{}, errors.New("no verification methods")
+		return vms, errors.New("no verification methods")
 	}
 
-	if kid == "" {
-		return vms[0], nil
-	}
-
-	for i := range vms {
-		if vms[i].ID == kid {
-			return vms[i], nil
-		}
-		if id, ok := vms[i].PublicKeyJwk["kid"]; ok && id == kid {
-			return vms[i], nil
-		}
-	}
-
-	return verifiable.CommonVerificationMethod{}, errors.New("can't find kid")
+	return vms, nil
 }
 
 func resolveAuthToVM(
@@ -355,6 +371,20 @@ func resolveAuthToVM(
 		}
 	}
 	return verifiable.CommonVerificationMethod{}, errors.New("not found")
+}
+func findVerificationMethodByID(
+	vms []verifiable.CommonVerificationMethod,
+	id string,
+) (verifiable.CommonVerificationMethod, error) {
+	if id == "" {
+		return vms[0], nil
+	}
+	for i := range vms {
+		if id == vms[i].ID {
+			return vms[i], nil
+		}
+	}
+	return verifiable.CommonVerificationMethod{}, ErrorVerificationMethodNotFound
 }
 
 func extractVerificationKey(alg jwa.SignatureAlgorithm, vm verifiable.CommonVerificationMethod) (jws.VerifyOption, error) {

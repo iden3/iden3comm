@@ -14,8 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const exampleDidDoc = `{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/secp256k1recovery-2020/v2"],"id":"did:example:123","verificationMethod":[{"id":"did:example:123#vm-1","controller":"did:example:123","type":"EcdsaSecp256k1VerificationKey2019","publicKeyJwk":{"crv":"secp256k1","kid":"did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29","kty":"EC","x":"YEwwxb2s2kjvKodwoW3II8JhcvYk-51hD74Kkq63syc=","y":"fCIyEltvzDs0JZnL25-YyyDgLrbZTw9y3lM2BLDhQbU="}}],"authentication":["did:example:123#vm-1"]}`
-const exampleDidDocJS = `{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/secp256k1recovery-2020/v2"],"id":"did:example:123","verificationMethod":[{"id":"did:example:123#vm-1","controller":"did:example:123","type":"EcdsaSecp256k1VerificationKey2019","publicKeyJwk":{"crv":"secp256k1","kid":"did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29","kty":"EC","x":"_dV63sPUOOojf-RrM-4eAW7aa1hcPifqZmhsLqU1hHk","y":"Rjk_gUUlLupor-Z-KHs-2bMWhbpsOwAGCnO5sSQtaPc"}}],"authentication":["did:example:123#vm-1"]}`
+const exampleDidDoc = `{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/secp256k1recovery-2020/v2"],"id":"did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29","verificationMethod":[{"id":"did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29#vm-1","controller":"did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29","type":"EcdsaSecp256k1VerificationKey2019","publicKeyJwk":{"crv":"secp256k1","kid":"JUvpllMEYUZ2joO59UNui_XYDqxVqiFLLAJ8klWuPBw","kty":"EC","x":"YEwwxb2s2kjvKodwoW3II8JhcvYk-51hD74Kkq63syc=","y":"fCIyEltvzDs0JZnL25-YyyDgLrbZTw9y3lM2BLDhQbU="}}],"authentication":["did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29#vm-1"]}`
+const exampleDidDocJS = `{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/secp256k1recovery-2020/v2",{"esrs2020":"https://identity.foundation/EcdsaSecp256k1RecoverySignature2020#","privateKeyJwk":{"@id":"esrs2020:privateKeyJwk","@type":"@json"},"publicKeyHex":"esrs2020:publicKeyHex","privateKeyHex":"esrs2020:privateKeyHex","ethereumAddress":"esrs2020:ethereumAddress"}],"id":"did:example:123","verificationMethod":[{"id":"did:example:123#JUvpllMEYUZ2joO59UNui_XYDqxVqiFLLAJ8klWuPBw","controller":"did:example:123","type":"EcdsaSecp256k1VerificationKey2019","publicKeyJwk":{"crv":"secp256k1","kid":"JUvpllMEYUZ2joO59UNui_XYDqxVqiFLLAJ8klWuPBw","kty":"EC","x":"_dV63sPUOOojf-RrM-4eAW7aa1hcPifqZmhsLqU1hHk","y":"Rjk_gUUlLupor-Z-KHs-2bMWhbpsOwAGCnO5sSQtaPc"}}],"authentication":["did:example:123#JUvpllMEYUZ2joO59UNui_XYDqxVqiFLLAJ8klWuPBw"]}`
 
 // add kid for select key
 func TestPKHKey(t *testing.T) {
@@ -38,8 +38,7 @@ func TestPKHKey(t *testing.T) {
 	token, err := p.Pack(
 		msgBytes,
 		SigningParams{
-			SenderDIDstr: `did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29`,
-			Alg:          jwa.ES256K,
+			Alg: jwa.ES256K,
 		})
 	require.NoError(t, err)
 
@@ -48,6 +47,9 @@ func TestPKHKey(t *testing.T) {
 }
 
 func TestBJJKey(t *testing.T) {
+	auth := &verifiable.Authentication{}
+	err := auth.UnmarshalJSON([]byte("\"did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29#key-1\""))
+	require.NoError(t, err)
 	p := JWSPacker{
 		didResolverHandler: DIDResolverHandlerFunc(func(did string) (*verifiable.DIDDocument, error) {
 			return &verifiable.DIDDocument{
@@ -56,7 +58,7 @@ func TestBJJKey(t *testing.T) {
 				},
 				VerificationMethod: []verifiable.CommonVerificationMethod{
 					{
-						ID:         "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29",
+						ID:         "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29#key-1",
 						Type:       string(EddsaBJJVerificationKey),
 						Controller: "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29",
 						PublicKeyJwk: map[string]interface{}{
@@ -67,6 +69,7 @@ func TestBJJKey(t *testing.T) {
 						},
 					},
 				},
+				Authentication: []verifiable.Authentication{*auth},
 			}, nil
 		}),
 
@@ -81,8 +84,8 @@ func TestBJJKey(t *testing.T) {
 	token, err := p.Pack(
 		msgBytes,
 		SigningParams{
-			SenderDIDstr: `did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29`,
-			Alg:          bjj.Alg,
+			Alg: bjj.Alg,
+			KID: "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29#key-1",
 		})
 	require.NoError(t, err)
 
@@ -92,7 +95,7 @@ func TestBJJKey(t *testing.T) {
 
 func TestJWS(t *testing.T) {
 	// token from js impelementation
-	const token = `eyJhbGciOiJFUzI1NksiLCJraWQiOiJkaWQ6aWRlbjM6cG9seWdvbjptdW1iYWk6eDRqY0hQNFhIVEszdlg1OEFIWlB5SEU4a1lqbmV5RTZGWlJmejdLMjkiLCJ0eXAiOiJhcHBsaWNhdGlvbi9pZGVuM2NvbW0tc2lnbmVkLWpzb24ifQ.eyJ0eXBlIjoiaHR0cHM6Ly9pZGVuMy1jb21tdW5pY2F0aW9uLmlvL2F1dGhvcml6YXRpb24vMS4wL3Jlc3BvbnNlIiwiZnJvbSI6ImRpZDppZGVuMzpwb2x5Z29uOm11bWJhaTp4NGpjSFA0WEhUSzN2WDU4QUhaUHlIRThrWWpuZXlFNkZaUmZ6N0syOSIsImJvZHkiOnsic2NvcGUiOlt7InR5cGUiOiJ6ZXJva25vd2xlZGdlIiwiY2lyY3VpdF9pZCI6ImF1dGgiLCJwdWJfc2lnbmFscyI6WyIxIiwiMTgzMTE1NjA1MjUzODMzMTk3MTkzMTEzOTQ5NTcwNjQ4MjAwOTEzNTQ5NzYzMTA1OTk4MTg3OTcxNTcxODk1Njg2MjE0NjY5NTA4MTEiLCIzMjM0MTY5MjUyNjQ2NjYyMTc2MTcyODg1Njk3NDI1NjQ3MDM2MzI4NTA4MTYwMzU3NjEwODQwMDI3MjAwOTAzNzczNTMyOTc5MjAiXSwicHJvb2ZfZGF0YSI6eyJwaV9hIjpbIjExMTMwODQzMTUwNTQwNzg5Mjk5NDU4OTkwNTg2MDIwMDAwNzE5MjgwMjQ2MTUzNzk3ODgyODQzMjE0MjkwNTQxOTgwNTIyMzc1MDcyIiwiMTMwMDg0MTkxMjk0Mzc4MTcyMzAyMjAzMjM1NTgzNjg5MzgzMTEzMjkyMDc4Mzc4ODQ1NTUzMTgzODI1NDQ2NTc4NDYwNTc2MjcxMyIsIjEiXSwicGlfYiI6W1siMjA2MTU3Njg1MzY5ODg0MzgzMzY1Mzc3Nzc5MDkwNDIzNTIwNTYzOTI4NjIyNTE3ODU3MjI3OTY2Mzc1OTAyMTIxNjA1NjEzNTE2NTYiLCIxMDM3MTE0NDgwNjEwNzc3ODg5MDUzODg1NzcwMDg1NTEwODY2NzYyMjA0MjIxNTA5Njk3MTc0NzIwMzEwNTk5NzQ1NDYyNTgxNDA4MCJdLFsiMTk1OTg1NDEzNTA4MDQ0Nzg1NDkxNDEyMDc4MzUwMjg2NzExMTEwNjM5MTU2MzU1ODA2Nzk2OTQ5MDc2MzU5MTQyNzk5Mjg2Nzc4MTIiLCIxNTI2NDU1MzA0NTUxNzA2NTY2OTE3MTU4NDk0Mzk2NDMyMjExNzM5NzY0NTE0NzAwNjkwOTE2NzQyNzgwOTgzNzkyOTQ1ODAxMjkxMyJdLFsiMSIsIjAiXV0sInBpX2MiOlsiMTY0NDMzMDkyNzk4MjU1MDg4OTMwODYyNTEyOTAwMDM5MzY5MzUwNzczNDg3NTQwOTc0NzA4MTg1MjM1NTgwODI1MDIzNjQ4MjIwNDkiLCIyOTg0MTgwMjI3NzY2MDQ4MTAwNTEwMTIwNDA3MTUwNzUyMDUyMzM0NTcxODc2NjgxMzA0OTk5NTk1NTQ0MTM4MTU1NjExOTYzMjczIiwiMSJdLCJwcm90b2NvbCI6IiJ9fV19fQ.w8cIb4XyguxRU73Tp3VB3sZh3P00y52tnpTiuTkZQkbYKiOhecpMSpJZ16u4qE8oQIsfNwY34SYgSZ88dyQbcA`
+	const token = `eyJhbGciOiJFUzI1NksiLCJraWQiOiJkaWQ6ZXhhbXBsZToxMjMjSlV2cGxsTUVZVVoyam9PNTlVTnVpX1hZRHF4VnFpRkxMQUo4a2xXdVBCdyIsInR5cCI6ImFwcGxpY2F0aW9uL2lkZW4zY29tbS1zaWduZWQtanNvbiJ9.eyJ0eXBlIjoiaHR0cHM6Ly9pZGVuMy1jb21tdW5pY2F0aW9uLmlvL2F1dGhvcml6YXRpb24vMS4wL3Jlc3BvbnNlIiwiZnJvbSI6ImRpZDpleGFtcGxlOjEyMyIsImJvZHkiOnsic2NvcGUiOlt7InR5cGUiOiJ6ZXJva25vd2xlZGdlIiwiY2lyY3VpdF9pZCI6ImF1dGgiLCJwdWJfc2lnbmFscyI6WyIxIiwiMTgzMTE1NjA1MjUzODMzMTk3MTkzMTEzOTQ5NTcwNjQ4MjAwOTEzNTQ5NzYzMTA1OTk4MTg3OTcxNTcxODk1Njg2MjE0NjY5NTA4MTEiLCIzMjM0MTY5MjUyNjQ2NjYyMTc2MTcyODg1Njk3NDI1NjQ3MDM2MzI4NTA4MTYwMzU3NjEwODQwMDI3MjAwOTAzNzczNTMyOTc5MjAiXSwicHJvb2ZfZGF0YSI6eyJwaV9hIjpbIjExMTMwODQzMTUwNTQwNzg5Mjk5NDU4OTkwNTg2MDIwMDAwNzE5MjgwMjQ2MTUzNzk3ODgyODQzMjE0MjkwNTQxOTgwNTIyMzc1MDcyIiwiMTMwMDg0MTkxMjk0Mzc4MTcyMzAyMjAzMjM1NTgzNjg5MzgzMTEzMjkyMDc4Mzc4ODQ1NTUzMTgzODI1NDQ2NTc4NDYwNTc2MjcxMyIsIjEiXSwicGlfYiI6W1siMjA2MTU3Njg1MzY5ODg0MzgzMzY1Mzc3Nzc5MDkwNDIzNTIwNTYzOTI4NjIyNTE3ODU3MjI3OTY2Mzc1OTAyMTIxNjA1NjEzNTE2NTYiLCIxMDM3MTE0NDgwNjEwNzc3ODg5MDUzODg1NzcwMDg1NTEwODY2NzYyMjA0MjIxNTA5Njk3MTc0NzIwMzEwNTk5NzQ1NDYyNTgxNDA4MCJdLFsiMTk1OTg1NDEzNTA4MDQ0Nzg1NDkxNDEyMDc4MzUwMjg2NzExMTEwNjM5MTU2MzU1ODA2Nzk2OTQ5MDc2MzU5MTQyNzk5Mjg2Nzc4MTIiLCIxNTI2NDU1MzA0NTUxNzA2NTY2OTE3MTU4NDk0Mzk2NDMyMjExNzM5NzY0NTE0NzAwNjkwOTE2NzQyNzgwOTgzNzkyOTQ1ODAxMjkxMyJdLFsiMSIsIjAiXV0sInBpX2MiOlsiMTY0NDMzMDkyNzk4MjU1MDg4OTMwODYyNTEyOTAwMDM5MzY5MzUwNzczNDg3NTQwOTc0NzA4MTg1MjM1NTgwODI1MDIzNjQ4MjIwNDkiLCIyOTg0MTgwMjI3NzY2MDQ4MTAwNTEwMTIwNDA3MTUwNzUyMDUyMzM0NTcxODc2NjgxMzA0OTk5NTk1NTQ0MTM4MTU1NjExOTYzMjczIiwiMSJdLCJwcm90b2NvbCI6IiJ9fV19fQ._p8wS2JZELczn33_uB6EfmXzZ3RaizJVZIEclTT_UWS-xtPR6jpcthmRZGU1yrBQCNsf2ScWqvzzAV3DOJuKsg`
 	p := JWSPacker{
 		didResolverHandler: DIDResolverHandlerFunc(func(did string) (*verifiable.DIDDocument, error) {
 			didDoc := &verifiable.DIDDocument{}
@@ -108,34 +111,34 @@ func TestJWS(t *testing.T) {
 
 func TestJWSBlockChainAccountId(t *testing.T) {
 	// token from js impelementation
-	const token = `eyJhbGciOiJFUzI1NkstUiIsImtpZCI6ImRpZDpwa2g6cG9seToweDcxNDFFNGQyMEY3NjQ0REM4YzBBZENBOGE1MjBFQzgzQzZjQUJENjUjUmVjb3ZlcnkyMDIwIiwidHlwIjoiYXBwbGljYXRpb24vaWRlbjNjb21tLXNpZ25lZC1qc29uIn0.eyJpZCI6IjA3ZWRhYzM2LWFlZmYtNGVhMy04ZWY2LWI4Nzk4ODk3NzVhMiIsInR5cCI6ImFwcGxpY2F0aW9uL2lkZW4zY29tbS1zaWduZWQtanNvbiIsInR5cGUiOiJodHRwczovL2lkZW4zLWNvbW11bmljYXRpb24uaW8vYXV0aG9yaXphdGlvbi8xLjAvcmVzcG9uc2UiLCJ0aGlkIjoiZmI3YWQ1ZDItNWI1MC00NWRhLThiODAtNzMxNzFlMjE3Zjc0IiwiYm9keSI6eyJzY29wZSI6W119LCJmcm9tIjoiZGlkOnBraDpwb2x5OjB4NzE0MUU0ZDIwRjc2NDREQzhjMEFkQ0E4YTUyMEVDODNDNmNBQkQ2NSNSZWNvdmVyeTIwMjAiLCJ0byI6ImRpZDpwb2x5Z29uaWQ6cG9seWdvbjptdW1iYWk6MnFKNjg5a3BvSnhjU3pCNXNBRkp0UHNTQlNySEY1ZHE3MjJCSE1xVVJMIn0.uK2bpgdZJV_doN-O49335oi3mzVFY_sji_Ze7-y7soHa_f34HjXhdQF0NbQiJ50Ih2m9MFSkTk8rs2ruXnZ-dgA`
+	const token = `eyJhbGciOiJFUzI1NkstUiIsImtpZCI6ImRpZDpwa2g6cG9seToweEIwNjEyNjg2RThENDlDYTQ1MzkyODkzYTk3N0RlNTRiRkEyOTM1QzcjUmVjb3ZlcnkyMDIwIiwidHlwIjoiYXBwbGljYXRpb24vaWRlbjNjb21tLXNpZ25lZC1qc29uIn0.eyJpZCI6IjM5MWQyYjlhLTk5MTktNGYzMi04OTJlLTRkYTNlZDg3N2ZkYSIsInR5cCI6ImFwcGxpY2F0aW9uL2lkZW4zY29tbS1zaWduZWQtanNvbiIsInR5cGUiOiJodHRwczovL2lkZW4zLWNvbW11bmljYXRpb24uaW8vYXV0aG9yaXphdGlvbi8xLjAvcmVzcG9uc2UiLCJ0aGlkIjoiZmI3YWQ1ZDItNWI1MC00NWRhLThiODAtNzMxNzFlMjE3Zjc0IiwiYm9keSI6eyJzY29wZSI6W119LCJmcm9tIjoiZGlkOnBraDpwb2x5OjB4QjA2MTI2ODZFOEQ0OUNhNDUzOTI4OTNhOTc3RGU1NGJGQTI5MzVDNyIsInRvIjoiZGlkOnBvbHlnb25pZDpwb2x5Z29uOm11bWJhaToycUo2ODlrcG9KeGNTekI1c0FGSnRQc1NCU3JIRjVkcTcyMkJITXFVUkwifQ.X9YSNYYrt21Duft6R0hY6PKJodHdCpY_8XxydCLHCRBTXhsUWkF4dkPv8Mcvg-XsAD7dBpwY8aAPqCL9qq_JhwA`
 	p := JWSPacker{
 		didResolverHandler: DIDResolverHandlerFunc(func(did string) (*verifiable.DIDDocument, error) {
 			didDoc := &verifiable.DIDDocument{}
 			err := json.Unmarshal([]byte(`{
-				"@context": [
-				  "https://www.w3.org/ns/did/v1",
-				  {
-					"EcdsaSecp256k1RecoveryMethod2020": "https://identity.foundation/EcdsaSecp256k1RecoverySignature2020#EcdsaSecp256k1RecoveryMethod2020",
-					"blockchainAccountId": "https://w3id.org/security#blockchainAccountId"
-				  }
-				],
-				"id": "did:pkh:poly:0x7141E4d20F7644DC8c0AdCA8a520EC83C6cABD65",
-				"verificationMethod": [
-				  {
-					"id": "did:pkh:poly:0x7141E4d20F7644DC8c0AdCA8a520EC83C6cABD65#Recovery2020",
-					"type": "EcdsaSecp256k1RecoveryMethod2020",
-					"controller": "did:pkh:poly:0x7141E4d20F7644DC8c0AdCA8a520EC83C6cABD65",
-					"blockchainAccountId": "eip155:137:0x7141E4d20F7644DC8c0AdCA8a520EC83C6cABD65"
-				  }
-				],
-				"authentication": [
-				  "did:pkh:poly:0x7141E4d20F7644DC8c0AdCA8a520EC83C6cABD65#Recovery2020"
-				],
-				"assertionMethod": [
-				  "did:pkh:poly:0x7141E4d20F7644DC8c0AdCA8a520EC83C6cABD65#Recovery2020"
-				]
-			  }`), didDoc)
+  "@context": [
+    "https://www.w3.org/ns/did/v1",
+    {
+      "EcdsaSecp256k1RecoveryMethod2020": "https://identity.foundation/EcdsaSecp256k1RecoverySignature2020#EcdsaSecp256k1RecoveryMethod2020",
+      "blockchainAccountId": "https://w3id.org/security#blockchainAccountId"
+    }
+  ],
+  "id": "did:pkh:poly:0xB0612686E8D49Ca45392893a977De54bFA2935C7",
+  "verificationMethod": [
+    {
+      "id": "did:pkh:poly:0xB0612686E8D49Ca45392893a977De54bFA2935C7#Recovery2020",
+      "type": "EcdsaSecp256k1RecoveryMethod2020",
+      "controller": "did:pkh:poly:0xB0612686E8D49Ca45392893a977De54bFA2935C7",
+      "blockchainAccountId": "eip155:137:0xB0612686E8D49Ca45392893a977De54bFA2935C7"
+    }
+  ],
+  "authentication": [
+    "did:pkh:poly:0xB0612686E8D49Ca45392893a977De54bFA2935C7#Recovery2020"
+  ],
+  "assertionMethod": [
+    "did:pkh:poly:0xB0612686E8D49Ca45392893a977De54bFA2935C7#Recovery2020"
+  ]
+}`), didDoc)
 			require.NoError(t, err)
 			return didDoc, nil
 		}),
@@ -157,8 +160,7 @@ func TestJWS_InvalidCase(t *testing.T) {
 	}
 
 	_, err := p.Unpack([]byte(token))
-	require.ErrorContains(t, err,
-		"could not verify message using any of the signatures or keys")
+	require.ErrorIs(t, err, ErrorVerificationMethodNotFound)
 }
 
 func TestLookForKid(t *testing.T) {
@@ -186,25 +188,7 @@ func TestLookForKid(t *testing.T) {
 			},
 		},
 		{
-			name:           "Try to find vm by kid in jwk",
-			didDocFileName: "diddocument_with_jws_kid.json",
-			kid:            "umQfTkR8vvZ9JPhl",
-			expectedKey: verifiable.CommonVerificationMethod{
-				ID:         "#someKeyId",
-				Controller: "did:test:EiClkZMDxPKqC9c-umQfTkR8vvZ9JPhl_xLDI9Nfk38w5w",
-				Type:       "EcdsaSecp256k1VerificationKey2019",
-				PublicKeyJwk: map[string]interface{}{
-					"testID": "2",
-					"kty":    "EC",
-					"crv":    "secp256k1",
-					"kid":    "umQfTkR8vvZ9JPhl",
-					"x":      "WfY7Px6AgH6x-_dgAoRbg8weYRJA36ON-gQiFnETrqw",
-					"y":      "IzFx3BUGztK0cyDStiunXbrZYYTtKbOUzx16SUK0sAY",
-				},
-			},
-		},
-		{
-			name:           "Try to find vm by did from list",
+			name:           "Vm in auth section (list of vms)",
 			didDocFileName: "diddocument_with_list_of_did.json",
 			kid:            "#vm-1",
 			expectedKey: verifiable.CommonVerificationMethod{
@@ -221,15 +205,15 @@ func TestLookForKid(t *testing.T) {
 			},
 		},
 		{
-			name:           "More priority vm should be from authentication section",
+			name:           "Vm in auth section  (list of vms)",
 			didDocFileName: "diddocument_with_list_of_did.json",
-			kid:            "", // empty kid
+			kid:            "#vm-2",
 			expectedKey: verifiable.CommonVerificationMethod{
-				ID:         "#vm-1",
-				Controller: "did:test:1",
+				ID:         "#vm-2",
+				Controller: "did:test:2",
 				Type:       "EcdsaSecp256k1VerificationKey2019",
 				PublicKeyJwk: map[string]interface{}{
-					"testID": "5",
+					"testID": "6",
 					"kty":    "EC",
 					"crv":    "secp256k1",
 					"x":      "WfY7Px6AgH6x-_dgAoRbg8weYRJA36ON-gQiFnETrqw",
@@ -238,7 +222,7 @@ func TestLookForKid(t *testing.T) {
 			},
 		},
 		{
-			name:           "Vm in auth section",
+			name:           "Vm in auth section (full)",
 			didDocFileName: "diddocument_with_wm_on_authentication_section.json",
 			kid:            "#vm-2",
 			expectedKey: verifiable.CommonVerificationMethod{
@@ -260,9 +244,12 @@ func TestLookForKid(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			didDoc, err := loadDIDDoc(tt.didDocFileName)
 			require.NoError(t, err)
-			key, err := lookupForKid(didDoc, tt.kid)
+			vms, err := resolveVerificationMethods(didDoc)
 			require.NoError(t, err)
-			require.Equal(t, tt.expectedKey, key)
+
+			vm, err := findVerificationMethodByID(vms, tt.kid)
+			require.NoError(t, err)
+			require.Equal(t, tt.expectedKey, vm)
 		})
 	}
 }

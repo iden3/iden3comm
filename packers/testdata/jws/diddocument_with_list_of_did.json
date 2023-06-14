@@ -43,7 +43,6 @@
         }
     ],
     "authentication": [
-        "#vm-1",
-        "#vm-2"
+        "#vm-1"
     ]
 }
