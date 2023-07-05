@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/iden3/go-schema-processor/v2/verifiable"
@@ -46,6 +47,7 @@ type notification struct {
 	Message  json.RawMessage         `json:"message"`
 }
 
+// Notify sends push notification to iden3 push gateway. If httpClient is nil, http.DefaultClient is used.
 func Notify(
 	ctx context.Context,
 	msg json.RawMessage,
@@ -69,15 +71,20 @@ func Notify(
 		return nil, errors.WithStack(err)
 	}
 
-	resp, err := httpClient.Post(
-		pushService.ServiceEndpoint,
-		"application/json",
-		bytes.NewBuffer(reqBody),
-	)
+	req, err := http.NewRequestWithContext(
+		ctx, http.MethodPost, pushService.ServiceEndpoint, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
-	defer resp.Body.Close()
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	defer func() {
+		if err = resp.Body.Close(); err != nil {
+			log.Println(err)
+		}
+	}()
 
 	var result []DeviceNotificationResult
 	err = json.NewDecoder(resp.Body).Decode(&result)
