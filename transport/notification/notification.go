@@ -51,8 +51,13 @@ type notification struct {
 func Notify(
 	ctx context.Context,
 	msg json.RawMessage,
-	pushService verifiable.PushService,
+	didDoc verifiable.DIDDocument,
 	httpClient *http.Client) (*UserNotificationResult, error) {
+
+	pushService, err := findNotificationService(didDoc)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
 
 	if httpClient == nil {
 		httpClient = http.DefaultClient
@@ -92,4 +97,22 @@ func Notify(
 		return nil, errors.WithStack(err)
 	}
 	return &UserNotificationResult{Devices: result}, nil
+}
+
+func findNotificationService(didDoc verifiable.DIDDocument) (verifiable.PushService, error) {
+	var service verifiable.PushService
+	for _, s := range didDoc.Service {
+		serviceBytes, err := json.Marshal(s)
+		if err != nil {
+			return verifiable.PushService{}, err
+		}
+		err = json.Unmarshal(serviceBytes, &service)
+		if err != nil {
+			return verifiable.PushService{}, err
+		}
+		if service.Type == verifiable.PushNotificationServiceType {
+			return service, nil
+		}
+	}
+	return verifiable.PushService{}, ErrNoPushService
 }

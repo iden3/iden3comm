@@ -2,6 +2,7 @@ package notification
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -43,18 +44,24 @@ func TestPushClient_Notify(t *testing.T) {
 			ServiceEndpoint: mockPushServer.URL,
 		},
 		Metadata: verifiable.PushMetadata{
-			Devices: []verifiable.EncryptedDeviceMetadata{
-				{
-					Ciphertext: "sIyhw8MsRzFTMXnPvvPnjpj38vVHK9z7w/DvHzX+i/68hSjWfSDjXUA49KopWexyoVsAhenS+AS7+JkatJ3+OTlNxUD+lFrAIJUE51qBiM7l7mmkAuryybUQmOgWJCbuUU2nsWFKzIvk2ZTxcMh5EoUxYV2/0HaTmYYTDkzCKQr/oVePlHbiKwG6XjjMCuNaooSAO7UlLduEZY9CjCWBahiJ7LPHq5+SMCSpA9DdxlYe5IDY7ZT0Yg8fmEAq5+ZGvPVDzk1SdXvZNtG/2yygb3ILrSHXN81ztJRPdsEjzctqWwIhP1zEncSMnNEY4vtxEc1red4PuNT6QX0EoP/aX4LdSGIgfM3KB6yjqKBOqgIGoTFih0h/YzcC42lv4oJw0t5obX+32FM8pzQBUoXMvV0F9WpNgDcN04F3/Su9GGRLFNLXApCtj2Mh4H0qnkjMzRMO42RTd3258HYH7U8xK48hpO0Wolt+rn3jrk/JXrVQqO/9EnhCu/PJL1+AoeVtTYL0zp57OWnIAXbW98MGg0pm0MpYwH51hmHx0YLH+4Fkqj30ydcZQhV3xtAVgvKfxQOwwNz2WhIefm+fwYLVAQB4SjUMOrRQYAos7PWgoc21I0QFu52dIA4IvYYBws2Vjb1LvssdFnrd4kUYbC7THdlWONfunbp9xgofzXTrj2g=",
-					Alg:        "RS512",
-				}},
+			Devices: []verifiable.EncryptedDeviceMetadata{verifiable.EncryptedDeviceMetadata{
+				Ciphertext: "sIyhw8MsRzFTMXnPvvPnjpj38vVHK9z7w/DvHzX+i/68hSjWfSDjXUA49KopWexyoVsAhenS+AS7+JkatJ3+OTlNxUD+lFrAIJUE51qBiM7l7mmkAuryybUQmOgWJCbuUU2nsWFKzIvk2ZTxcMh5EoUxYV2/0HaTmYYTDkzCKQr/oVePlHbiKwG6XjjMCuNaooSAO7UlLduEZY9CjCWBahiJ7LPHq5+SMCSpA9DdxlYe5IDY7ZT0Yg8fmEAq5+ZGvPVDzk1SdXvZNtG/2yygb3ILrSHXN81ztJRPdsEjzctqWwIhP1zEncSMnNEY4vtxEc1red4PuNT6QX0EoP/aX4LdSGIgfM3KB6yjqKBOqgIGoTFih0h/YzcC42lv4oJw0t5obX+32FM8pzQBUoXMvV0F9WpNgDcN04F3/Su9GGRLFNLXApCtj2Mh4H0qnkjMzRMO42RTd3258HYH7U8xK48hpO0Wolt+rn3jrk/JXrVQqO/9EnhCu/PJL1+AoeVtTYL0zp57OWnIAXbW98MGg0pm0MpYwH51hmHx0YLH+4Fkqj30ydcZQhV3xtAVgvKfxQOwwNz2WhIefm+fwYLVAQB4SjUMOrRQYAos7PWgoc21I0QFu52dIA4IvYYBws2Vjb1LvssdFnrd4kUYbC7THdlWONfunbp9xgofzXTrj2g=",
+				Alg:        "RS512",
+			}},
 		},
 	}
 	msg := []byte(`"here can be a json protocol message from issuer"`)
 
 	t.Run("success", func(t *testing.T) {
-		resp, err := Notify(
-			context.Background(), msg, pushService, nil)
+		doc := verifiable.DIDDocument{
+			Context: []string{`https://www.w3.org/ns/did/v1`},
+			ID:      id,
+			Service: []interface{}{pushService},
+		}
+		dd, _ := json.Marshal(doc)
+		fmt.Println(string(dd))
+
+		resp, err := Notify(context.Background(), msg, doc, nil)
 		require.NoError(t, err, ErrNoDeviceInfoInPushService)
 		require.Len(t, resp.Devices, 1)
 		require.Equal(t, DeviceNotificationStatusSuccess, resp.Devices[0].Status)
@@ -64,9 +71,25 @@ func TestPushClient_Notify(t *testing.T) {
 	t.Run("no device info in push service", func(t *testing.T) {
 
 		pushService.Metadata = verifiable.PushMetadata{}
-		_, err := Notify(
-			context.Background(), msg, pushService, nil)
+		doc := verifiable.DIDDocument{
+			Context: []string{`https://www.w3.org/ns/did/v1`},
+			ID:      id,
+			Service: []interface{}{pushService},
+		}
+		_, err := Notify(context.Background(), msg, doc, nil)
 		require.ErrorIs(t, err, ErrNoDeviceInfoInPushService)
+	})
+
+	t.Run("no push service", func(t *testing.T) {
+
+		pushService.Metadata = verifiable.PushMetadata{}
+		doc := verifiable.DIDDocument{
+			Context: []string{`https://www.w3.org/ns/did/v1`},
+			ID:      id,
+			Service: []interface{}{},
+		}
+		_, err := Notify(context.Background(), msg, doc, nil)
+		require.ErrorIs(t, err, ErrNoPushService)
 	})
 
 	t.Run("rejected device", func(t *testing.T) {
@@ -76,8 +99,12 @@ func TestPushClient_Notify(t *testing.T) {
 			Alg:        "RS512",
 		}}
 
-		resp, err := Notify(
-			context.Background(), msg, pushService, nil)
+		doc := verifiable.DIDDocument{
+			Context: []string{`https://www.w3.org/ns/did/v1`},
+			ID:      id,
+			Service: []interface{}{pushService},
+		}
+		resp, err := Notify(context.Background(), msg, doc, nil)
 		require.NoError(t, err, ErrNoDeviceInfoInPushService)
 		require.Len(t, resp.Devices, 1)
 		require.Equal(t, DeviceNotificationStatusRejected, resp.Devices[0].Status)
