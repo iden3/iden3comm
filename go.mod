@@ -4,17 +4,17 @@ go 1.18
 
 require (
 	github.com/dustinxie/ecc v0.0.0-20210511000915-959544187564
-	github.com/gofrs/uuid v3.3.0+incompatible
-	github.com/iden3/go-circuits/v2 v2.0.0-20230519130224-2f1dac1ae3f8
-	github.com/iden3/go-iden3-core/v2 v2.0.0-20230519124718-42b31ff46f37
+	github.com/gofrs/uuid/v5 v5.0.0
+	github.com/iden3/go-circuits/v2 v2.0.0
+	github.com/iden3/go-iden3-core/v2 v2.0.0
 	github.com/iden3/go-iden3-crypto v0.0.15
 	github.com/iden3/go-jwz/v2 v2.0.0-20230519132540-75b6744028b1
 	github.com/iden3/go-rapidsnark/types v0.0.3
-	github.com/iden3/go-schema-processor/v2 v2.0.0-20230615161820-08a6be6de17c
-	github.com/lestrrat-go/jwx/v2 v2.0.9-0.20230429214153-5090ec1bd2cd
+	github.com/iden3/go-schema-processor/v2 v2.0.0-20230813193224-8f5ce5d00479
+	github.com/lestrrat-go/jwx/v2 v2.0.12
 	github.com/mr-tron/base58 v1.2.0
 	github.com/pkg/errors v0.9.1
-	github.com/stretchr/testify v1.8.2
+	github.com/stretchr/testify v1.8.4
 	gopkg.in/go-jose/go-jose.v2 v2.6.1
 )
 
@@ -56,10 +56,11 @@ require (
 	github.com/piprate/json-gold v0.5.1-0.20230111113000-6ddbe6e6f19f // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
+	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/whyrusleeping/tar-utils v0.0.0-20201201191210-20a61371de5b // indirect
-	golang.org/x/crypto v0.8.0 // indirect
-	golang.org/x/sys v0.7.0 // indirect
+	golang.org/x/crypto v0.12.0 // indirect
+	golang.org/x/sys v0.11.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	lukechampine.com/blake3 v1.1.7 // indirect

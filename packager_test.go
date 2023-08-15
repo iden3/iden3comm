@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/gofrs/uuid"
+	"github.com/gofrs/uuid/v5"
 	"github.com/iden3/go-iden3-core/v2/w3c"
 	"github.com/iden3/go-jwz/v2"
 	"github.com/iden3/iden3comm/v2"
