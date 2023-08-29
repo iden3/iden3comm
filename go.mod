@@ -8,7 +8,7 @@ require (
 	github.com/iden3/go-circuits/v2 v2.0.0
 	github.com/iden3/go-iden3-core/v2 v2.0.0
 	github.com/iden3/go-iden3-crypto v0.0.15
-	github.com/iden3/go-jwz/v2 v2.0.0-20230519132540-75b6744028b1
+	github.com/iden3/go-jwz/v2 v2.0.0-20230829091754-8aa869b73aef
 	github.com/iden3/go-rapidsnark/types v0.0.3
 	github.com/iden3/go-schema-processor/v2 v2.0.0
 	github.com/lestrrat-go/jwx/v2 v2.0.12
@@ -29,8 +29,8 @@ require (
 	github.com/iden3/go-merkletree-sql/v2 v2.0.4 // indirect
 	github.com/iden3/go-rapidsnark/prover v0.0.10 // indirect
 	github.com/iden3/go-rapidsnark/verifier v0.0.5 // indirect
-	github.com/iden3/go-rapidsnark/witness v0.0.6 // indirect
-	github.com/iden3/wasmer-go v0.0.1 // indirect
+	github.com/iden3/go-rapidsnark/witness/v2 v2.0.0 // indirect
+	github.com/iden3/go-rapidsnark/witness/wazero v0.0.0-20230524142950-0986cf057d4e // indirect
 	github.com/ipfs/boxo v0.8.0 // indirect
 	github.com/ipfs/go-cid v0.4.1 // indirect
 	github.com/ipfs/go-ipfs-api v0.6.0 // indirect
@@ -58,6 +58,7 @@ require (
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
+	github.com/tetratelabs/wazero v1.1.0 // indirect
 	github.com/whyrusleeping/tar-utils v0.0.0-20201201191210-20a61371de5b // indirect
 	golang.org/x/crypto v0.12.0 // indirect
 	golang.org/x/sys v0.11.0 // indirect
