@@ -1,7 +1,7 @@
 package protocol
 
 import (
-	"github.com/iden3/iden3comm"
+	"github.com/iden3/iden3comm/v2"
 )
 
 const (

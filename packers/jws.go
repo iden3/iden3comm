@@ -9,10 +9,10 @@ import (
 
 	"github.com/dustinxie/ecc"
 	"github.com/iden3/go-iden3-crypto/keccak256"
-	"github.com/iden3/go-schema-processor/verifiable"
-	"github.com/iden3/iden3comm"
-	"github.com/iden3/iden3comm/packers/providers/bjj"
-	"github.com/iden3/iden3comm/packers/providers/es256k"
+	"github.com/iden3/go-schema-processor/v2/verifiable"
+	"github.com/iden3/iden3comm/v2"
+	"github.com/iden3/iden3comm/v2/packers/providers/bjj"
+	"github.com/iden3/iden3comm/v2/packers/providers/es256k"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jws"
@@ -387,7 +387,9 @@ func findVerificationMethodByID(
 	return verifiable.CommonVerificationMethod{}, ErrorVerificationMethodNotFound
 }
 
-func extractVerificationKey(alg jwa.SignatureAlgorithm, vm verifiable.CommonVerificationMethod) (jws.VerifyOption, error) {
+func extractVerificationKey(alg jwa.SignatureAlgorithm,
+	vm verifiable.CommonVerificationMethod) (jws.VerifyOption, error) {
+
 	switch {
 	case len(vm.PublicKeyJwk) > 0:
 		return processJWK(string(alg), vm)

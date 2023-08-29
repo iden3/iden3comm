@@ -6,10 +6,11 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/iden3/go-circuits"
-	core "github.com/iden3/go-iden3-core"
-	"github.com/iden3/go-jwz"
-	"github.com/iden3/iden3comm"
+	"github.com/iden3/go-circuits/v2"
+	core "github.com/iden3/go-iden3-core/v2"
+	"github.com/iden3/go-iden3-core/v2/w3c"
+	"github.com/iden3/go-jwz/v2"
+	"github.com/iden3/iden3comm/v2"
 	"github.com/pkg/errors"
 )
 
@@ -17,10 +18,10 @@ import (
 const MediaTypeZKPMessage iden3comm.MediaType = "application/iden3-zkp-json"
 
 // DataPreparerHandlerFunc registers the handler function for inputs preparation.
-type DataPreparerHandlerFunc func(hash []byte, id *core.DID, circuitID circuits.CircuitID) ([]byte, error)
+type DataPreparerHandlerFunc func(hash []byte, id *w3c.DID, circuitID circuits.CircuitID) ([]byte, error)
 
 // Prepare function is responsible to call provided handler for inputs preparation
-func (f DataPreparerHandlerFunc) Prepare(hash []byte, id *core.DID, circuitID circuits.CircuitID) ([]byte, error) {
+func (f DataPreparerHandlerFunc) Prepare(hash []byte, id *w3c.DID, circuitID circuits.CircuitID) ([]byte, error) {
 	return f(hash, id, circuitID)
 }
 
@@ -73,7 +74,7 @@ func NewProvingParams(dataPreparer DataPreparerHandlerFunc, provingKey, wasm []b
 
 // ZKPPackerParams is params for zkp packer
 type ZKPPackerParams struct {
-	SenderID         *core.DID
+	SenderID         *w3c.DID
 	ProvingMethodAlg jwz.ProvingMethodAlg
 	iden3comm.PackerParams
 }
@@ -122,7 +123,8 @@ func (p *ZKPPacker) Pack(payload []byte, params iden3comm.PackerParams) ([]byte,
 		return nil, err
 	}
 
-	tokenStr, err := token.Prove(p.Prover[zkpParams.ProvingMethodAlg].ProvingKey, p.Prover[zkpParams.ProvingMethodAlg].Wasm)
+	tokenStr, err := token.Prove(p.Prover[zkpParams.ProvingMethodAlg].ProvingKey,
+		p.Prover[zkpParams.ProvingMethodAlg].Wasm)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +142,8 @@ func (p *ZKPPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 
 	verificationKey, ok := p.Verification[jwz.ProvingMethodAlg{Alg: token.Alg, CircuitID: token.CircuitID}]
 	if !ok {
-		return nil, fmt.Errorf("message was packed with unsupported circuit `%s` and alg `%s`", token.CircuitID, token.Alg)
+		return nil, fmt.Errorf("message was packed with unsupported circuit `%s` and alg `%s`", token.CircuitID,
+			token.Alg)
 	}
 
 	isValid, err := token.Verify(verificationKey.Key)
@@ -201,11 +204,15 @@ func verifyAuthV2Sender(from string, token *jwz.Token) error {
 	}
 
 	if from != did.String() {
-		return errors.Errorf("sender of message is not used for jwz token creation, expected: '%s' got: '%s", from, did.String())
+		return errors.Errorf(
+			"sender of message is not used for jwz token creation, expected: '%s' got: '%s", from,
+			did.String())
 	}
 
 	if challenge.Cmp(authPubSignals.Challenge) != 0 {
-		return errors.Errorf("the challenge used for proof creation %s is not equal to the message hash %s", challenge.String(), authPubSignals.Challenge.String())
+		return errors.Errorf(
+			"the challenge used for proof creation %s is not equal to the message hash %s",
+			challenge.String(), authPubSignals.Challenge.String())
 	}
 
 	return nil

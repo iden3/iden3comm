@@ -8,10 +8,10 @@ import (
 	"encoding/json"
 	"math/big"
 
-	"github.com/iden3/go-circuits"
-	core "github.com/iden3/go-iden3-core"
+	"github.com/iden3/go-circuits/v2"
+	"github.com/iden3/go-iden3-core/v2/w3c"
 	"github.com/iden3/go-iden3-crypto/babyjub"
-	"github.com/iden3/go-jwz"
+	"github.com/iden3/go-jwz/v2"
 	"github.com/iden3/go-rapidsnark/types"
 	"gopkg.in/go-jose/go-jose.v2"
 )
@@ -55,9 +55,10 @@ func (m *ProvingMethodGroth16AuthV2) Prove(_, _, _ []byte) (*types.ZKProof, erro
 }
 
 // PrepareAuthInputs returns mocked inputs for auth circuit
-func PrepareAuthInputs(hash []byte, _ *core.DID, _ circuits.CircuitID) ([]byte, error) {
+func PrepareAuthInputs(hash []byte, _ *w3c.DID, _ circuits.CircuitID) ([]byte, error) {
 	challenge := new(big.Int).SetBytes(hash)
 
+	// nolint:gosec // intentionally hardcoded key
 	userMockedPK := "28156abe7fe2fd433dc9df969286b96666489bac508612d0e16593e944c4f69f"
 	mockedInputs := []byte(`{"genesisID":"26240537881285303866959914873501215904100246541568629963310309506817331714","profileNonce":"0","authClaim":["80551937543569765027552589160822318028","0","17640206035128972995519606214765283372613874593503528180869261482403155458945","20634138280259599560273310290025659992320584624461316485434108770067472477956","15930428023331155902","0","0","0"],"authClaimIncMtp":["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],"authClaimNonRevMtp":["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],"authClaimNonRevMtpAuxHi":"0","authClaimNonRevMtpAuxHv":"0","authClaimNonRevMtpNoAux":"1","challenge":"14269789266808968059169672911201921167953561300079987951824960759204067719875","challengeSignatureR8x":"20992633743481332091913653097095396906863961240425405184828226842777462122604","challengeSignatureR8y":"6273393852003225177156448231418255112053204171233395051223716406391798124538","challengeSignatureS":"2526580092966761964661422490382760858931103025833974942666750372883822638953","claimsTreeRoot":"9860409408344985873118363460916733946840214387455464863344022463808838582364","revTreeRoot":"0","rootsTreeRoot":"0","state":"1648710229725601204870171311149827592640182384459240511403224642152766848235","gistRoot":"6935795554508121074939204655265782244399347577736991410323391948936398259093","gistMtp":["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],"gistMtpAuxHi":"28049899845899252156982726682342581898046855955053612508111669900571644418","gistMtpAuxHv":"20177832565449474772630743317224985532862797657496372535616634430055981993180","gistMtpNoAux":"0"}`)
 	var k babyjub.PrivateKey

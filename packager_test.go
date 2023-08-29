@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/gofrs/uuid"
-	core "github.com/iden3/go-iden3-core"
-	"github.com/iden3/go-jwz"
-	"github.com/iden3/iden3comm"
-	"github.com/iden3/iden3comm/mock"
-	"github.com/iden3/iden3comm/packers"
-	"github.com/iden3/iden3comm/protocol"
+	"github.com/gofrs/uuid/v5"
+	"github.com/iden3/go-iden3-core/v2/w3c"
+	"github.com/iden3/go-jwz/v2"
+	"github.com/iden3/iden3comm/v2"
+	"github.com/iden3/iden3comm/v2/mock"
+	"github.com/iden3/iden3comm/v2/packers"
+	"github.com/iden3/iden3comm/v2/protocol"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -22,12 +22,12 @@ func TestPackagerPlainPacker(t *testing.T) {
 
 	identifier := "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29"
 
-	senderDID, err := core.ParseDID(identifier)
+	senderDID, err := w3c.ParseDID(identifier)
 	assert.NoError(t, err)
 
 	targetIdentifier := "did:iden3:polygon:mumbai:wzWeGdtjvKtUP1oTxQP5t5iZGDX3HNfEU5xR8MZAt"
 
-	targetID, err := core.ParseDID(targetIdentifier)
+	targetID, err := w3c.ParseDID(targetIdentifier)
 	assert.NoError(t, err)
 
 	marshalledMsg, err := createFetchCredentialMessage(packers.MediaTypePlainMessage, senderDID, targetID)
@@ -58,7 +58,7 @@ var msgBytes = []byte(`{"type":"https://iden3-communication.io/authorization/1.0
 func TestPackagerZKPPacker(t *testing.T) {
 	pm := initPackageManager(t)
 
-	senderDID, err := core.ParseDID("did:polygonid:polygon:mumbai:2qK8oh6weN7H3Z8ji5YwV8Y9BF7qJfJnZ7XCdSCWo7")
+	senderDID, err := w3c.ParseDID("did:polygonid:polygon:mumbai:2qK8oh6weN7H3Z8ji5YwV8Y9BF7qJfJnZ7XCdSCWo7")
 	assert.NoError(t, err)
 
 	envelope, err := pm.Pack(packers.MediaTypeZKPMessage, msgBytes, packers.ZKPPackerParams{SenderID: senderDID,
@@ -80,12 +80,12 @@ func TestPackagerAnonryptPacker(t *testing.T) {
 
 	identifier := "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29"
 
-	senderDID, err := core.ParseDID(identifier)
+	senderDID, err := w3c.ParseDID(identifier)
 	assert.NoError(t, err)
 
 	targetIdentifier := "did:iden3:polygon:mumbai:wzWeGdtjvKtUP1oTxQP5t5iZGDX3HNfEU5xR8MZAt"
 
-	targetID, err := core.ParseDID(targetIdentifier)
+	targetID, err := w3c.ParseDID(targetIdentifier)
 	assert.NoError(t, err)
 
 	marshalledMsg, err := createFetchCredentialMessage(packers.MediaTypeEncryptedMessage, senderDID, targetID)
@@ -93,7 +93,8 @@ func TestPackagerAnonryptPacker(t *testing.T) {
 
 	key, err := mock.ResolveKeyID(mock.MockRecipientKeyID)
 	require.NoError(t, err)
-	envelope, err := pm.Pack(packers.MediaTypeEncryptedMessage, marshalledMsg, packers.AnoncryptPackerParams{RecipientKey: &key})
+	envelope, err := pm.Pack(packers.MediaTypeEncryptedMessage, marshalledMsg,
+		packers.AnoncryptPackerParams{RecipientKey: &key})
 	assert.NoError(t, err)
 
 	unpackedMsg, unpackerType, err := pm.Unpack(envelope)
@@ -114,7 +115,7 @@ func TestPackagerZKPPacker_OtherMessageTypeInBody(t *testing.T) {
 
 	identifier := "did:polygonid:polygon:mumbai:2qK8oh6weN7H3Z8ji5YwV8Y9BF7qJfJnZ7XCdSCWo7"
 
-	senderDID, err := core.ParseDID(identifier)
+	senderDID, err := w3c.ParseDID(identifier)
 	assert.NoError(t, err)
 
 	envelope, err := pm.Pack(packers.MediaTypeZKPMessage, msgBytes, packers.ZKPPackerParams{
@@ -136,7 +137,7 @@ func TestUnpackWithType(t *testing.T) {
 
 	identifier := "did:polygonid:polygon:mumbai:2qK8oh6weN7H3Z8ji5YwV8Y9BF7qJfJnZ7XCdSCWo7"
 
-	senderDID, err := core.ParseDID(identifier)
+	senderDID, err := w3c.ParseDID(identifier)
 	assert.NoError(t, err)
 	envelope, err := pm.Pack(packers.MediaTypeZKPMessage, msgBytes, packers.ZKPPackerParams{
 		SenderID:         senderDID,
@@ -149,7 +150,7 @@ func TestUnpackWithType(t *testing.T) {
 	assert.Equal(t, unpackedMsg.Typ, packers.MediaTypeZKPMessage)
 }
 
-func createFetchCredentialMessage(typ iden3comm.MediaType, from, to *core.DID) ([]byte, error) {
+func createFetchCredentialMessage(typ iden3comm.MediaType, from, to *w3c.DID) ([]byte, error) {
 
 	var msg protocol.CredentialFetchRequestMessage
 	msg.From = from.String()
@@ -172,17 +173,20 @@ func initPackageManager(t *testing.T) *iden3comm.PackageManager {
 	pm := iden3comm.NewPackageManager()
 	err := pm.RegisterPackers(&packers.PlainMessagePacker{})
 	require.NoError(t, err)
-	mockedProvingMethod := &mock.ProvingMethodGroth16AuthV2{ProvingMethodAlg: jwz.ProvingMethodAlg{Alg: "groth16-mock", CircuitID: "authV2"}}
+	mockedProvingMethod := &mock.ProvingMethodGroth16AuthV2{ProvingMethodAlg: jwz.ProvingMethodAlg{Alg: "groth16-mock",
+		CircuitID: "authV2"}}
 
 	jwz.RegisterProvingMethod(mockedProvingMethod.ProvingMethodAlg, func() jwz.ProvingMethod {
 		return mockedProvingMethod
 	})
 
 	mockVerificationParam := make(map[jwz.ProvingMethodAlg]packers.VerificationParams)
-	mockVerificationParam[mockedProvingMethod.ProvingMethodAlg] = packers.NewVerificationParams([]byte(""), mock.VerifyState)
+	mockVerificationParam[mockedProvingMethod.ProvingMethodAlg] = packers.NewVerificationParams([]byte(""),
+		mock.VerifyState)
 
 	mockProvingParamMap := make(map[jwz.ProvingMethodAlg]packers.ProvingParams)
-	mockProvingParamMap[mockedProvingMethod.ProvingMethodAlg] = packers.NewProvingParams(mock.PrepareAuthInputs, []byte{}, []byte{})
+	mockProvingParamMap[mockedProvingMethod.ProvingMethodAlg] = packers.NewProvingParams(mock.PrepareAuthInputs,
+		[]byte{}, []byte{})
 
 	err = pm.RegisterPackers(packers.NewZKPPacker(mockProvingParamMap, mockVerificationParam))
 	require.NoError(t, err)

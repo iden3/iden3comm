@@ -13,13 +13,13 @@ jobs:
   test:
     strategy:
       matrix:
-        containers: [ 1.19, 1.18 ]
+        containers: [ 1.20.4, 1.19, 1.18 ]
     runs-on: ubuntu-latest
     container: golang:${{ matrix.containers }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
-      - uses: actions/cache@v2
+        uses: actions/checkout@v3
+      - uses: actions/cache@v3
         with:
           path: |
             ~/.cache/go-build
@@ -30,4 +30,4 @@ jobs:
       - name: Update go modules
         run: go mod tidy
       - name: Unit Tests
-        run: make test
+        run: go test -v -race -timeout=60s ./...
