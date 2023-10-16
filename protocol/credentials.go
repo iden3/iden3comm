@@ -21,6 +21,9 @@ const (
 	// CredentialIssuanceResponseMessageType is type for message with a credential issuance
 	CredentialIssuanceResponseMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/1.0/issuance-response"
 
+	// CredentialMultipleIssuanceResponseMessageType is type for message with multiple credential issuance
+	CredentialMultipleIssuanceResponseMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/1.0/multiple-issuance-response"
+
 	// CredentialStatusUpdateMessageType is type for message with a credential status update
 	CredentialStatusUpdateMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/1.0/status-update"
 
@@ -156,4 +159,22 @@ type CredentialRefreshMessageBody struct {
 type Refresh struct {
 	ID     string `json:"id"`
 	Reason string `json:"reason"`
+}
+
+// CredentialMultipleIssuanceMessage represent Iden3message for list of credential issuance
+type CredentialMultipleIssuanceMessage struct {
+	ID       string                    `json:"id"`
+	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
+	Type     iden3comm.ProtocolMessage `json:"type"`
+	ThreadID string                    `json:"thid,omitempty"`
+
+	Body MultipleIssuanceMessageBody `json:"body,omitempty"`
+
+	From string `json:"from,omitempty"`
+	To   string `json:"to,omitempty"`
+}
+
+// MultipleIssuanceMessageBody is struct the represents message when multiple credentials are issued
+type MultipleIssuanceMessageBody struct {
+	Credentials []verifiable.W3CCredential `json:"credentials"`
 }
