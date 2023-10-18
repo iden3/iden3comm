@@ -152,29 +152,11 @@ type CredentialRefreshMessage struct {
 
 // CredentialRefreshMessageBody is msg body for refresh message
 type CredentialRefreshMessageBody struct {
-	Credentials []Refresh `json:"credentials"`
+	Credentials Refresh `json:"credentials"`
 }
 
 // Refresh is struct the represents refresh request
 type Refresh struct {
 	ID     string `json:"id"`
 	Reason string `json:"reason"`
-}
-
-// CredentialMultipleIssuanceMessage represent Iden3message for list of credential issuance
-type CredentialMultipleIssuanceMessage struct {
-	ID       string                    `json:"id"`
-	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thid,omitempty"`
-
-	Body MultipleIssuanceMessageBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-}
-
-// MultipleIssuanceMessageBody is struct the represents message when multiple credentials are issued
-type MultipleIssuanceMessageBody struct {
-	Credentials []verifiable.W3CCredential `json:"credentials"`
 }
