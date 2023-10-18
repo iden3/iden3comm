@@ -152,7 +152,7 @@ type CredentialRefreshMessage struct {
 
 // CredentialRefreshMessageBody is msg body for refresh message
 type CredentialRefreshMessageBody struct {
-	Credentials Refresh `json:"credentials"`
+	Credential Refresh `json:"credentials"`
 }
 
 // Refresh is struct the represents refresh request
