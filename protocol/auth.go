@@ -60,6 +60,7 @@ type AuthorizationRequestMessageBody struct {
 type ZeroKnowledgeProofRequest struct {
 	ID        uint32                 `json:"id"` // unique request id
 	CircuitID string                 `json:"circuitId"`
+	Params    map[string]interface{} `json:"params,omitempty"`
 	Optional  *bool                  `json:"optional,omitempty"`
 	Query     map[string]interface{} `json:"query"`
 }
