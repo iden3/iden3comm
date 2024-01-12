@@ -14,9 +14,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+// AgentResolver is a struct that allows to interact with the issuer's agent to get revocation status.
 type AgentResolver struct {
 }
 
+// Resolve is a method to resolve a credential status from an agent.
 func (AgentResolver) Resolve(status verifiable.CredentialStatus, cfg verifiable.CredentialStatusConfig) (out verifiable.RevocationStatus, err error) {
 	revocationBody := protocol.RevocationStatusRequestMessageBody{
 		RevocationNonce: status.RevocationNonce,
