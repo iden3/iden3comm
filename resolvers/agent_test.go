@@ -15,14 +15,14 @@ import (
 )
 
 func TestAgentResolver(t *testing.T) {
-	credStatusJson := `{
+	credStatusJSON := `{
 		"id": "http://localhost:8001/api/v1/agent",
 		"revocationNonce": 3262660310,
 		"type": "Iden3commRevocationStatusV1.0"
 	}`
 
 	var credStatus verifiable.CredentialStatus
-	err := json.Unmarshal([]byte(credStatusJson), &credStatus)
+	err := json.Unmarshal([]byte(credStatusJSON), &credStatus)
 	require.NoError(t, err)
 
 	pm := iden3comm.NewPackageManager()
@@ -32,6 +32,7 @@ func TestAgentResolver(t *testing.T) {
 	issuerDID, err := w3c.ParseDID("did:polygonid:polygon:mumbai:2qJp131YoXVu8iLNGfL3TkQAWEr3pqimh2iaPgH3BJ")
 	require.NoError(t, err)
 	userDID, err := w3c.ParseDID("did:polygonid:polygon:mumbai:2qFDziX3k3h7To2jDJbQiXFtcozbgSNNvQpb6TgtPE")
+	require.NoError(t, err)
 
 	opts := []AgentResolverOpts{WithPackageManager(pm), WithIssuerDID(issuerDID), WithUserDID(userDID)}
 
@@ -50,9 +51,9 @@ func TestAgentResolver(t *testing.T) {
 	revocationStatus, err := agentResolver.Resolve(context.Background(), credStatus)
 	require.NoError(t, err)
 
-	expectedRevocationStatusJson := `{"issuer":{"state":"96161f3fbbdd68c72bc430dae474e27b157586b33b9fbf4a3f07d75ce275570f","rootOfRoots":"eaa48e4a7d3fe2fabbd939c7df1048c3f647a9a7c9dfadaae836ec78ba673229","claimsTreeRoot":"d9597e2fef206c9821f2425e513a68c8c793bc93c9216fb883fedaaf72abf51c","revocationTreeRoot":"0000000000000000000000000000000000000000000000000000000000000000"},"mtp":{"existence":false,"siblings":[]}}`
+	expectedRevocationStatusJSON := `{"issuer":{"state":"96161f3fbbdd68c72bc430dae474e27b157586b33b9fbf4a3f07d75ce275570f","rootOfRoots":"eaa48e4a7d3fe2fabbd939c7df1048c3f647a9a7c9dfadaae836ec78ba673229","claimsTreeRoot":"d9597e2fef206c9821f2425e513a68c8c793bc93c9216fb883fedaaf72abf51c","revocationTreeRoot":"0000000000000000000000000000000000000000000000000000000000000000"},"mtp":{"existence":false,"siblings":[]}}`
 	var expectedRevocationStatus verifiable.RevocationStatus
-	_ = json.Unmarshal([]byte(expectedRevocationStatusJson), &expectedRevocationStatus)
+	_ = json.Unmarshal([]byte(expectedRevocationStatusJSON), &expectedRevocationStatus)
 
 	assert.Equal(t, revocationStatus, expectedRevocationStatus)
 
