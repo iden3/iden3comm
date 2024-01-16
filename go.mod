@@ -10,7 +10,7 @@ require (
 	github.com/iden3/go-iden3-crypto v0.0.15
 	github.com/iden3/go-jwz/v2 v2.0.1
 	github.com/iden3/go-rapidsnark/types v0.0.3
-	github.com/iden3/go-schema-processor/v2 v2.1.3-0.20240116084732-b5c2484f9357
+	github.com/iden3/go-schema-processor/v2 v2.1.3-0.20240116162647-433544ddcc47
 	github.com/lestrrat-go/jwx/v2 v2.0.12
 	github.com/mr-tron/base58 v1.2.0
 	github.com/pkg/errors v0.9.1
@@ -35,6 +35,7 @@ require (
 	github.com/ipfs/boxo v0.12.0 // indirect
 	github.com/ipfs/go-cid v0.4.1 // indirect
 	github.com/ipfs/go-ipfs-api v0.7.0 // indirect
+	github.com/jarcoal/httpmock v1.3.1 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.1 // indirect

@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/gofrs/uuid/v5"
+	"github.com/iden3/go-iden3-core/v2/w3c"
 	"github.com/iden3/go-schema-processor/v2/verifiable"
 	"github.com/iden3/iden3comm/v2"
 	"github.com/iden3/iden3comm/v2/packers"
@@ -15,12 +16,44 @@ import (
 	"github.com/pkg/errors"
 )
 
+// AgentResolverConfig options for credential status verification
+type AgentResolverConfig struct {
+	PackageManager *iden3comm.PackageManager
+	UserDID        *w3c.DID
+	IssuerDID      *w3c.DID
+}
+
+// AgentResolverOpts returns configuration options for AgentResolverOpts
+type AgentResolverOpts func(opts *AgentResolverConfig)
+
+// WithPackageManager return new options
+func WithPackageManager(pm *iden3comm.PackageManager) AgentResolverOpts {
+	return func(opts *AgentResolverConfig) {
+		opts.PackageManager = pm
+	}
+}
+
+// WithUserDID return new options
+func WithUserDID(userDID *w3c.DID) AgentResolverOpts {
+	return func(opts *AgentResolverConfig) {
+		opts.UserDID = userDID
+	}
+}
+
+// WithIssuerDID return new options
+func WithIssuerDID(issuerDID *w3c.DID) AgentResolverOpts {
+	return func(opts *AgentResolverConfig) {
+		opts.IssuerDID = issuerDID
+	}
+}
+
 // AgentResolver is a struct that allows to interact with the issuer's agent to get revocation status.
 type AgentResolver struct {
+	config AgentResolverConfig
 }
 
 // Resolve is a method to resolve a credential status from an agent.
-func (AgentResolver) Resolve(_ context.Context, status verifiable.CredentialStatus, cfg verifiable.CredentialStatusConfig) (out verifiable.RevocationStatus, err error) {
+func (r AgentResolver) Resolve(_ context.Context, status verifiable.CredentialStatus) (out verifiable.RevocationStatus, err error) {
 	revocationBody := protocol.RevocationStatusRequestMessageBody{
 		RevocationNonce: status.RevocationNonce,
 	}
@@ -40,8 +73,8 @@ func (AgentResolver) Resolve(_ context.Context, status verifiable.CredentialStat
 	msg := iden3comm.BasicMessage{
 		ID:       idUUID.String(),
 		ThreadID: threadUUID.String(),
-		From:     cfg.UserDID.String(),
-		To:       cfg.IssuerDID.String(),
+		From:     r.config.UserDID.String(),
+		To:       r.config.IssuerDID.String(),
 		Type:     protocol.RevocationStatusRequestMessageType,
 		Body:     rawBody,
 	}
@@ -50,7 +83,7 @@ func (AgentResolver) Resolve(_ context.Context, status verifiable.CredentialStat
 		return out, errors.WithStack(err)
 	}
 
-	iden3commMsg, err := cfg.PackageManager.Pack(packers.MediaTypePlainMessage, bytesMsg, nil)
+	iden3commMsg, err := r.config.PackageManager.Pack(packers.MediaTypePlainMessage, bytesMsg, nil)
 	if err != nil {
 		return out, errors.WithStack(err)
 	}
@@ -75,7 +108,7 @@ func (AgentResolver) Resolve(_ context.Context, status verifiable.CredentialStat
 		return out, errors.WithStack(err)
 	}
 
-	basicMessage, _, err := cfg.PackageManager.Unpack(b)
+	basicMessage, _, err := r.config.PackageManager.Unpack(b)
 	if err != nil {
 		return out, errors.WithStack(err)
 	}
