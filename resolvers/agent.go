@@ -2,6 +2,7 @@ package resolvers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -19,7 +20,7 @@ type AgentResolver struct {
 }
 
 // Resolve is a method to resolve a credential status from an agent.
-func (AgentResolver) Resolve(status verifiable.CredentialStatus, cfg verifiable.CredentialStatusConfig) (out verifiable.RevocationStatus, err error) {
+func (AgentResolver) Resolve(_ context.Context, status verifiable.CredentialStatus, cfg verifiable.CredentialStatusConfig) (out verifiable.RevocationStatus, err error) {
 	revocationBody := protocol.RevocationStatusRequestMessageBody{
 		RevocationNonce: status.RevocationNonce,
 	}
@@ -39,8 +40,8 @@ func (AgentResolver) Resolve(status verifiable.CredentialStatus, cfg verifiable.
 	msg := iden3comm.BasicMessage{
 		ID:       idUUID.String(),
 		ThreadID: threadUUID.String(),
-		From:     *cfg.UserDID,
-		To:       *cfg.IssuerDID,
+		From:     cfg.UserDID.String(),
+		To:       cfg.IssuerDID.String(),
 		Type:     protocol.RevocationStatusRequestMessageType,
 		Body:     rawBody,
 	}
