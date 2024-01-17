@@ -34,11 +34,10 @@ func TestAgentResolver(t *testing.T) {
 	userDID, err := w3c.ParseDID("did:polygonid:polygon:mumbai:2qFDziX3k3h7To2jDJbQiXFtcozbgSNNvQpb6TgtPE")
 	require.NoError(t, err)
 
-	opts := []AgentResolverOpts{WithPackageManager(pm), WithIssuerDID(issuerDID), WithUserDID(userDID)}
-
-	agentConfig := AgentResolverConfig{}
-	for _, o := range opts {
-		o(&agentConfig)
+	agentConfig := AgentResolverConfig{
+		PackageManager: pm,
+		IssuerDID:      issuerDID,
+		UserDID:        userDID,
 	}
 
 	agentResolver := AgentResolver{agentConfig}

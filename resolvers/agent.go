@@ -23,30 +23,6 @@ type AgentResolverConfig struct {
 	IssuerDID      *w3c.DID
 }
 
-// AgentResolverOpts returns configuration options for AgentResolverOpts
-type AgentResolverOpts func(opts *AgentResolverConfig)
-
-// WithPackageManager return new options
-func WithPackageManager(pm *iden3comm.PackageManager) AgentResolverOpts {
-	return func(opts *AgentResolverConfig) {
-		opts.PackageManager = pm
-	}
-}
-
-// WithUserDID return new options
-func WithUserDID(userDID *w3c.DID) AgentResolverOpts {
-	return func(opts *AgentResolverConfig) {
-		opts.UserDID = userDID
-	}
-}
-
-// WithIssuerDID return new options
-func WithIssuerDID(issuerDID *w3c.DID) AgentResolverOpts {
-	return func(opts *AgentResolverConfig) {
-		opts.IssuerDID = issuerDID
-	}
-}
-
 // AgentResolver is a struct that allows to interact with the issuer's agent to get revocation status.
 type AgentResolver struct {
 	config AgentResolverConfig
