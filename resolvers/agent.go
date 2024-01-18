@@ -28,6 +28,11 @@ type AgentResolver struct {
 	config AgentResolverConfig
 }
 
+// NewAgentResolver returns new agent resolver
+func NewAgentResolver(config AgentResolverConfig) *AgentResolver {
+	return &AgentResolver{config}
+}
+
 // Resolve is a method to resolve a credential status from an agent.
 func (r AgentResolver) Resolve(_ context.Context, status verifiable.CredentialStatus) (out verifiable.RevocationStatus, err error) {
 	revocationBody := protocol.RevocationStatusRequestMessageBody{

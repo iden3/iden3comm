@@ -40,7 +40,7 @@ func TestAgentResolver(t *testing.T) {
 		UserDID:        userDID,
 	}
 
-	agentResolver := AgentResolver{agentConfig}
+	agentResolver := NewAgentResolver(agentConfig)
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
