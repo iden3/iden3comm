@@ -51,6 +51,10 @@ github.com/iden3/go-schema-processor/v2 v2.1.3-0.20240116084732-b5c2484f9357 h1:
 github.com/iden3/go-schema-processor/v2 v2.1.3-0.20240116084732-b5c2484f9357/go.mod h1:C9Y8uMQA4W7SwoslPwXWE00NWxdqar0+M8heq7c0GGM=
 github.com/iden3/go-schema-processor/v2 v2.1.3-0.20240116162647-433544ddcc47 h1:QeTEz2Tia3/+S8Lm/pcpJzxyZx8N5aQc7fUHZhCAhMQ=
 github.com/iden3/go-schema-processor/v2 v2.1.3-0.20240116162647-433544ddcc47/go.mod h1:mNO8FahWsgbmnMXtOENwie+jexmERHAzd9DpuSoziIY=
+github.com/iden3/go-schema-processor/v2 v2.2.1-0.20240118172924-93422f880285 h1:kCgbZh6BKapdHAGeBeUlkkgJBzvVYr0GQqoMTOvei7Q=
+github.com/iden3/go-schema-processor/v2 v2.2.1-0.20240118172924-93422f880285/go.mod h1:BcHVDZyn8q8vUlL+XpOo7hpwXmEjxzO8ao1LkvFsM+k=
+github.com/iden3/go-schema-processor/v2 v2.2.1-0.20240118174550-f1f74877ba9e h1:G05e04aqR8CSl4sHLT+yDseWugTFPZ9kCCUfuTLDrxA=
+github.com/iden3/go-schema-processor/v2 v2.2.1-0.20240118174550-f1f74877ba9e/go.mod h1:BcHVDZyn8q8vUlL+XpOo7hpwXmEjxzO8ao1LkvFsM+k=
 github.com/ipfs/boxo v0.12.0 h1:AXHg/1ONZdRQHQLgG5JHsSC3XoE4DjCAMgK+asZvUcQ=
 github.com/ipfs/boxo v0.12.0/go.mod h1:xAnfiU6PtxWCnRqu7dcXQ10bB5/kvI1kXRotuGqGBhg=
 github.com/ipfs/go-cid v0.4.1 h1:A/T3qGvxi4kpKWWcPC/PgbvDA2bjVLO7n4UeVwnbs/s=

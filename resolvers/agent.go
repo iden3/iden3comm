@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/gofrs/uuid/v5"
-	"github.com/iden3/go-iden3-core/v2/w3c"
 	"github.com/iden3/go-schema-processor/v2/verifiable"
 	"github.com/iden3/iden3comm/v2"
 	"github.com/iden3/iden3comm/v2/packers"
@@ -19,8 +18,6 @@ import (
 // AgentResolverConfig options for credential status verification
 type AgentResolverConfig struct {
 	PackageManager *iden3comm.PackageManager
-	UserDID        *w3c.DID
-	IssuerDID      *w3c.DID
 }
 
 // AgentResolver is a struct that allows to interact with the issuer's agent to get revocation status.
@@ -34,7 +31,7 @@ func NewAgentResolver(config AgentResolverConfig) *AgentResolver {
 }
 
 // Resolve is a method to resolve a credential status from an agent.
-func (r AgentResolver) Resolve(_ context.Context, status verifiable.CredentialStatus) (out verifiable.RevocationStatus, err error) {
+func (r AgentResolver) Resolve(_ context.Context, status verifiable.CredentialStatus, opts *verifiable.CredentialStatusResolveOptions) (out verifiable.RevocationStatus, err error) {
 	revocationBody := protocol.RevocationStatusRequestMessageBody{
 		RevocationNonce: status.RevocationNonce,
 	}
@@ -54,8 +51,8 @@ func (r AgentResolver) Resolve(_ context.Context, status verifiable.CredentialSt
 	msg := iden3comm.BasicMessage{
 		ID:       idUUID.String(),
 		ThreadID: threadUUID.String(),
-		From:     r.config.UserDID.String(),
-		To:       r.config.IssuerDID.String(),
+		From:     opts.UserDID.String(),
+		To:       opts.IssuerDID.String(),
 		Type:     protocol.RevocationStatusRequestMessageType,
 		Body:     rawBody,
 	}
