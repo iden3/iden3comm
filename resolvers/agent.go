@@ -31,7 +31,7 @@ func NewAgentResolver(config AgentResolverConfig) *AgentResolver {
 }
 
 // Resolve is a method to resolve a credential status from an agent.
-func (r AgentResolver) Resolve(_ context.Context, status verifiable.CredentialStatus, opts *verifiable.CredentialStatusResolveOptions) (out verifiable.RevocationStatus, err error) {
+func (r AgentResolver) Resolve(_ context.Context, status verifiable.CredentialStatus, opts ...verifiable.CredentialStatusResolveOpt) (out verifiable.RevocationStatus, err error) {
 	revocationBody := protocol.RevocationStatusRequestMessageBody{
 		RevocationNonce: status.RevocationNonce,
 	}
@@ -48,11 +48,16 @@ func (r AgentResolver) Resolve(_ context.Context, status verifiable.CredentialSt
 	if err != nil {
 		return out, err
 	}
+
+	config := verifiable.CredentialStatusResolveConfig{}
+	for _, o := range opts {
+		o(&config)
+	}
 	msg := iden3comm.BasicMessage{
 		ID:       idUUID.String(),
 		ThreadID: threadUUID.String(),
-		From:     opts.UserDID.String(),
-		To:       opts.IssuerDID.String(),
+		From:     config.UserDID.String(),
+		To:       config.IssuerDID.String(),
 		Type:     protocol.RevocationStatusRequestMessageType,
 		Body:     rawBody,
 	}

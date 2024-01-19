@@ -10,7 +10,7 @@ require (
 	github.com/iden3/go-iden3-crypto v0.0.15
 	github.com/iden3/go-jwz/v2 v2.0.1
 	github.com/iden3/go-rapidsnark/types v0.0.3
-	github.com/iden3/go-schema-processor/v2 v2.2.1-0.20240118174550-f1f74877ba9e
+	github.com/iden3/go-schema-processor/v2 v2.2.1-0.20240119110812-6363011261f7
 	github.com/lestrrat-go/jwx/v2 v2.0.12
 	github.com/mr-tron/base58 v1.2.0
 	github.com/pkg/errors v0.9.1
