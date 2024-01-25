@@ -8,12 +8,46 @@ import (
 	"net/http"
 
 	"github.com/gofrs/uuid/v5"
+	"github.com/iden3/go-iden3-core/v2/w3c"
 	"github.com/iden3/go-schema-processor/v2/verifiable"
 	"github.com/iden3/iden3comm/v2"
 	"github.com/iden3/iden3comm/v2/packers"
 	"github.com/iden3/iden3comm/v2/protocol"
 	"github.com/pkg/errors"
 )
+
+type ctxKeyIssuerDID struct{}
+type ctxKeyUserDID struct{}
+
+// WithIssuerDID puts the issuer DID in the context
+func WithIssuerDID(ctx context.Context, issuerDID *w3c.DID) context.Context {
+	return context.WithValue(ctx, ctxKeyIssuerDID{}, issuerDID)
+}
+
+// GetIssuerDID extract the issuer DID from the context.
+// Or nil if nothing is found.
+func GetIssuerDID(ctx context.Context) *w3c.DID {
+	return getTpCtx[w3c.DID](ctx, ctxKeyIssuerDID{})
+}
+
+// WithUserDID puts the user DID in the context
+func WithUserDID(ctx context.Context, userDID *w3c.DID) context.Context {
+	return context.WithValue(ctx, ctxKeyUserDID{}, userDID)
+}
+
+// GetUserDID extract the user DID from the context.
+// Or nil if nothing is found.
+func GetUserDID(ctx context.Context) *w3c.DID {
+	return getTpCtx[w3c.DID](ctx, ctxKeyUserDID{})
+}
+
+func getTpCtx[T any](ctx context.Context, key any) *T {
+	v := ctx.Value(key)
+	if v == nil {
+		return nil
+	}
+	return v.(*T)
+}
 
 // AgentResolverConfig options for credential status verification
 type AgentResolverConfig struct {
@@ -31,7 +65,9 @@ func NewAgentResolver(config AgentResolverConfig) *AgentResolver {
 }
 
 // Resolve is a method to resolve a credential status from an agent.
-func (r AgentResolver) Resolve(_ context.Context, status verifiable.CredentialStatus, opts ...verifiable.CredentialStatusResolveOpt) (out verifiable.RevocationStatus, err error) {
+func (r AgentResolver) Resolve(ctx context.Context,
+	status verifiable.CredentialStatus) (out verifiable.RevocationStatus, err error) {
+
 	revocationBody := protocol.RevocationStatusRequestMessageBody{
 		RevocationNonce: status.RevocationNonce,
 	}
@@ -49,15 +85,19 @@ func (r AgentResolver) Resolve(_ context.Context, status verifiable.CredentialSt
 		return out, err
 	}
 
-	config := verifiable.CredentialStatusResolveConfig{}
-	for _, o := range opts {
-		o(&config)
+	userDID := GetUserDID(ctx)
+	if userDID == nil {
+		return out, errors.New("user DID not found in the context")
+	}
+	issuerDID := GetUserDID(ctx)
+	if issuerDID == nil {
+		return out, errors.New("issuer DID not found in the context")
 	}
 	msg := iden3comm.BasicMessage{
 		ID:       idUUID.String(),
 		ThreadID: threadUUID.String(),
-		From:     config.UserDID.String(),
-		To:       config.IssuerDID.String(),
+		From:     userDID.String(),
+		To:       issuerDID.String(),
 		Type:     protocol.RevocationStatusRequestMessageType,
 		Body:     rawBody,
 	}
