@@ -8,12 +8,30 @@ import (
 	"net/http"
 
 	"github.com/gofrs/uuid/v5"
+	"github.com/iden3/go-iden3-core/v2/w3c"
 	"github.com/iden3/go-schema-processor/v2/verifiable"
 	"github.com/iden3/iden3comm/v2"
 	"github.com/iden3/iden3comm/v2/packers"
 	"github.com/iden3/iden3comm/v2/protocol"
 	"github.com/pkg/errors"
 )
+
+type ctxKeySenderDID struct{}
+
+// WithSenderDID puts the user DID in the context
+func WithSenderDID(ctx context.Context, userDID *w3c.DID) context.Context {
+	return context.WithValue(ctx, ctxKeySenderDID{}, userDID)
+}
+
+// GetSenderDID extract the sender's DID from the context.
+// Returns nil if nothing is found.
+func GetSenderDID(ctx context.Context) *w3c.DID {
+	v := ctx.Value(ctxKeySenderDID{})
+	if v == nil {
+		return nil
+	}
+	return v.(*w3c.DID)
+}
 
 // AgentResolverConfig options for credential status verification
 type AgentResolverConfig struct {
@@ -31,7 +49,9 @@ func NewAgentResolver(config AgentResolverConfig) *AgentResolver {
 }
 
 // Resolve is a method to resolve a credential status from an agent.
-func (r AgentResolver) Resolve(_ context.Context, status verifiable.CredentialStatus, opts ...verifiable.CredentialStatusResolveOpt) (out verifiable.RevocationStatus, err error) {
+func (r AgentResolver) Resolve(ctx context.Context,
+	status verifiable.CredentialStatus) (out verifiable.RevocationStatus, err error) {
+
 	revocationBody := protocol.RevocationStatusRequestMessageBody{
 		RevocationNonce: status.RevocationNonce,
 	}
@@ -49,15 +69,19 @@ func (r AgentResolver) Resolve(_ context.Context, status verifiable.CredentialSt
 		return out, err
 	}
 
-	config := verifiable.CredentialStatusResolveConfig{}
-	for _, o := range opts {
-		o(&config)
+	senderDID := GetSenderDID(ctx)
+	if senderDID == nil {
+		return out, errors.New("sender DID not found in the context")
+	}
+	issuerDID := verifiable.GetIssuerDID(ctx)
+	if issuerDID == nil {
+		return out, errors.New("issuer DID not found in the context")
 	}
 	msg := iden3comm.BasicMessage{
 		ID:       idUUID.String(),
 		ThreadID: threadUUID.String(),
-		From:     config.UserDID.String(),
-		To:       config.IssuerDID.String(),
+		From:     senderDID.String(),
+		To:       issuerDID.String(),
 		Type:     protocol.RevocationStatusRequestMessageType,
 		Body:     rawBody,
 	}
