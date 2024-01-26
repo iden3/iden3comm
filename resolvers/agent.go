@@ -16,37 +16,21 @@ import (
 	"github.com/pkg/errors"
 )
 
-type ctxKeyIssuerDID struct{}
-type ctxKeyUserDID struct{}
+type ctxKeySenderDID struct{}
 
-// WithIssuerDID puts the issuer DID in the context
-func WithIssuerDID(ctx context.Context, issuerDID *w3c.DID) context.Context {
-	return context.WithValue(ctx, ctxKeyIssuerDID{}, issuerDID)
+// WithSenderDID puts the user DID in the context
+func WithSenderDID(ctx context.Context, userDID *w3c.DID) context.Context {
+	return context.WithValue(ctx, ctxKeySenderDID{}, userDID)
 }
 
-// GetIssuerDID extract the issuer DID from the context.
-// Or nil if nothing is found.
-func GetIssuerDID(ctx context.Context) *w3c.DID {
-	return getTpCtx[w3c.DID](ctx, ctxKeyIssuerDID{})
-}
-
-// WithUserDID puts the user DID in the context
-func WithUserDID(ctx context.Context, userDID *w3c.DID) context.Context {
-	return context.WithValue(ctx, ctxKeyUserDID{}, userDID)
-}
-
-// GetUserDID extract the user DID from the context.
-// Or nil if nothing is found.
-func GetUserDID(ctx context.Context) *w3c.DID {
-	return getTpCtx[w3c.DID](ctx, ctxKeyUserDID{})
-}
-
-func getTpCtx[T any](ctx context.Context, key any) *T {
-	v := ctx.Value(key)
+// GetSenderDID extract the sender's DID from the context.
+// Returns nil if nothing is found.
+func GetSenderDID(ctx context.Context) *w3c.DID {
+	v := ctx.Value(ctxKeySenderDID{})
 	if v == nil {
 		return nil
 	}
-	return v.(*T)
+	return v.(*w3c.DID)
 }
 
 // AgentResolverConfig options for credential status verification
@@ -85,18 +69,18 @@ func (r AgentResolver) Resolve(ctx context.Context,
 		return out, err
 	}
 
-	userDID := GetUserDID(ctx)
-	if userDID == nil {
-		return out, errors.New("user DID not found in the context")
+	senderDID := GetSenderDID(ctx)
+	if senderDID == nil {
+		return out, errors.New("sender DID not found in the context")
 	}
-	issuerDID := GetUserDID(ctx)
+	issuerDID := verifiable.GetIssuerDID(ctx)
 	if issuerDID == nil {
 		return out, errors.New("issuer DID not found in the context")
 	}
 	msg := iden3comm.BasicMessage{
 		ID:       idUUID.String(),
 		ThreadID: threadUUID.String(),
-		From:     userDID.String(),
+		From:     senderDID.String(),
 		To:       issuerDID.String(),
 		Type:     protocol.RevocationStatusRequestMessageType,
 		Body:     rawBody,
