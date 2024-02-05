@@ -66,11 +66,11 @@ func (r AgentResolver) Resolve(ctx context.Context,
 
 	idUUID, err := uuid.NewV7()
 	if err != nil {
-		return out, err
+		return out, errors.WithStack(err)
 	}
 	threadUUID, err := uuid.NewV7()
 	if err != nil {
-		return out, err
+		return out, errors.WithStack(err)
 	}
 
 	senderDID := GetSenderDID(ctx)
