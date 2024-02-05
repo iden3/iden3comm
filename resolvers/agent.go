@@ -117,7 +117,8 @@ func (r AgentResolver) Resolve(ctx context.Context,
 		}
 	}()
 
-	if resp.StatusCode != http.StatusOK {
+	statusOK := resp.StatusCode >= 200 && resp.StatusCode < 300
+	if !statusOK {
 		return out, errors.Errorf("bad status code: %d", resp.StatusCode)
 	}
 
