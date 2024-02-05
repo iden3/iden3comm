@@ -7,7 +7,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/gofrs/uuid/v5"
+	"github.com/google/uuid"
 	"github.com/iden3/go-iden3-core/v2/w3c"
 	"github.com/iden3/go-schema-processor/v2/verifiable"
 	"github.com/iden3/iden3comm/v2"
@@ -35,7 +35,8 @@ func GetSenderDID(ctx context.Context) *w3c.DID {
 
 // AgentResolverConfig options for credential status verification
 type AgentResolverConfig struct {
-	PackageManager *iden3comm.PackageManager
+	PackageManager   *iden3comm.PackageManager
+	customHTTPClient *http.Client
 }
 
 // AgentResolver is a struct that allows to interact with the issuer's agent to get revocation status.
@@ -52,6 +53,9 @@ func NewAgentResolver(config AgentResolverConfig) *AgentResolver {
 func (r AgentResolver) Resolve(ctx context.Context,
 	status verifiable.CredentialStatus) (out verifiable.RevocationStatus, err error) {
 
+	if status.Type != verifiable.Iden3commRevocationStatusV1 {
+		return out, errors.New("invalid status type")
+	}
 	revocationBody := protocol.RevocationStatusRequestMessageBody{
 		RevocationNonce: status.RevocationNonce,
 	}
@@ -60,11 +64,11 @@ func (r AgentResolver) Resolve(ctx context.Context,
 		return out, errors.WithStack(err)
 	}
 
-	idUUID, err := uuid.NewV4()
+	idUUID, err := uuid.NewV7()
 	if err != nil {
 		return out, err
 	}
-	threadUUID, err := uuid.NewV4()
+	threadUUID, err := uuid.NewV7()
 	if err != nil {
 		return out, err
 	}
@@ -95,7 +99,14 @@ func (r AgentResolver) Resolve(ctx context.Context,
 		return out, errors.WithStack(err)
 	}
 
-	resp, err := http.DefaultClient.Post(status.ID, "application/json", bytes.NewBuffer(iden3commMsg))
+	var httpClient *http.Client
+	if r.config.customHTTPClient != nil {
+		httpClient = r.config.customHTTPClient
+	} else {
+		httpClient = http.DefaultClient
+	}
+
+	resp, err := httpClient.Post(status.ID, "application/json", bytes.NewBuffer(iden3commMsg))
 	if err != nil {
 		return out, errors.WithStack(err)
 	}
@@ -129,5 +140,5 @@ func (r AgentResolver) Resolve(ctx context.Context,
 		return out, errors.WithStack(err)
 	}
 
-	return revocationStatus.RevocationStatus, nil
+	return revocationStatus.RevocationStatus, err
 }

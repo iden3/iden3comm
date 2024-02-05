@@ -5,13 +5,13 @@ go 1.18
 require (
 	github.com/dustinxie/ecc v0.0.0-20210511000915-959544187564
 	github.com/gofrs/uuid/v5 v5.0.0
+	github.com/google/uuid v1.6.0
 	github.com/iden3/go-circuits/v2 v2.0.1
 	github.com/iden3/go-iden3-core/v2 v2.0.3
 	github.com/iden3/go-iden3-crypto v0.0.15
 	github.com/iden3/go-jwz/v2 v2.0.1
 	github.com/iden3/go-rapidsnark/types v0.0.3
 	github.com/iden3/go-schema-processor/v2 v2.2.1-0.20240126124145-b6f321093157
-	github.com/jarcoal/httpmock v1.3.1
 	github.com/lestrrat-go/jwx/v2 v2.0.12
 	github.com/mr-tron/base58 v1.2.0
 	github.com/pkg/errors v0.9.1
