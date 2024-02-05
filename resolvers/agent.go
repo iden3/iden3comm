@@ -36,7 +36,7 @@ func GetSenderDID(ctx context.Context) *w3c.DID {
 // AgentResolverConfig options for credential status verification
 type AgentResolverConfig struct {
 	PackageManager   *iden3comm.PackageManager
-	customHTTPClient *http.Client
+	CustomHTTPClient *http.Client
 }
 
 // AgentResolver is a struct that allows to interact with the issuer's agent to get revocation status.
@@ -99,11 +99,9 @@ func (r AgentResolver) Resolve(ctx context.Context,
 		return out, errors.WithStack(err)
 	}
 
-	var httpClient *http.Client
-	if r.config.customHTTPClient != nil {
-		httpClient = r.config.customHTTPClient
-	} else {
-		httpClient = http.DefaultClient
+	httpClient := http.DefaultClient
+	if r.config.CustomHTTPClient != nil {
+		httpClient = r.config.CustomHTTPClient
 	}
 
 	resp, err := httpClient.Post(status.ID, "application/json", bytes.NewBuffer(iden3commMsg))
