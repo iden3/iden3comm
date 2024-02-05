@@ -136,7 +136,7 @@ func (r AgentResolver) Resolve(ctx context.Context,
 	}
 
 	var revocationStatus protocol.RevocationStatusResponseMessageBody
-	if err := json.Unmarshal(basicMessage.Body, &revocationStatus); err != nil {
+	if err = json.Unmarshal(basicMessage.Body, &revocationStatus); err != nil {
 		return out, errors.WithStack(err)
 	}
 
