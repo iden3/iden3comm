@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/gofrs/uuid/v5"
+	"github.com/google/uuid"
 	"github.com/iden3/go-iden3-core/v2/w3c"
 	"github.com/iden3/go-jwz/v2"
 	"github.com/iden3/iden3comm/v2"
@@ -156,7 +156,7 @@ func createFetchCredentialMessage(typ iden3comm.MediaType, from, to *w3c.DID) ([
 	msg.From = from.String()
 	msg.To = to.String()
 	msg.Typ = typ
-	claimID, err := uuid.NewV4()
+	claimID, err := uuid.NewV7()
 	if err != nil {
 		return nil, err
 	}
