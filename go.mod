@@ -4,7 +4,6 @@ go 1.18
 
 require (
 	github.com/dustinxie/ecc v0.0.0-20210511000915-959544187564
-	github.com/gofrs/uuid/v5 v5.0.0
 	github.com/google/uuid v1.6.0
 	github.com/iden3/go-circuits/v2 v2.0.1
 	github.com/iden3/go-iden3-core/v2 v2.0.3
