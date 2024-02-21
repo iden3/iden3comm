@@ -26,6 +26,9 @@ const (
 
 	// CredentialRefreshMessageType is type for message with a credential refresh
 	CredentialRefreshMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/1.0/refresh"
+
+	// CredentialOnchainOfferMessageType is type for message with a credential onchain offer
+	CredentialOnchainOfferMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/1.0/onchain-offer"
 )
 
 // CredentialIssuanceRequestMessage represent Iden3message for credential request
@@ -151,4 +154,24 @@ type CredentialRefreshMessage struct {
 type CredentialRefreshMessageBody struct {
 	ID     string `json:"id"`
 	Reason string `json:"reason"`
+}
+
+// CredentialsOnchainOfferMessage represent Iden3message for credential onchain offer
+type CredentialsOnchainOfferMessage struct {
+	ID       string                    `json:"id"`
+	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
+	Type     iden3comm.ProtocolMessage `json:"type"`
+	ThreadID string                    `json:"thid,omitempty"`
+
+	Body CredentialsOnchainOfferMessageBody `json:"body,omitempty"`
+
+	From string `json:"from,omitempty"`
+	To   string `json:"to,omitempty"`
+}
+
+// CredentialsOnchainOfferMessageBody is struct the represents onchain offer message
+type CredentialsOnchainOfferMessageBody struct {
+	URL             string            `json:"url"`
+	Credentials     []CredentialOffer `json:"credentials"`
+	TransactionData TransactionData   `json:"transaction_data"`
 }
