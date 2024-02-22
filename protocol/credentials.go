@@ -171,7 +171,6 @@ type CredentialsOnchainOfferMessage struct {
 
 // CredentialsOnchainOfferMessageBody is struct the represents onchain offer message
 type CredentialsOnchainOfferMessageBody struct {
-	URL             string            `json:"url"`
 	Credentials     []CredentialOffer `json:"credentials"`
 	TransactionData TransactionData   `json:"transaction_data"`
 }
