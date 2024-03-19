@@ -29,6 +29,48 @@ const (
 
 	// CredentialOnchainOfferMessageType is type for message with a credential onchain offer
 	CredentialOnchainOfferMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/1.0/onchain-offer"
+
+	// CredentialProposalRequestMessageType is type for request of the credential proposal
+	//
+	// # Experimental
+	//
+	// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
+	CredentialProposalRequestMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/0.1/proposal-request"
+
+	// CredentialProposalMessageType is type for proposal of the verifiable credential
+	//
+	// # Experimental
+	//
+	// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
+	CredentialProposalMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/0.1/proposal"
+
+	// CredentialOfferStatusPending is a type when a credential issuance is in the process
+	//
+	// # Experimental
+	//
+	// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
+	CredentialOfferStatusPending = "pending"
+
+	// CredentialOfferStatusCompleted if credential issuance is happened successfully
+	//
+	// # Experimental
+	//
+	// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
+	CredentialOfferStatusCompleted = "completed"
+
+	// CredentialOfferStatusRejected - if credential issuance is not possible for some reason
+	//
+	// # Experimental
+	//
+	// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
+	CredentialOfferStatusRejected = "rejected"
+
+	// CredentialProposalTypeWeb - if credential issuance is not possible for some reason
+	//
+	// # Experimental
+	//
+	// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
+	CredentialProposalTypeWeb = "WebVerificationFormV1.0"
 )
 
 // CredentialIssuanceRequestMessage represent Iden3message for credential request
@@ -74,6 +116,7 @@ type CredentialsOfferMessageBody struct {
 type CredentialOffer struct {
 	ID          string `json:"id"`
 	Description string `json:"description"`
+	Status      string `json:"status,omitempty"`
 }
 
 // CredentialIssuanceMessage represent Iden3message for credential issuance
@@ -173,4 +216,91 @@ type CredentialsOnchainOfferMessage struct {
 type CredentialsOnchainOfferMessageBody struct {
 	Credentials     []CredentialOffer `json:"credentials"`
 	TransactionData TransactionData   `json:"transaction_data"`
+}
+
+// CredentialsProposalRequestMessage represent Iden3message for credential proposal request
+//
+// # Experimental
+//
+// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
+type CredentialsProposalRequestMessage struct {
+	ID       string                    `json:"id"`
+	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
+	Type     iden3comm.ProtocolMessage `json:"type"`
+	ThreadID string                    `json:"thid,omitempty"`
+
+	Body CredentialsProposalRequestBody `json:"body,omitempty"`
+
+	From string `json:"from,omitempty"`
+	To   string `json:"to,omitempty"`
+}
+
+// CredentialsProposalMessage represents Iden3message for credential proposal
+//
+// # Experimental
+//
+// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
+type CredentialsProposalMessage struct {
+	ID       string                    `json:"id"`
+	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
+	Type     iden3comm.ProtocolMessage `json:"type"`
+	ThreadID string                    `json:"thid,omitempty"`
+
+	Body CredentialsProposalBody `json:"body,omitempty"`
+
+	From string `json:"from,omitempty"`
+	To   string `json:"to,omitempty"`
+}
+
+// CredentialsProposalRequestBody is msg body for proposal requests
+//
+// # Experimental
+//
+// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
+type CredentialsProposalRequestBody struct {
+	Credentials []CredentialInfo `json:"credentials"`
+	Metadata    *Metadata        `json:"metadata,omitempty"`
+	DIDDoc      json.RawMessage  `json:"did_doc,omitempty"`
+}
+
+// CredentialInfo is a part of credential proposal request bodys
+//
+// # Experimental
+//
+// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
+type CredentialInfo struct {
+	Type    string `json:"type"`
+	Context string `json:"context"`
+}
+
+// Metadata is metadata for credential proposal
+//
+// # Experimental
+//
+// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
+type Metadata struct {
+	Type string `json:"type"`
+	Data string `json:"data"`
+}
+
+// CredentialsProposalBody is a body for a credential proposal message
+//
+// # Experimental
+//
+// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
+type CredentialsProposalBody struct {
+	Proposals []CredentialProposalInfo `json:"proposals"`
+}
+
+// CredentialProposalInfo is a info of specific proposal that can relate to many credentials
+//
+// # Experimental
+//
+// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
+type CredentialProposalInfo struct {
+	Credentials []CredentialInfo `json:"credentials,omitempty"`
+	Type        string           `json:"type"`
+	URL         string           `json:"url"`
+	Expiration  string           `json:"expiration,omitempty"`
+	Description string           `json:"description,omitempty"`
 }
