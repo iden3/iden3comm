@@ -5,6 +5,7 @@ import (
 )
 
 const (
+	// ProblemReportMessageType is type for problem report
 	ProblemReportMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "report-problem/1.0/problem-report"
 )
 
