@@ -22,3 +22,6 @@ type ProtocolMessage string
 
 // Iden3Protocol is a const for protocol definition
 const Iden3Protocol = "https://iden3-communication.io/"
+
+// DidCommProtocol is a const for didcomm protocol definition
+const DidCommProtocol = "https://didcomm.org/"
