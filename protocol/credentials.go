@@ -355,7 +355,7 @@ type CredentialPaymentInfo struct {
 	Credentials []CredentialInfo      `json:"credentials"`
 	Type        string                `json:"type"`
 	Data        CredentialPaymentData `json:"data"`
-	Expiration  int64                 `json:"expiration,omitempty"`
+	Expiration  string                `json:"expiration,omitempty"`
 	Description string                `json:"description,omitempty"`
 }
 
