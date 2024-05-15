@@ -71,6 +71,20 @@ const (
 	//
 	// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
 	CredentialProposalTypeWeb = "WebVerificationFormV1.0"
+
+	// CredentialPaymentRequestMessageType is type for request of the credential payment request
+	//
+	// # Experimental
+	//
+	// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
+	CredentialPaymentRequestMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/0.1/payment-request"
+
+	// CredentialPaymentMessageType is type for request of the credential payment
+	//
+	// # Experimental
+	//
+	// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
+	CredentialPaymentMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/0.1/payment"
 )
 
 // CredentialIssuanceRequestMessage represent Iden3message for credential request
@@ -303,4 +317,90 @@ type CredentialProposalInfo struct {
 	URL         string           `json:"url"`
 	Expiration  string           `json:"expiration,omitempty"`
 	Description string           `json:"description,omitempty"`
+}
+
+// CredentialPaymentRequestMessage represent Iden3message for credential payment request
+//
+// # Experimental
+//
+// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
+type CredentialPaymentRequestMessage struct {
+	ID       string                    `json:"id"`
+	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
+	Type     iden3comm.ProtocolMessage `json:"type"`
+	ThreadID string                    `json:"thid,omitempty"`
+
+	Body CredentialPaymentRequestBody `json:"body,omitempty"`
+
+	From string `json:"from,omitempty"`
+	To   string `json:"to,omitempty"`
+}
+
+// CredentialPaymentRequestBody is msg body for payment requests
+//
+// # Experimental
+//
+// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
+type CredentialPaymentRequestBody struct {
+	Agent    string                  `json:"agent"`
+	Payments []CredentialPaymentInfo `json:"payments"`
+}
+
+// CredentialPaymentInfo is msg for payment information
+//
+// # Experimental
+//
+// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
+type CredentialPaymentInfo struct {
+	Credentials []CredentialInfo      `json:"credentials"`
+	Type        string                `json:"type"`
+	Data        CredentialPaymentData `json:"data"`
+	Expiration  int64                 `json:"expiration,omitempty"`
+	Description string                `json:"description,omitempty"`
+}
+
+// CredentialPaymentData is msg for payment data
+//
+// # Experimental
+//
+// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
+type CredentialPaymentData struct {
+	ID        string `json:"id"`
+	Type      string `json:"type"`
+	Amount    string `json:"amount"`
+	ChainID   string `json:"chainId"`
+	Address   string `json:"address"`
+	Signature string `json:"signature"`
+}
+
+// CredentialPaymentMessage represent Iden3message for credential payment
+//
+// # Experimental
+//
+// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
+type CredentialPaymentMessage struct {
+	ID       string                    `json:"id"`
+	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
+	Type     iden3comm.ProtocolMessage `json:"type"`
+	ThreadID string                    `json:"thid,omitempty"`
+
+	Body CredentialPaymentBody `json:"body,omitempty"`
+
+	From string `json:"from,omitempty"`
+	To   string `json:"to,omitempty"`
+}
+
+// CredentialPaymentBody is msg body for payment
+//
+// # Experimental
+//
+// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
+type CredentialPaymentBody struct {
+	Payments []struct {
+		ID          string `json:"id"`
+		Type        string `json:"type"`
+		PaymentData struct {
+			TxID string `json:"txId"`
+		} `json:"paymentData"`
+	} `json:"payments"`
 }
