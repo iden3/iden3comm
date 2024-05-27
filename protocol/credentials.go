@@ -371,7 +371,7 @@ type CredentialPaymentData struct {
 	ChainID   string `json:"chainId"`
 	Address   string `json:"address"`
 	Signature string `json:"signature,omitempty"`
-	Сurrency  string `json:"currency"`
+	Currency  string `json:"currency"`
 }
 
 // CredentialPaymentMessage represent Iden3message for credential payment
