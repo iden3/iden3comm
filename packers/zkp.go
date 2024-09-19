@@ -1,13 +1,15 @@
-//go:build !no_jwz
-
 package packers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"math/big"
 	"strings"
+	"time"
 
+	"github.com/iden3/driver-did-iden3/pkg/services"
+	"github.com/iden3/driver-did-iden3/pkg/services/blockchain/eth"
 	"github.com/iden3/go-circuits/v2"
 	core "github.com/iden3/go-iden3-core/v2"
 	"github.com/iden3/go-iden3-core/v2/w3c"
@@ -36,6 +38,7 @@ func (f VerificationHandlerFunc) Verify(id circuits.CircuitID, pubsignals []stri
 }
 
 // StateVerificationFunc must verify pubsignals for circuit id
+// TODO (illia-korotia): remove this type? Not used.
 type StateVerificationFunc func(id circuits.CircuitID, pubsignals []string) error
 
 // VerificationParams defined the verification function and the verification key for ZKP full verification
@@ -236,4 +239,84 @@ func unmarshalPubSignals(obj circuits.PubSignalsUnmarshaller, pubSignals []strin
 // MediaType for iden3comm that returns MediaTypeZKPMessage
 func (p *ZKPPacker) MediaType() iden3comm.MediaType {
 	return MediaTypeZKPMessage
+}
+
+// DefaultZKPPakcerOption is a function that sets the default ZKP packer options
+type DefaultZKPPakcerOption func(*defaultZKPPacker)
+
+// WithAuthVerifyDelay sets the delay for the auth verification
+func WithAuthVerifyDelay(delay time.Duration) DefaultZKPPakcerOption {
+	return func(p *defaultZKPPacker) {
+		p.authVerifyDelay = delay
+	}
+}
+
+type defaultZKPPacker struct {
+	resolvers       map[int]eth.Resolver
+	authVerifyDelay time.Duration
+}
+
+// DefaultZKPPacker creates a default ZKP packer with the provided verification key and resolvers
+func DefaultZKPPacker(verificationKey []byte, resolvers map[int]eth.Resolver, opts ...DefaultZKPPakcerOption) *ZKPPacker {
+	def := &defaultZKPPacker{resolvers, time.Minute * 5}
+	for _, opt := range opts {
+		opt(def)
+	}
+	verifications := make(map[jwz.ProvingMethodAlg]VerificationParams)
+	verifications[jwz.AuthV2Groth16Alg] = NewVerificationParams(verificationKey, def.defaultZkpPackerVerificationFn)
+	return NewZKPPacker(nil, verifications)
+}
+
+func (d *defaultZKPPacker) defaultZkpPackerVerificationFn(id circuits.CircuitID, pubsignals []string) error {
+	if id != circuits.AuthV2CircuitID {
+		return errors.Errorf("circuit ID '%s' is not supported", id)
+	}
+
+	bytePubsig, err := json.Marshal(pubsignals)
+	if err != nil {
+		return errors.Errorf("error marshaling pubsignals: %v", err)
+	}
+
+	authPubSignals := circuits.AuthV2PubSignals{}
+	err = authPubSignals.PubSignalsUnmarshal(bytePubsig)
+	if err != nil {
+		return errors.Errorf("error unmarshaling pubsignals: %v", err)
+	}
+
+	userDID, err := core.ParseDIDFromID(*authPubSignals.UserID)
+	if err != nil {
+		return errors.Errorf("error convertign userID '%s' to userDID: %v",
+			authPubSignals.UserID.String(), err)
+	}
+
+	chainID, err := core.ChainIDfromDID(*userDID)
+	if err != nil {
+		return errors.Errorf("error extracting chainID from userDID '%s': %v",
+			userDID.String(), err)
+	}
+
+	resolver := d.resolvers[int(chainID)]
+
+	globalState := authPubSignals.GISTRoot.BigInt()
+	globalStateInfo, err := resolver.ResolveGist(context.Background(), &services.ResolverOpts{GistRoot: globalState})
+	if err != nil {
+		return errors.Errorf("error getting global state info by state '%s': %v",
+			globalState, err)
+	}
+	// if (big.NewInt(0)).Cmp(globalStateInfo.CreatedAtTimestamp) == 0 {
+	// 	return errors.Errorf("root %s doesn't exist in smart contract",
+	// 		globalState.String())
+	// }
+	if globalState.Cmp(globalStateInfo.Root) != 0 {
+		return errors.Errorf("invalid global state info in the smart contract, expected root %s, got %s",
+			globalState.String(), globalStateInfo.Root.String())
+	}
+
+	if (big.NewInt(0)).Cmp(globalStateInfo.ReplacedByRoot) != 0 &&
+		time.Since(time.Unix(globalStateInfo.ReplacedAtTimestamp.Int64(), 0)) > d.authVerifyDelay {
+		return errors.Errorf("global state is too old, replaced timestamp is %v",
+			globalStateInfo.ReplacedAtTimestamp.Int64())
+	}
+
+	return nil
 }
