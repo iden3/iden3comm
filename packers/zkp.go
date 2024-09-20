@@ -37,10 +37,6 @@ func (f VerificationHandlerFunc) Verify(id circuits.CircuitID, pubsignals []stri
 	return f(id, pubsignals)
 }
 
-// StateVerificationFunc must verify pubsignals for circuit id
-// TODO (illia-korotia): remove this type? Not used.
-type StateVerificationFunc func(id circuits.CircuitID, pubsignals []string) error
-
 // VerificationParams defined the verification function and the verification key for ZKP full verification
 type VerificationParams struct {
 	Key            []byte
@@ -241,33 +237,33 @@ func (p *ZKPPacker) MediaType() iden3comm.MediaType {
 	return MediaTypeZKPMessage
 }
 
-// DefaultZKPPakcerOption is a function that sets the default ZKP packer options
-type DefaultZKPPakcerOption func(*defaultZKPPacker)
+// DefaultZKPUnpackerOption is a function that sets the default ZKP unpacker options
+type DefaultZKPUnpackerOption func(*defaultZKPUnpacker)
 
 // WithAuthVerifyDelay sets the delay for the auth verification
-func WithAuthVerifyDelay(delay time.Duration) DefaultZKPPakcerOption {
-	return func(p *defaultZKPPacker) {
+func WithAuthVerifyDelay(delay time.Duration) DefaultZKPUnpackerOption {
+	return func(p *defaultZKPUnpacker) {
 		p.authVerifyDelay = delay
 	}
 }
 
-type defaultZKPPacker struct {
+type defaultZKPUnpacker struct {
 	resolvers       map[int]eth.Resolver
 	authVerifyDelay time.Duration
 }
 
-// DefaultZKPPacker creates a default ZKP packer with the provided verification key and resolvers
-func DefaultZKPPacker(verificationKey []byte, resolvers map[int]eth.Resolver, opts ...DefaultZKPPakcerOption) *ZKPPacker {
-	def := &defaultZKPPacker{resolvers, time.Minute * 5}
+// DefaultZKPUnpacker creates a default ZKP unpacker with the provided verification key and resolvers
+func DefaultZKPUnpacker(verificationKey []byte, resolvers map[int]eth.Resolver, opts ...DefaultZKPUnpackerOption) *ZKPPacker {
+	def := &defaultZKPUnpacker{resolvers, time.Minute * 5}
 	for _, opt := range opts {
 		opt(def)
 	}
 	verifications := make(map[jwz.ProvingMethodAlg]VerificationParams)
-	verifications[jwz.AuthV2Groth16Alg] = NewVerificationParams(verificationKey, def.defaultZkpPackerVerificationFn)
+	verifications[jwz.AuthV2Groth16Alg] = NewVerificationParams(verificationKey, def.defaultZkpUnpackerVerificationFn)
 	return NewZKPPacker(nil, verifications)
 }
 
-func (d *defaultZKPPacker) defaultZkpPackerVerificationFn(id circuits.CircuitID, pubsignals []string) error {
+func (d *defaultZKPUnpacker) defaultZkpUnpackerVerificationFn(id circuits.CircuitID, pubsignals []string) error {
 	if id != circuits.AuthV2CircuitID {
 		return errors.Errorf("circuit ID '%s' is not supported", id)
 	}
@@ -303,10 +299,7 @@ func (d *defaultZKPPacker) defaultZkpPackerVerificationFn(id circuits.CircuitID,
 		return errors.Errorf("error getting global state info by state '%s': %v",
 			globalState, err)
 	}
-	// if (big.NewInt(0)).Cmp(globalStateInfo.CreatedAtTimestamp) == 0 {
-	// 	return errors.Errorf("root %s doesn't exist in smart contract",
-	// 		globalState.String())
-	// }
+
 	if globalState.Cmp(globalStateInfo.Root) != 0 {
 		return errors.Errorf("invalid global state info in the smart contract, expected root %s, got %s",
 			globalState.String(), globalStateInfo.Root.String())

@@ -20,14 +20,14 @@ const exampleDidDocJS = `{"@context":["https://www.w3.org/ns/did/v1","https://w3
 // add kid for select key
 func TestPKHKey(t *testing.T) {
 	p := JWSPacker{
-		didResolverHandler: DIDResolverHandlerFunc(func(did string) (*verifiable.DIDDocument, error) {
+		didResolverHandler: DIDResolverHandlerFunc(func(_ string) (*verifiable.DIDDocument, error) {
 			didDoc := &verifiable.DIDDocument{}
 			err := json.Unmarshal([]byte(exampleDidDoc), didDoc)
 			require.NoError(t, err)
 			return didDoc, nil
 		}),
 
-		signerResolverHandlerFunc: SignerResolverHandlerFunc(func(kid string) (crypto.Signer, error) {
+		signerResolverHandlerFunc: SignerResolverHandlerFunc(func(_ string) (crypto.Signer, error) {
 			return es256k.PrivateKeyFromHex(
 				"8104d697aa619dd4df4b80df650d4eca0c63fcc2a423c151112aefd562122e55")
 		}),
@@ -51,7 +51,7 @@ func TestBJJKey(t *testing.T) {
 	err := auth.UnmarshalJSON([]byte("\"did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29#key-1\""))
 	require.NoError(t, err)
 	p := JWSPacker{
-		didResolverHandler: DIDResolverHandlerFunc(func(did string) (*verifiable.DIDDocument, error) {
+		didResolverHandler: DIDResolverHandlerFunc(func(_ string) (*verifiable.DIDDocument, error) {
 			return &verifiable.DIDDocument{
 				Context: []string{
 					"https://www.w3.org/ns/did/v1",
@@ -73,7 +73,7 @@ func TestBJJKey(t *testing.T) {
 			}, nil
 		}),
 
-		signerResolverHandlerFunc: SignerResolverHandlerFunc(func(kid string) (crypto.Signer, error) {
+		signerResolverHandlerFunc: SignerResolverHandlerFunc(func(_ string) (crypto.Signer, error) {
 			return bjj.GoSignerFromPrivHex(
 				"d115b0481a020428b5de28196513e1b28aa0475c0ac064d73243321cd7b9200c")
 		}),
@@ -97,7 +97,7 @@ func TestJWS(t *testing.T) {
 	// token from js impelementation
 	const token = `eyJhbGciOiJFUzI1NksiLCJraWQiOiJkaWQ6ZXhhbXBsZToxMjMjSlV2cGxsTUVZVVoyam9PNTlVTnVpX1hZRHF4VnFpRkxMQUo4a2xXdVBCdyIsInR5cCI6ImFwcGxpY2F0aW9uL2lkZW4zY29tbS1zaWduZWQtanNvbiJ9.eyJ0eXBlIjoiaHR0cHM6Ly9pZGVuMy1jb21tdW5pY2F0aW9uLmlvL2F1dGhvcml6YXRpb24vMS4wL3Jlc3BvbnNlIiwiZnJvbSI6ImRpZDpleGFtcGxlOjEyMyIsImJvZHkiOnsic2NvcGUiOlt7InR5cGUiOiJ6ZXJva25vd2xlZGdlIiwiY2lyY3VpdF9pZCI6ImF1dGgiLCJwdWJfc2lnbmFscyI6WyIxIiwiMTgzMTE1NjA1MjUzODMzMTk3MTkzMTEzOTQ5NTcwNjQ4MjAwOTEzNTQ5NzYzMTA1OTk4MTg3OTcxNTcxODk1Njg2MjE0NjY5NTA4MTEiLCIzMjM0MTY5MjUyNjQ2NjYyMTc2MTcyODg1Njk3NDI1NjQ3MDM2MzI4NTA4MTYwMzU3NjEwODQwMDI3MjAwOTAzNzczNTMyOTc5MjAiXSwicHJvb2ZfZGF0YSI6eyJwaV9hIjpbIjExMTMwODQzMTUwNTQwNzg5Mjk5NDU4OTkwNTg2MDIwMDAwNzE5MjgwMjQ2MTUzNzk3ODgyODQzMjE0MjkwNTQxOTgwNTIyMzc1MDcyIiwiMTMwMDg0MTkxMjk0Mzc4MTcyMzAyMjAzMjM1NTgzNjg5MzgzMTEzMjkyMDc4Mzc4ODQ1NTUzMTgzODI1NDQ2NTc4NDYwNTc2MjcxMyIsIjEiXSwicGlfYiI6W1siMjA2MTU3Njg1MzY5ODg0MzgzMzY1Mzc3Nzc5MDkwNDIzNTIwNTYzOTI4NjIyNTE3ODU3MjI3OTY2Mzc1OTAyMTIxNjA1NjEzNTE2NTYiLCIxMDM3MTE0NDgwNjEwNzc3ODg5MDUzODg1NzcwMDg1NTEwODY2NzYyMjA0MjIxNTA5Njk3MTc0NzIwMzEwNTk5NzQ1NDYyNTgxNDA4MCJdLFsiMTk1OTg1NDEzNTA4MDQ0Nzg1NDkxNDEyMDc4MzUwMjg2NzExMTEwNjM5MTU2MzU1ODA2Nzk2OTQ5MDc2MzU5MTQyNzk5Mjg2Nzc4MTIiLCIxNTI2NDU1MzA0NTUxNzA2NTY2OTE3MTU4NDk0Mzk2NDMyMjExNzM5NzY0NTE0NzAwNjkwOTE2NzQyNzgwOTgzNzkyOTQ1ODAxMjkxMyJdLFsiMSIsIjAiXV0sInBpX2MiOlsiMTY0NDMzMDkyNzk4MjU1MDg4OTMwODYyNTEyOTAwMDM5MzY5MzUwNzczNDg3NTQwOTc0NzA4MTg1MjM1NTgwODI1MDIzNjQ4MjIwNDkiLCIyOTg0MTgwMjI3NzY2MDQ4MTAwNTEwMTIwNDA3MTUwNzUyMDUyMzM0NTcxODc2NjgxMzA0OTk5NTk1NTQ0MTM4MTU1NjExOTYzMjczIiwiMSJdLCJwcm90b2NvbCI6IiJ9fV19fQ._p8wS2JZELczn33_uB6EfmXzZ3RaizJVZIEclTT_UWS-xtPR6jpcthmRZGU1yrBQCNsf2ScWqvzzAV3DOJuKsg`
 	p := JWSPacker{
-		didResolverHandler: DIDResolverHandlerFunc(func(did string) (*verifiable.DIDDocument, error) {
+		didResolverHandler: DIDResolverHandlerFunc(func(_ string) (*verifiable.DIDDocument, error) {
 			didDoc := &verifiable.DIDDocument{}
 			err := json.Unmarshal([]byte(exampleDidDocJS), didDoc)
 			require.NoError(t, err)
@@ -113,7 +113,7 @@ func TestJWSBlockChainAccountId(t *testing.T) {
 	// token from js impelementation
 	const token = `eyJhbGciOiJFUzI1NkstUiIsImtpZCI6ImRpZDpwa2g6cG9seToweEIwNjEyNjg2RThENDlDYTQ1MzkyODkzYTk3N0RlNTRiRkEyOTM1QzcjUmVjb3ZlcnkyMDIwIiwidHlwIjoiYXBwbGljYXRpb24vaWRlbjNjb21tLXNpZ25lZC1qc29uIn0.eyJpZCI6IjM5MWQyYjlhLTk5MTktNGYzMi04OTJlLTRkYTNlZDg3N2ZkYSIsInR5cCI6ImFwcGxpY2F0aW9uL2lkZW4zY29tbS1zaWduZWQtanNvbiIsInR5cGUiOiJodHRwczovL2lkZW4zLWNvbW11bmljYXRpb24uaW8vYXV0aG9yaXphdGlvbi8xLjAvcmVzcG9uc2UiLCJ0aGlkIjoiZmI3YWQ1ZDItNWI1MC00NWRhLThiODAtNzMxNzFlMjE3Zjc0IiwiYm9keSI6eyJzY29wZSI6W119LCJmcm9tIjoiZGlkOnBraDpwb2x5OjB4QjA2MTI2ODZFOEQ0OUNhNDUzOTI4OTNhOTc3RGU1NGJGQTI5MzVDNyIsInRvIjoiZGlkOnBvbHlnb25pZDpwb2x5Z29uOm11bWJhaToycUo2ODlrcG9KeGNTekI1c0FGSnRQc1NCU3JIRjVkcTcyMkJITXFVUkwifQ.X9YSNYYrt21Duft6R0hY6PKJodHdCpY_8XxydCLHCRBTXhsUWkF4dkPv8Mcvg-XsAD7dBpwY8aAPqCL9qq_JhwA`
 	p := JWSPacker{
-		didResolverHandler: DIDResolverHandlerFunc(func(did string) (*verifiable.DIDDocument, error) {
+		didResolverHandler: DIDResolverHandlerFunc(func(_ string) (*verifiable.DIDDocument, error) {
 			didDoc := &verifiable.DIDDocument{}
 			err := json.Unmarshal([]byte(`{
   "@context": [
@@ -151,7 +151,7 @@ func TestJWSBlockChainAccountId(t *testing.T) {
 func TestJWS_InvalidCase(t *testing.T) {
 	const token = `eyJhbGciOiJFUzI1NksiLCJraWQiOiJkaWQ6aWRlbjM6cG9seWdvbjptdW1iYWk6eDRqY0hQNFhIVEszdlg1OEFIWlB5SEU4a1lqbmV5RTZGWlJmejdLMjkiLCJ0eXAiOiJhcHBsaWNhdGlvbi9pZGVuM2NvbW0tc2lnbmVkLWpzb24ifQ.eyJ0eXBlIjoiaHR0cHM6Ly9pZGVuMy1jb21tdW5pY2F0aW9uLmlvL2F1dGhvcml6YXRpb24vMS4wL3Jlc3BvbnNlIiwiZnJvbSI6ImRpZDppZGVuMzpwb2x5Z29uOm11bWJhaTp4NGpjSFA0WEhUSzN2WDU4QUhaUHlIRThrWWpuZXlFNkZaUmZ6N0syOSIsImJvZHkiOnsic2NvcGUiOlt7InR5cGUiOiJ6ZXJva25vd2xlZGdlIiwiY2lyY3VpdF9pZCI6ImF1dGgiLCJwdWJfc2lnbmFscyI6WyIxIiwiMTgzMTE1NjA1MjUzODMzMTk3MTkzMTEzOTQ5NTcwNjQ4MjAwOTEzNTQ5NzYzMTA1OTk4MTg3OTcxNTcxODk1Njg2MjE0NjY5NTA4MTEiLCIzMjM0MTY5MjUyNjQ2NjYyMTc2MTcyODg1Njk3NDI1NjQ3MDM2MzI4NTA4MTYwMzU3NjEwODQwMDI3MjAwOTAzNzczNTMyOTc5MjAiXSwicHJvb2ZfZGF0YSI6eyJwaV9hIjpbIjExMTMwODQzMTUwNTQwNzg5Mjk5NDU4OTkwNTg2MDIwMDAwNzE5MjgwMjQ2MTUzNzk3ODgyODQzMjE0MjkwNTQxOTgwNTIyMzc1MDcyIiwiMTMwMDg0MTkxMjk0Mzc4MTcyMzAyMjAzMjM1NTgzNjg5MzgzMTEzMjkyMDc4Mzc4ODQ1NTUzMTgzODI1NDQ2NTc4NDYwNTc2MjcxMyIsIjEiXSwicGlfYiI6W1siMjA2MTU3Njg1MzY5ODg0MzgzMzY1Mzc3Nzc5MDkwNDIzNTIwNTYzOTI4NjIyNTE3ODU3MjI3OTY2Mzc1OTAyMTIxNjA1NjEzNTE2NTYiLCIxMDM3MTE0NDgwNjEwNzc3ODg5MDUzODg1NzcwMDg1NTEwODY2NzYyMjA0MjIxNTA5Njk3MTc0NzIwMzEwNTk5NzQ1NDYyNTgxNDA4MCJdLFsiMTk1OTg1NDEzNTA4MDQ0Nzg1NDkxNDEyMDc4MzUwMjg2NzExMTEwNjM5MTU2MzU1ODA2Nzk2OTQ5MDc2MzU5MTQyNzk5Mjg2Nzc4MTIiLCIxNTI2NDU1MzA0NTUxNzA2NTY2OTE3MTU4NDk0Mzk2NDMyMjExNzM5NzY0NTE0NzAwNjkwOTE2NzQyNzgwOTgzNzkyOTQ1ODAxMjkxMyJdLFsiMSIsIjAiXV0sInBpX2MiOlsiMTY0NDMzMDkyNzk4MjU1MDg4OTMwODYyNTEyOTAwMDM5MzY5MzUwNzczNDg3NTQwOTc0NzA4MTg1MjM1NTgwODI1MDIzNjQ4MjIwNDkiLCIyOTg0MTgwMjI3NzY2MDQ4MTAwNTEwMTIwNDA3MTUwNzUyMDUyMzM0NTcxODc2NjgxMzA0OTk5NTk1NTQ0MTM4MTU1NjExOTYzMjczIiwiMSJdLCJwcm90b2NvbCI6IiJ9fV19fQ.b8cIb4XyguxRU73Tp3VB3sZh3P00y52tnpTiuTkZQkbYKiOhecpMSpJZ16u4qE8oQIsfNwY34SYgSZ88dyQbcM`
 	p := JWSPacker{
-		didResolverHandler: DIDResolverHandlerFunc(func(did string) (*verifiable.DIDDocument, error) {
+		didResolverHandler: DIDResolverHandlerFunc(func(_ string) (*verifiable.DIDDocument, error) {
 			didDoc := &verifiable.DIDDocument{}
 			err := json.Unmarshal([]byte(exampleDidDocJS), didDoc)
 			require.NoError(t, err)
