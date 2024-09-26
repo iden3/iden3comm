@@ -26,7 +26,6 @@ type ContractInvokeRequestMessage struct {
 // ContractInvokeRequestMessageBody is body for contract invoke request
 type ContractInvokeRequestMessageBody struct {
 	Reason          string                      `json:"reason,omitempty"`
-	Message         string                      `json:"message,omitempty"`
 	TransactionData TransactionData             `json:"transaction_data"`
 	DIDDoc          json.RawMessage             `json:"did_doc,omitempty"`
 	Scope           []ZeroKnowledgeProofRequest `json:"scope"`
