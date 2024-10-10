@@ -306,10 +306,10 @@ func recoverEthereumAddress(token *jws.Message, vm verifiable.CommonVerification
 	signedData := base64TokenParts[0] + "." + base64TokenParts[1]
 	hash := sha256.Sum256([]byte(signedData))
 	sig := token.Signatures()[0].Signature()
-	if len(sig) != 65 && alg == "ES256K-R" {
+	if len(sig) == 64 && alg == "ES256K-R" {
 		sig = append(sig, []byte{1}...)
 	}
-	if len(sig) != 65 && alg == "ES256K" {
+	if len(sig) == 64 && alg == "ES256K" {
 		sig = append(sig, []byte{0}...)
 	}
 	recoveredKey, err := ecc.RecoverEthereum(hash[:], sig)
