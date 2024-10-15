@@ -133,15 +133,45 @@ func (p *ZKPPacker) Pack(payload []byte, params iden3comm.PackerParams) ([]byte,
 	return []byte(tokenStr), nil
 }
 
-// Unpack returns unpacked message from transport envelope with verification of zeroknowledge proof
-func (p *ZKPPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
+// ZKPPUnpackerParams is params for zkp unpacker
+type ZKPPUnpackerParams struct {
+	authVerifyDelay time.Duration
+	ethResolver     map[int]eth.Resolver
+	verificationKey []byte
+	iden3comm.PackerParams
+}
+
+// NewZKPPUnpackerParams creates new zkp unpacker params
+func NewZKPPUnpackerParams(verificationKey []byte, resolvers map[int]eth.Resolver, authVerifyDelay time.Duration) ZKPPUnpackerParams {
+	return ZKPPUnpackerParams{
+		authVerifyDelay: authVerifyDelay,
+		ethResolver:     resolvers,
+		verificationKey: verificationKey,
+	}
+}
+
+// Unpack returns unpacked message from transport envelope with verification of zero knowledge proof
+// params is variadic but only none or one is accepted
+func (p *ZKPPacker) Unpack(envelope []byte, params ...iden3comm.PackerParams) (*iden3comm.BasicMessage, error) {
+
+	if len(params) > 1 {
+		return nil, errors.New("expecting no more than one parameter in ZKPPacker Unpack")
+	}
+	unpacker := p
+	if len(params) == 1 {
+		zkParams, ok := (params[0]).(ZKPPUnpackerParams)
+		if !ok {
+			return nil, errors.New("can't cast params to zkp unpacker params")
+		}
+		unpacker = DefaultZKPUnpacker(zkParams.verificationKey, zkParams.ethResolver, WithAuthVerifyDelay(zkParams.authVerifyDelay))
+	}
 
 	token, err := jwz.Parse(string(envelope))
 	if err != nil {
 		return nil, err
 	}
 
-	verificationKey, ok := p.Verification[jwz.ProvingMethodAlg{Alg: token.Alg, CircuitID: token.CircuitID}]
+	verificationKey, ok := unpacker.Verification[jwz.ProvingMethodAlg{Alg: token.Alg, CircuitID: token.CircuitID}]
 	if !ok {
 		return nil, fmt.Errorf("message was packed with unsupported circuit `%s` and alg `%s`", token.CircuitID,
 			token.Alg)

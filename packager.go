@@ -16,7 +16,7 @@ type Packer interface {
 	// Pack a payload of type ContentType in an Iden3 compliant format using the packer identity
 	Pack(payload []byte, params PackerParams) ([]byte, error)
 	// Unpack an envelope in Iden3 compliant format.
-	Unpack(envelope []byte) (*BasicMessage, error)
+	Unpack(envelope []byte, params ...PackerParams) (*BasicMessage, error)
 	// MediaType returns content type of message
 	MediaType() MediaType
 }
@@ -65,14 +65,14 @@ func (r *PackageManager) Pack(mediaType MediaType, payload []byte, params Packer
 
 // Unpack returns iden3 message method from envelope
 // if it's not valid or can't be decrypted error is returned
-func (r *PackageManager) Unpack(envelope []byte) (*BasicMessage, MediaType, error) {
+func (r *PackageManager) Unpack(envelope []byte, params ...PackerParams) (*BasicMessage, MediaType, error) {
 	safeEnvelope := strings.Trim(strings.TrimSpace(string(envelope)), "\"")
 	mediaType, err := r.GetMediaType([]byte(safeEnvelope))
 	if err != nil {
 		return nil, "", err
 	}
 
-	msg, err := r.unpackSafeEnvelope(mediaType, []byte(safeEnvelope))
+	msg, err := r.unpackSafeEnvelope(mediaType, []byte(safeEnvelope), params...)
 	if err != nil {
 		return nil, mediaType, err
 	}
@@ -85,14 +85,14 @@ func (r *PackageManager) UnpackWithType(mediaType MediaType, envelope []byte) (*
 	return r.unpackSafeEnvelope(mediaType, []byte(safeEnvelope))
 }
 
-func (r *PackageManager) unpackSafeEnvelope(mediaType MediaType, envelope []byte) (*BasicMessage, error) {
+func (r *PackageManager) unpackSafeEnvelope(mediaType MediaType, envelope []byte, params ...PackerParams) (*BasicMessage, error) {
 	p, ok := r.packers[mediaType]
 	if !ok {
 		return nil, errors.Errorf("packer for media type %s doesn't exist", mediaType)
 	}
 
 	// safeEnvelope can be rather base64 encoded or valid json
-	msg, err := p.Unpack(envelope)
+	msg, err := p.Unpack(envelope, params...)
 	if err != nil {
 		return nil, err
 	}
