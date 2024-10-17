@@ -32,7 +32,7 @@ func (p *PlainMessagePacker) Pack(payload []byte, _ iden3comm.PackerParams) ([]b
 }
 
 // Unpack returns unpacked message from transport envelope
-func (p *PlainMessagePacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
+func (p *PlainMessagePacker) Unpack(envelope []byte, _ ...iden3comm.PackerParams) (*iden3comm.BasicMessage, error) {
 
 	var msg iden3comm.BasicMessage
 	err := json.Unmarshal(envelope, &msg)
