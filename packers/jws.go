@@ -200,7 +200,7 @@ func (p *JWSPacker) Pack(
 }
 
 // Unpack returns unpacked message from transport envelope with verification of signature
-func (p *JWSPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
+func (p *JWSPacker) Unpack(envelope []byte, _ ...iden3comm.PackerParams) (*iden3comm.BasicMessage, error) {
 
 	token, err := jws.Parse(envelope)
 	if err != nil {

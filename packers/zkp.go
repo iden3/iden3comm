@@ -133,14 +133,31 @@ func (p *ZKPPacker) Pack(payload []byte, params iden3comm.PackerParams) ([]byte,
 	return []byte(tokenStr), nil
 }
 
-// Unpack returns unpacked message from transport envelope with verification of zeroknowledge proof
-func (p *ZKPPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
+// ZKPPUnpackerParams is params for zkp unpacker
+type ZKPPUnpackerParams struct {
+	authVerifyDelay time.Duration
+	iden3comm.PackerParams
+}
+
+// NewZKPPUnpackerParams creates new zkp unpacker params
+func NewZKPPUnpackerParams(authVerifyDelay time.Duration) ZKPPUnpackerParams {
+	return ZKPPUnpackerParams{
+		authVerifyDelay: authVerifyDelay,
+	}
+}
+
+// Unpack returns unpacked message from transport envelope with verification of zero knowledge proof
+// params is variadic but only none or one is accepted
+func (p *ZKPPacker) Unpack(envelope []byte, params ...iden3comm.PackerParams) (*iden3comm.BasicMessage, error) {
+
+	if len(params) > 1 {
+		return nil, errors.New("expecting no more than one parameter in ZKPPacker Unpack")
+	}
 
 	token, err := jwz.Parse(string(envelope))
 	if err != nil {
 		return nil, err
 	}
-
 	verificationKey, ok := p.Verification[jwz.ProvingMethodAlg{Alg: token.Alg, CircuitID: token.CircuitID}]
 	if !ok {
 		return nil, fmt.Errorf("message was packed with unsupported circuit `%s` and alg `%s`", token.CircuitID,
@@ -155,7 +172,16 @@ func (p *ZKPPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 		return nil, errors.New("message proof is invalid")
 	}
 
-	err = verificationKey.VerificationFn.Verify(circuits.CircuitID(token.CircuitID), token.ZkProof.PubSignals)
+	var authVerifDelay time.Duration
+	if len(params) == 1 {
+		zkParams, ok := (params[0]).(ZKPPUnpackerParams)
+		if !ok {
+			return nil, errors.New("can't cast params to zkp unpacker params")
+		}
+		authVerifDelay = zkParams.authVerifyDelay
+	}
+	_ = authVerifDelay
+	err = verificationKey.VerificationFn.Verify(circuits.CircuitID(token.CircuitID), token.ZkProof.PubSignals) // TODO: Pass as a config func the value of authVerifDelay to Verify()
 	if err != nil {
 		return nil, err
 	}
@@ -291,7 +317,10 @@ func (d *defaultZKPUnpacker) defaultZkpUnpackerVerificationFn(id circuits.Circui
 			userDID.String(), err)
 	}
 
-	resolver := d.resolvers[int(chainID)]
+	resolver, found := d.resolvers[int(chainID)]
+	if !found {
+		return errors.Errorf("resolver for chainID '%d' not found", chainID)
+	}
 
 	globalState := authPubSignals.GISTRoot.BigInt()
 	globalStateInfo, err := resolver.ResolveGist(context.Background(), &services.ResolverOpts{GistRoot: globalState})
