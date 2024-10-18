@@ -136,17 +136,13 @@ func (p *ZKPPacker) Pack(payload []byte, params iden3comm.PackerParams) ([]byte,
 // ZKPPUnpackerParams is params for zkp unpacker
 type ZKPPUnpackerParams struct {
 	authVerifyDelay time.Duration
-	ethResolver     map[int]eth.Resolver
-	verificationKey []byte
 	iden3comm.PackerParams
 }
 
 // NewZKPPUnpackerParams creates new zkp unpacker params
-func NewZKPPUnpackerParams(verificationKey []byte, resolvers map[int]eth.Resolver, authVerifyDelay time.Duration) ZKPPUnpackerParams {
+func NewZKPPUnpackerParams(authVerifyDelay time.Duration) ZKPPUnpackerParams {
 	return ZKPPUnpackerParams{
 		authVerifyDelay: authVerifyDelay,
-		ethResolver:     resolvers,
-		verificationKey: verificationKey,
 	}
 }
 
@@ -157,21 +153,12 @@ func (p *ZKPPacker) Unpack(envelope []byte, params ...iden3comm.PackerParams) (*
 	if len(params) > 1 {
 		return nil, errors.New("expecting no more than one parameter in ZKPPacker Unpack")
 	}
-	unpacker := p
-	if len(params) == 1 {
-		zkParams, ok := (params[0]).(ZKPPUnpackerParams)
-		if !ok {
-			return nil, errors.New("can't cast params to zkp unpacker params")
-		}
-		unpacker = DefaultZKPUnpacker(zkParams.verificationKey, zkParams.ethResolver, WithAuthVerifyDelay(zkParams.authVerifyDelay))
-	}
 
 	token, err := jwz.Parse(string(envelope))
 	if err != nil {
 		return nil, err
 	}
-
-	verificationKey, ok := unpacker.Verification[jwz.ProvingMethodAlg{Alg: token.Alg, CircuitID: token.CircuitID}]
+	verificationKey, ok := p.Verification[jwz.ProvingMethodAlg{Alg: token.Alg, CircuitID: token.CircuitID}]
 	if !ok {
 		return nil, fmt.Errorf("message was packed with unsupported circuit `%s` and alg `%s`", token.CircuitID,
 			token.Alg)
@@ -185,7 +172,16 @@ func (p *ZKPPacker) Unpack(envelope []byte, params ...iden3comm.PackerParams) (*
 		return nil, errors.New("message proof is invalid")
 	}
 
-	err = verificationKey.VerificationFn.Verify(circuits.CircuitID(token.CircuitID), token.ZkProof.PubSignals)
+	var authVerifDelay time.Duration
+	if len(params) == 1 {
+		zkParams, ok := (params[0]).(ZKPPUnpackerParams)
+		if !ok {
+			return nil, errors.New("can't cast params to zkp unpacker params")
+		}
+		authVerifDelay = zkParams.authVerifyDelay
+	}
+	_ = authVerifDelay
+	err = verificationKey.VerificationFn.Verify(circuits.CircuitID(token.CircuitID), token.ZkProof.PubSignals) // TODO: Pass as a config func the value of authVerifDelay to Verify()
 	if err != nil {
 		return nil, err
 	}
