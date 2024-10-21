@@ -82,11 +82,6 @@ func PrepareAuthInputs(hash []byte, _ *w3c.DID, _ circuits.CircuitID) ([]byte, e
 	return j, err
 }
 
-// VerifyState return no error always
-func VerifyState(_ circuits.CircuitID, _ []string) error {
-	return nil
-}
-
 // MockRecipientKeyID is mocked key id for recipient
 const MockRecipientKeyID = "123456789"
 

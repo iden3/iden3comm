@@ -65,7 +65,7 @@ func (p *AnoncryptPacker) Pack(payload []byte, params iden3comm.PackerParams) ([
 }
 
 // Unpack returns unpacked message from transport envelope
-func (p *AnoncryptPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
+func (p *AnoncryptPacker) Unpack(envelope []byte, _ ...iden3comm.PackerParams) (*iden3comm.BasicMessage, error) {
 
 	jwe, err := jose.ParseEncrypted(string(envelope))
 	if err != nil {
