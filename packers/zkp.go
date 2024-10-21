@@ -30,11 +30,11 @@ func (f DataPreparerHandlerFunc) Prepare(hash []byte, id *w3c.DID, circuitID cir
 }
 
 // VerificationHandlerFunc  registers the handler function for state verification.
-type VerificationHandlerFunc func(id circuits.CircuitID, pubsignals []string) error
+type VerificationHandlerFunc func(id circuits.CircuitID, pubsignals []string, confFuncs ...DefaultZKPUnpackerOption) error
 
 // Verify function is responsible to call provided handler for outputs verification
-func (f VerificationHandlerFunc) Verify(id circuits.CircuitID, pubsignals []string) error {
-	return f(id, pubsignals)
+func (f VerificationHandlerFunc) Verify(id circuits.CircuitID, pubsignals []string, confFuncs ...DefaultZKPUnpackerOption) error {
+	return f(id, pubsignals, confFuncs...)
 }
 
 // VerificationParams defined the verification function and the verification key for ZKP full verification
@@ -264,32 +264,44 @@ func (p *ZKPPacker) MediaType() iden3comm.MediaType {
 }
 
 // DefaultZKPUnpackerOption is a function that sets the default ZKP unpacker options
-type DefaultZKPUnpackerOption func(*defaultZKPUnpacker)
+type DefaultZKPUnpackerOption func(*zkUnpackerOpts)
 
 // WithAuthVerifyDelay sets the delay for the auth verification
 func WithAuthVerifyDelay(delay time.Duration) DefaultZKPUnpackerOption {
-	return func(p *defaultZKPUnpacker) {
+	return func(p *zkUnpackerOpts) {
 		p.authVerifyDelay = delay
 	}
 }
 
-type defaultZKPUnpacker struct {
-	resolvers       map[int]eth.Resolver
+type zkUnpackerOpts struct {
 	authVerifyDelay time.Duration
+}
+
+type defaultZKPUnpacker struct {
+	resolvers map[int]eth.Resolver
+	opts      zkUnpackerOpts
 }
 
 // DefaultZKPUnpacker creates a default ZKP unpacker with the provided verification key and resolvers
 func DefaultZKPUnpacker(verificationKey []byte, resolvers map[int]eth.Resolver, opts ...DefaultZKPUnpackerOption) *ZKPPacker {
-	def := &defaultZKPUnpacker{resolvers, time.Minute * 5}
+	def := &defaultZKPUnpacker{
+		resolvers: resolvers,
+		opts:      zkUnpackerOpts{authVerifyDelay: time.Minute * 5},
+	}
 	for _, opt := range opts {
-		opt(def)
+		opt(&def.opts)
 	}
 	verifications := make(map[jwz.ProvingMethodAlg]VerificationParams)
 	verifications[jwz.AuthV2Groth16Alg] = NewVerificationParams(verificationKey, def.defaultZkpUnpackerVerificationFn)
 	return NewZKPPacker(nil, verifications)
 }
 
-func (d *defaultZKPUnpacker) defaultZkpUnpackerVerificationFn(id circuits.CircuitID, pubsignals []string) error {
+func (d *defaultZKPUnpacker) defaultZkpUnpackerVerificationFn(id circuits.CircuitID, pubsignals []string, opts ...DefaultZKPUnpackerOption) error {
+	options := d.opts
+	for _, opt := range opts {
+		opt(&options)
+	}
+
 	if id != circuits.AuthV2CircuitID {
 		return errors.Errorf("circuit ID '%s' is not supported", id)
 	}
@@ -335,7 +347,7 @@ func (d *defaultZKPUnpacker) defaultZkpUnpackerVerificationFn(id circuits.Circui
 	}
 
 	if (big.NewInt(0)).Cmp(globalStateInfo.ReplacedByRoot) != 0 &&
-		time.Since(time.Unix(globalStateInfo.ReplacedAtTimestamp.Int64(), 0)) > d.authVerifyDelay {
+		time.Since(time.Unix(globalStateInfo.ReplacedAtTimestamp.Int64(), 0)) > options.authVerifyDelay {
 		return errors.Errorf("global state is too old, replaced timestamp is %v",
 			globalStateInfo.ReplacedAtTimestamp.Int64())
 	}
