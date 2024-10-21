@@ -30,11 +30,11 @@ func (f DataPreparerHandlerFunc) Prepare(hash []byte, id *w3c.DID, circuitID cir
 }
 
 // VerificationHandlerFunc  registers the handler function for state verification.
-type VerificationHandlerFunc func(id circuits.CircuitID, pubsignals []string, confFuncs ...DefaultZKPUnpackerOption) error
+type VerificationHandlerFunc func(id circuits.CircuitID, pubsignals []string, opts ...DefaultZKPUnpackerOption) error
 
 // Verify function is responsible to call provided handler for outputs verification
-func (f VerificationHandlerFunc) Verify(id circuits.CircuitID, pubsignals []string, confFuncs ...DefaultZKPUnpackerOption) error {
-	return f(id, pubsignals, confFuncs...)
+func (f VerificationHandlerFunc) Verify(id circuits.CircuitID, pubsignals []string, opts ...DefaultZKPUnpackerOption) error {
+	return f(id, pubsignals, opts...)
 }
 
 // VerificationParams defined the verification function and the verification key for ZKP full verification
