@@ -172,16 +172,15 @@ func (p *ZKPPacker) Unpack(envelope []byte, params ...iden3comm.PackerParams) (*
 		return nil, errors.New("message proof is invalid")
 	}
 
-	var authVerifDelay time.Duration
+	var verifyOpts []DefaultZKPUnpackerOption
 	if len(params) == 1 {
 		zkParams, ok := (params[0]).(ZKPPUnpackerParams)
 		if !ok {
 			return nil, errors.New("can't cast params to zkp unpacker params")
 		}
-		authVerifDelay = zkParams.authVerifyDelay
+		verifyOpts = append(verifyOpts, WithAuthVerifyDelay(zkParams.authVerifyDelay))
 	}
-	_ = authVerifDelay
-	err = verificationKey.VerificationFn.Verify(circuits.CircuitID(token.CircuitID), token.ZkProof.PubSignals) // TODO: Pass as a config func the value of authVerifDelay to Verify()
+	err = verificationKey.VerificationFn.Verify(circuits.CircuitID(token.CircuitID), token.ZkProof.PubSignals, verifyOpts...)
 	if err != nil {
 		return nil, err
 	}
