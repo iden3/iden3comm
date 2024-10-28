@@ -159,7 +159,7 @@ type Iden3PaymentRequestCryptoV1 struct {
 	Address    string `json:"address"`
 	Amount     string `json:"amount"`
 	Currency   string `json:"currency"`
-	Expiration string `json:"expirationDate,omitempty"`
+	Expiration string `json:"expiration,omitempty"`
 }
 
 // Iden3PaymentRailsRequestV1 represents the Iden3PaymentRailsRequestV1 payment request data.
