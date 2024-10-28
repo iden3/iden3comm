@@ -159,7 +159,7 @@ type Iden3PaymentRequestCryptoV1 struct {
 	Address    string `json:"address"`
 	Amount     string `json:"amount"`
 	Currency   string `json:"currency"`
-	Expiration string `json:"expiration,omitempty"`
+	Expiration string `json:"expirationDate,omitempty"`
 }
 
 // Iden3PaymentRailsRequestV1 represents the Iden3PaymentRailsRequestV1 payment request data.
@@ -213,7 +213,7 @@ type Eip712Data struct {
 type Eip712Domain struct {
 	Name              string `json:"name"`
 	Version           string `json:"version"`
-	ChainId           string `json:"chainId"`
+	ChainID           string `json:"chainId"`
 	VerifyingContract string `json:"verifyingContract"`
 	Salt              string `json:"salt"`
 }
