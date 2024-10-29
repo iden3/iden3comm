@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/iden3/go-schema-processor/v2/verifiable"
 	"github.com/pkg/errors"
 
 	"github.com/iden3/iden3comm/v2"
@@ -11,10 +12,10 @@ import (
 
 const (
 	// PaymentRequestMessageType is a Iden3PaymentMessage payment type
-	PaymentRequestMessageType iden3comm.ProtocolMessage = iden3comm.DidCommProtocol + "credentials/0.1/payment-request"
+	PaymentRequestMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/0.1/payment-request"
 
 	// PaymentMessageType is a Iden3PaymentMessage payment type
-	PaymentMessageType iden3comm.ProtocolMessage = iden3comm.DidCommProtocol + "credentials/0.1/payment"
+	PaymentMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/0.1/payment"
 
 	// Iden3PaymentRequestCryptoV1Type is a Iden3PaymentRequestCryptoV1 payment type
 	Iden3PaymentRequestCryptoV1Type = "Iden3PaymentRequestCryptoV1"
@@ -194,12 +195,12 @@ func (p *EthereumEip712Signature2021Col) UnmarshalJSON(data []byte) error {
 
 // EthereumEip712Signature2021 represents the Ethereum EIP712 signature.
 type EthereumEip712Signature2021 struct {
-	Type               string     `json:"type"`
-	ProofPurpose       string     `json:"proofPurpose"`
-	ProofValue         string     `json:"proofValue"`
-	VerificationMethod string     `json:"verificationMethod"`
-	Created            string     `json:"created"`
-	Eip712             Eip712Data `json:"eip712"`
+	Type               verifiable.ProofType `json:"type"`
+	ProofPurpose       string               `json:"proofPurpose"`
+	ProofValue         string               `json:"proofValue"`
+	VerificationMethod string               `json:"verificationMethod"`
+	Created            string               `json:"created"`
+	Eip712             Eip712Data           `json:"eip712"`
 }
 
 // Eip712Data represents the EIP712 data.
