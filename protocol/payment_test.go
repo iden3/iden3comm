@@ -453,6 +453,11 @@ func TestPaymentContext(t *testing.T) {
 			payload:         []byte(`[{"field":"context1"}, "context in a string"]`),
 			expectedPayload: []byte(`[{"field":"context1"}, "context in a string"]`),
 		},
+		{
+			desc:            "A list of heterogeneous objects, first is a string",
+			payload:         []byte(`["context in a string", {"field":"context1"}]`),
+			expectedPayload: []byte(`["context in a string", {"field":"context1"}]`),
+		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
 			var msg PaymentContext

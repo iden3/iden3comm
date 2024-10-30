@@ -120,6 +120,8 @@ func (p *PaymentRequestInfoData) UnmarshalJSON(data []byte) error {
 	var rails Iden3PaymentRailsRequestV1
 	var railsCol []Iden3PaymentRailsRequestV1
 
+	p.crypto, p.rails = nil, nil
+
 	if err := json.Unmarshal(data, &crypto); err == nil {
 		if crypto.Type == Iden3PaymentRequestCryptoV1Type {
 			p.crypto = append(p.crypto, crypto)
@@ -361,23 +363,34 @@ func (p PaymentContext) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON unmarshal the PaymentContext from JSON.
 func (p *PaymentContext) UnmarshalJSON(data []byte) error {
-	var str string
-	var strCol []string
-	var itemCol []interface{}
+	var o any
+	if err := json.Unmarshal(data, &o); err != nil {
+		return err
+	}
 
-	if err := json.Unmarshal(data, &str); err == nil {
-		p.str = &str
-		return nil
+	switch v := o.(type) {
+	case string:
+		p.str = &v
+		p.strCol = nil
+		p.itemCol = nil
+	case []any:
+		p.str = nil
+		p.itemCol = nil
+		p.strCol = make([]string, len(v))
+		for i := range v {
+			s, ok := v[i].(string)
+			if !ok {
+				p.strCol = nil
+				p.itemCol = v
+				break
+			}
+			p.strCol[i] = s
+		}
+	default:
+		return errors.Errorf("failed to unmarshal PaymentContext: %s", string(data))
 	}
-	if err := json.Unmarshal(data, &strCol); err == nil {
-		p.strCol = strCol
-		return nil
-	}
-	if err := json.Unmarshal(data, &itemCol); err == nil {
-		p.itemCol = itemCol
-		return nil
-	}
-	return errors.Errorf("failed to unmarshal PaymentContext: %s", string(data))
+
+	return nil
 }
 
 // Data returns the data in the union.
