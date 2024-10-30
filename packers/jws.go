@@ -268,9 +268,9 @@ func (p *JWSPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 			continue
 		}
 
-		// if previous validation failed but blockchainAccountId or ethereumAddress are set - try to recover address from signature (E256K-R)
+		// if previous validation failed but blockchainAccountId or ethereumAddress are set - try to recover address from signature (E256K or E256K-R)
 		if err != nil {
-			errRecover := recoverEthereumAddress(token, vms[i])
+			errRecover := recoverEthereumAddress(token, vms[i], alg)
 			if errRecover != nil {
 				continue
 			}
@@ -294,7 +294,7 @@ func verifySignatureWithPublicKey(envelope []byte, alg jwa.SignatureAlgorithm, v
 	}
 	return nil
 }
-func recoverEthereumAddress(token *jws.Message, vm verifiable.CommonVerificationMethod) error {
+func recoverEthereumAddress(token *jws.Message, vm verifiable.CommonVerificationMethod, alg jwa.SignatureAlgorithm) error {
 	base64Token, err := jws.Compact(token)
 	if err != nil {
 		return errors.WithStack(err)
@@ -306,6 +306,12 @@ func recoverEthereumAddress(token *jws.Message, vm verifiable.CommonVerification
 	signedData := base64TokenParts[0] + "." + base64TokenParts[1]
 	hash := sha256.Sum256([]byte(signedData))
 	sig := token.Signatures()[0].Signature()
+	if len(sig) == 64 && alg == "ES256K-R" {
+		sig = append(sig, []byte{1}...)
+	}
+	if len(sig) == 64 && alg == "ES256K" {
+		sig = append(sig, []byte{0}...)
+	}
 	recoveredKey, err := ecc.RecoverEthereum(hash[:], sig)
 	if err != nil {
 		return errors.WithStack(err)
