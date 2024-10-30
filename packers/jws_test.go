@@ -109,6 +109,22 @@ func TestJWS(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestES256K_JWS_WithRecoveryFalse(t *testing.T) {
+	// token from js impelementation
+	const token = `eyJhbGciOiJFUzI1NksiLCJraWQiOiJkaWQ6aWRlbjM6cHJpdmFkbzptYWluOjJTWkRzZFlvcmRTSDQ5VmhTNmhHbzE2NFJMd2ZjUWU5RkdvdzVmdFNVRyN2bS0xIiwidHlwIjoiYXBwbGljYXRpb24vaWRlbjNjb21tLXNpZ25lZC1qc29uIn0.eyJ0eXBlIjoiaHR0cHM6Ly9pZGVuMy1jb21tdW5pY2F0aW9uLmlvL2F1dGhvcml6YXRpb24vMS4wL3Jlc3BvbnNlIiwiZnJvbSI6ImRpZDppZGVuMzpwcml2YWRvOm1haW46MlNaRHNkWW9yZFNINDlWaFM2aEdvMTY0Ukx3ZmNRZTlGR293NWZ0U1VHIiwiYm9keSI6eyJzY29wZSI6W3sidHlwZSI6Inplcm9rbm93bGVkZ2UiLCJjaXJjdWl0X2lkIjoiYXV0aCIsInB1Yl9zaWduYWxzIjpbIjEiLCIxODMxMTU2MDUyNTM4MzMxOTcxOTMxMTM5NDk1NzA2NDgyMDA5MTM1NDk3NjMxMDU5OTgxODc5NzE1NzE4OTU2ODYyMTQ2Njk1MDgxMSIsIjMyMzQxNjkyNTI2NDY2NjIxNzYxNzI4ODU2OTc0MjU2NDcwMzYzMjg1MDgxNjAzNTc2MTA4NDAwMjcyMDA5MDM3NzM1MzI5NzkyMCJdLCJwcm9vZl9kYXRhIjp7InBpX2EiOlsiMTExMzA4NDMxNTA1NDA3ODkyOTk0NTg5OTA1ODYwMjAwMDA3MTkyODAyNDYxNTM3OTc4ODI4NDMyMTQyOTA1NDE5ODA1MjIzNzUwNzIiLCIxMzAwODQxOTEyOTQzNzgxNzIzMDIyMDMyMzU1ODM2ODkzODMxMTMyOTIwNzgzNzg4NDU1NTMxODM4MjU0NDY1Nzg0NjA1NzYyNzEzIiwiMSJdLCJwaV9iIjpbWyIyMDYxNTc2ODUzNjk4ODQzODMzNjUzNzc3NzkwOTA0MjM1MjA1NjM5Mjg2MjI1MTc4NTcyMjc5NjYzNzU5MDIxMjE2MDU2MTM1MTY1NiIsIjEwMzcxMTQ0ODA2MTA3Nzc4ODkwNTM4ODU3NzAwODU1MTA4NjY3NjIyMDQyMjE1MDk2OTcxNzQ3MjAzMTA1OTk3NDU0NjI1ODE0MDgwIl0sWyIxOTU5ODU0MTM1MDgwNDQ3ODU0OTE0MTIwNzgzNTAyODY3MTExMTA2MzkxNTYzNTU4MDY3OTY5NDkwNzYzNTkxNDI3OTkyODY3NzgxMiIsIjE1MjY0NTUzMDQ1NTE3MDY1NjY5MTcxNTg0OTQzOTY0MzIyMTE3Mzk3NjQ1MTQ3MDA2OTA5MTY3NDI3ODA5ODM3OTI5NDU4MDEyOTEzIl0sWyIxIiwiMCJdXSwicGlfYyI6WyIxNjQ0MzMwOTI3OTgyNTUwODg5MzA4NjI1MTI5MDAwMzkzNjkzNTA3NzM0ODc1NDA5NzQ3MDgxODUyMzU1ODA4MjUwMjM2NDgyMjA0OSIsIjI5ODQxODAyMjc3NjYwNDgxMDA1MTAxMjA0MDcxNTA3NTIwNTIzMzQ1NzE4NzY2ODEzMDQ5OTk1OTU1NDQxMzgxNTU2MTE5NjMyNzMiLCIxIl0sInByb3RvY29sIjoiIn19XX19.pJW9lqTRBXcXWhiZkEcrFlUqSAunX6He-wmEW_J6zEhgRVz14LkC5XhVcrWleqTB57j0tcAgaeSAdgJkRSkshw`
+	p := JWSPacker{
+		didResolverHandler: DIDResolverHandlerFunc(func(_ string) (*verifiable.DIDDocument, error) {
+			didDoc := &verifiable.DIDDocument{}
+			err := json.Unmarshal([]byte(exampleDidDocJS), didDoc)
+			require.NoError(t, err)
+			return didDoc, nil
+		}),
+	}
+
+	_, err := p.Unpack([]byte(token))
+	require.NoError(t, err)
+}
+
 func TestJWSBlockChainAccountId(t *testing.T) {
 	// token from js impelementation
 	const token = `eyJhbGciOiJFUzI1NkstUiIsImtpZCI6ImRpZDpwa2g6cG9seToweEIwNjEyNjg2RThENDlDYTQ1MzkyODkzYTk3N0RlNTRiRkEyOTM1QzcjUmVjb3ZlcnkyMDIwIiwidHlwIjoiYXBwbGljYXRpb24vaWRlbjNjb21tLXNpZ25lZC1qc29uIn0.eyJpZCI6IjM5MWQyYjlhLTk5MTktNGYzMi04OTJlLTRkYTNlZDg3N2ZkYSIsInR5cCI6ImFwcGxpY2F0aW9uL2lkZW4zY29tbS1zaWduZWQtanNvbiIsInR5cGUiOiJodHRwczovL2lkZW4zLWNvbW11bmljYXRpb24uaW8vYXV0aG9yaXphdGlvbi8xLjAvcmVzcG9uc2UiLCJ0aGlkIjoiZmI3YWQ1ZDItNWI1MC00NWRhLThiODAtNzMxNzFlMjE3Zjc0IiwiYm9keSI6eyJzY29wZSI6W119LCJmcm9tIjoiZGlkOnBraDpwb2x5OjB4QjA2MTI2ODZFOEQ0OUNhNDUzOTI4OTNhOTc3RGU1NGJGQTI5MzVDNyIsInRvIjoiZGlkOnBvbHlnb25pZDpwb2x5Z29uOm11bWJhaToycUo2ODlrcG9KeGNTekI1c0FGSnRQc1NCU3JIRjVkcTcyMkJITXFVUkwifQ.X9YSNYYrt21Duft6R0hY6PKJodHdCpY_8XxydCLHCRBTXhsUWkF4dkPv8Mcvg-XsAD7dBpwY8aAPqCL9qq_JhwA`
@@ -139,6 +155,68 @@ func TestJWSBlockChainAccountId(t *testing.T) {
     "did:pkh:poly:0xB0612686E8D49Ca45392893a977De54bFA2935C7#Recovery2020"
   ]
 }`), didDoc)
+			require.NoError(t, err)
+			return didDoc, nil
+		}),
+	}
+
+	_, err := p.Unpack([]byte(token))
+	require.NoError(t, err)
+}
+
+func TestES256K_RecoverableFalse(t *testing.T) {
+	// token from js impelementation - ES256K recoverable false (signature length = 64)
+	const token = `eyJhbGciOiJFUzI1NksiLCJraWQiOiJkaWQ6aWRlbjM6cHJpdmFkbzptYWluOjJTWkRzZFlvcmRTSDQ5VmhTNmhHbzE2NFJMd2ZjUWU5RkdvdzVmdFNVRyN2bS0xIiwidHlwIjoiYXBwbGljYXRpb24vaWRlbjNjb21tLXNpZ25lZC1qc29uIn0.eyJ0eXBlIjoiaHR0cHM6Ly9pZGVuMy1jb21tdW5pY2F0aW9uLmlvL2F1dGhvcml6YXRpb24vMS4wL3Jlc3BvbnNlIiwiZnJvbSI6ImRpZDppZGVuMzpwcml2YWRvOm1haW46MlNaRHNkWW9yZFNINDlWaFM2aEdvMTY0Ukx3ZmNRZTlGR293NWZ0U1VHIiwiYm9keSI6eyJzY29wZSI6W3sidHlwZSI6Inplcm9rbm93bGVkZ2UiLCJjaXJjdWl0X2lkIjoiYXV0aCIsInB1Yl9zaWduYWxzIjpbIjEiLCIxODMxMTU2MDUyNTM4MzMxOTcxOTMxMTM5NDk1NzA2NDgyMDA5MTM1NDk3NjMxMDU5OTgxODc5NzE1NzE4OTU2ODYyMTQ2Njk1MDgxMSIsIjMyMzQxNjkyNTI2NDY2NjIxNzYxNzI4ODU2OTc0MjU2NDcwMzYzMjg1MDgxNjAzNTc2MTA4NDAwMjcyMDA5MDM3NzM1MzI5NzkyMCJdLCJwcm9vZl9kYXRhIjp7InBpX2EiOlsiMTExMzA4NDMxNTA1NDA3ODkyOTk0NTg5OTA1ODYwMjAwMDA3MTkyODAyNDYxNTM3OTc4ODI4NDMyMTQyOTA1NDE5ODA1MjIzNzUwNzIiLCIxMzAwODQxOTEyOTQzNzgxNzIzMDIyMDMyMzU1ODM2ODkzODMxMTMyOTIwNzgzNzg4NDU1NTMxODM4MjU0NDY1Nzg0NjA1NzYyNzEzIiwiMSJdLCJwaV9iIjpbWyIyMDYxNTc2ODUzNjk4ODQzODMzNjUzNzc3NzkwOTA0MjM1MjA1NjM5Mjg2MjI1MTc4NTcyMjc5NjYzNzU5MDIxMjE2MDU2MTM1MTY1NiIsIjEwMzcxMTQ0ODA2MTA3Nzc4ODkwNTM4ODU3NzAwODU1MTA4NjY3NjIyMDQyMjE1MDk2OTcxNzQ3MjAzMTA1OTk3NDU0NjI1ODE0MDgwIl0sWyIxOTU5ODU0MTM1MDgwNDQ3ODU0OTE0MTIwNzgzNTAyODY3MTExMTA2MzkxNTYzNTU4MDY3OTY5NDkwNzYzNTkxNDI3OTkyODY3NzgxMiIsIjE1MjY0NTUzMDQ1NTE3MDY1NjY5MTcxNTg0OTQzOTY0MzIyMTE3Mzk3NjQ1MTQ3MDA2OTA5MTY3NDI3ODA5ODM3OTI5NDU4MDEyOTEzIl0sWyIxIiwiMCJdXSwicGlfYyI6WyIxNjQ0MzMwOTI3OTgyNTUwODg5MzA4NjI1MTI5MDAwMzkzNjkzNTA3NzM0ODc1NDA5NzQ3MDgxODUyMzU1ODA4MjUwMjM2NDgyMjA0OSIsIjI5ODQxODAyMjc3NjYwNDgxMDA1MTAxMjA0MDcxNTA3NTIwNTIzMzQ1NzE4NzY2ODEzMDQ5OTk1OTU1NDQxMzgxNTU2MTE5NjMyNzMiLCIxIl0sInByb3RvY29sIjoiIn19XX19.pJW9lqTRBXcXWhiZkEcrFlUqSAunX6He-wmEW_J6zEhgRVz14LkC5XhVcrWleqTB57j0tcAgaeSAdgJkRSkshw`
+	p := JWSPacker{
+		didResolverHandler: DIDResolverHandlerFunc(func(_ string) (*verifiable.DIDDocument, error) {
+			didDoc := &verifiable.DIDDocument{}
+			err := json.Unmarshal([]byte(`{
+					"@context": [
+						"https://www.w3.org/ns/did/v1",
+						"https://w3id.org/security/suites/secp256k1recovery-2020/v2"
+					],
+					"id": "did:iden3:privado:main:2SZDsdYordSH49VhS6hGo164RLwfcQe9FGow5ftSUG",
+					"verificationMethod": [
+					{
+						"id": "did:iden3:privado:main:2SZDsdYordSH49VhS6hGo164RLwfcQe9FGow5ftSUG#vm-1",
+						"controller": "did:iden3:privado:main:2SZDsdYordSH49VhS6hGo164RLwfcQe9FGow5ftSUG",
+						"type": "EcdsaSecp256k1RecoveryMethod2020",
+						"blockchainAccountId": "eip155:21000:0x964e496a1b2541ed029abd5e49fd01e41cd02995"
+					}
+					],
+					"authentication": ["did:iden3:privado:main:2SZDsdYordSH49VhS6hGo164RLwfcQe9FGow5ftSUG#vm-1"]
+					}`), didDoc)
+			require.NoError(t, err)
+			return didDoc, nil
+		}),
+	}
+
+	_, err := p.Unpack([]byte(token))
+	require.NoError(t, err)
+}
+
+func TestES256K_R_RecoverableFalse(t *testing.T) {
+	// token from js impelementation - ES256K-R recoverable false (signature length = 64)
+	const token = `eyJhbGciOiJFUzI1NkstUiIsImtpZCI6ImRpZDppZGVuMzpwcml2YWRvOm1haW46MlNaRHNkWW9yZFNINDlWaFM2aEdvMTY0Ukx3ZmNRZTlGR293NWZ0U1VHI3ZtLTEiLCJ0eXAiOiJhcHBsaWNhdGlvbi9pZGVuM2NvbW0tc2lnbmVkLWpzb24ifQ.eyJ0eXBlIjoiaHR0cHM6Ly9pZGVuMy1jb21tdW5pY2F0aW9uLmlvL2F1dGhvcml6YXRpb24vMS4wL3Jlc3BvbnNlIiwiZnJvbSI6ImRpZDppZGVuMzpwcml2YWRvOm1haW46MlNaRHNkWW9yZFNINDlWaFM2aEdvMTY0Ukx3ZmNRZTlGR293NWZ0U1VHIiwiYm9keSI6eyJzY29wZSI6W3sidHlwZSI6Inplcm9rbm93bGVkZ2UiLCJjaXJjdWl0X2lkIjoiYXV0aCIsInB1Yl9zaWduYWxzIjpbIjEiLCIxODMxMTU2MDUyNTM4MzMxOTcxOTMxMTM5NDk1NzA2NDgyMDA5MTM1NDk3NjMxMDU5OTgxODc5NzE1NzE4OTU2ODYyMTQ2Njk1MDgxMSIsIjMyMzQxNjkyNTI2NDY2NjIxNzYxNzI4ODU2OTc0MjU2NDcwMzYzMjg1MDgxNjAzNTc2MTA4NDAwMjcyMDA5MDM3NzM1MzI5NzkyMCJdLCJwcm9vZl9kYXRhIjp7InBpX2EiOlsiMTExMzA4NDMxNTA1NDA3ODkyOTk0NTg5OTA1ODYwMjAwMDA3MTkyODAyNDYxNTM3OTc4ODI4NDMyMTQyOTA1NDE5ODA1MjIzNzUwNzIiLCIxMzAwODQxOTEyOTQzNzgxNzIzMDIyMDMyMzU1ODM2ODkzODMxMTMyOTIwNzgzNzg4NDU1NTMxODM4MjU0NDY1Nzg0NjA1NzYyNzEzIiwiMSJdLCJwaV9iIjpbWyIyMDYxNTc2ODUzNjk4ODQzODMzNjUzNzc3NzkwOTA0MjM1MjA1NjM5Mjg2MjI1MTc4NTcyMjc5NjYzNzU5MDIxMjE2MDU2MTM1MTY1NiIsIjEwMzcxMTQ0ODA2MTA3Nzc4ODkwNTM4ODU3NzAwODU1MTA4NjY3NjIyMDQyMjE1MDk2OTcxNzQ3MjAzMTA1OTk3NDU0NjI1ODE0MDgwIl0sWyIxOTU5ODU0MTM1MDgwNDQ3ODU0OTE0MTIwNzgzNTAyODY3MTExMTA2MzkxNTYzNTU4MDY3OTY5NDkwNzYzNTkxNDI3OTkyODY3NzgxMiIsIjE1MjY0NTUzMDQ1NTE3MDY1NjY5MTcxNTg0OTQzOTY0MzIyMTE3Mzk3NjQ1MTQ3MDA2OTA5MTY3NDI3ODA5ODM3OTI5NDU4MDEyOTEzIl0sWyIxIiwiMCJdXSwicGlfYyI6WyIxNjQ0MzMwOTI3OTgyNTUwODg5MzA4NjI1MTI5MDAwMzkzNjkzNTA3NzM0ODc1NDA5NzQ3MDgxODUyMzU1ODA4MjUwMjM2NDgyMjA0OSIsIjI5ODQxODAyMjc3NjYwNDgxMDA1MTAxMjA0MDcxNTA3NTIwNTIzMzQ1NzE4NzY2ODEzMDQ5OTk1OTU1NDQxMzgxNTU2MTE5NjMyNzMiLCIxIl0sInByb3RvY29sIjoiIn19XX19.5Mu5qwMpE76wJ-Gn6Y8hjME6lo-6XRwUjCBY26EGIYIEJxd2iejgOBlQAqh9OmSsAViAT630vovd6mimw89MOA`
+	p := JWSPacker{
+		didResolverHandler: DIDResolverHandlerFunc(func(_ string) (*verifiable.DIDDocument, error) {
+			didDoc := &verifiable.DIDDocument{}
+			err := json.Unmarshal([]byte(`{
+					"@context": [
+						"https://www.w3.org/ns/did/v1",
+						"https://w3id.org/security/suites/secp256k1recovery-2020/v2"
+					],
+					"id": "did:iden3:privado:main:2SZDsdYordSH49VhS6hGo164RLwfcQe9FGow5ftSUG",
+					"verificationMethod": [
+					{
+						"id": "did:iden3:privado:main:2SZDsdYordSH49VhS6hGo164RLwfcQe9FGow5ftSUG#vm-1",
+						"controller": "did:iden3:privado:main:2SZDsdYordSH49VhS6hGo164RLwfcQe9FGow5ftSUG",
+						"type": "EcdsaSecp256k1RecoveryMethod2020",
+						"blockchainAccountId": "eip155:21000:0x964e496a1b2541ed029abd5e49fd01e41cd02995"
+					}
+					],
+					"authentication": ["did:iden3:privado:main:2SZDsdYordSH49VhS6hGo164RLwfcQe9FGow5ftSUG#vm-1"]
+					}`), didDoc)
 			require.NoError(t, err)
 			return didDoc, nil
 		}),
