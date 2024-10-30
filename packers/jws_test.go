@@ -16,6 +16,7 @@ import (
 
 const exampleDidDoc = `{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/secp256k1recovery-2020/v2"],"id":"did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29","verificationMethod":[{"id":"did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29#vm-1","controller":"did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29","type":"EcdsaSecp256k1VerificationKey2019","publicKeyJwk":{"crv":"secp256k1","kid":"JUvpllMEYUZ2joO59UNui_XYDqxVqiFLLAJ8klWuPBw","kty":"EC","x":"YEwwxb2s2kjvKodwoW3II8JhcvYk-51hD74Kkq63syc=","y":"fCIyEltvzDs0JZnL25-YyyDgLrbZTw9y3lM2BLDhQbU="}}],"authentication":["did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29#vm-1"]}`
 const exampleDidDocJS = `{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/secp256k1recovery-2020/v2",{"esrs2020":"https://identity.foundation/EcdsaSecp256k1RecoverySignature2020#","privateKeyJwk":{"@id":"esrs2020:privateKeyJwk","@type":"@json"},"publicKeyHex":"esrs2020:publicKeyHex","privateKeyHex":"esrs2020:privateKeyHex","ethereumAddress":"esrs2020:ethereumAddress"}],"id":"did:example:123","verificationMethod":[{"id":"did:example:123#JUvpllMEYUZ2joO59UNui_XYDqxVqiFLLAJ8klWuPBw","controller":"did:example:123","type":"EcdsaSecp256k1VerificationKey2019","publicKeyJwk":{"crv":"secp256k1","kid":"JUvpllMEYUZ2joO59UNui_XYDqxVqiFLLAJ8klWuPBw","kty":"EC","x":"_dV63sPUOOojf-RrM-4eAW7aa1hcPifqZmhsLqU1hHk","y":"Rjk_gUUlLupor-Z-KHs-2bMWhbpsOwAGCnO5sSQtaPc"}}],"authentication":["did:example:123#JUvpllMEYUZ2joO59UNui_XYDqxVqiFLLAJ8klWuPBw"]}`
+const exampleDidDocResRecoverableFalse = `{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/secp256k1recovery-2020/v2"],"id":"did:iden3:privado:main:2SZDsdYordSH49VhS6hGo164RLwfcQe9FGow5ftSUG","verificationMethod":[{"id":"did:iden3:privado:main:2SZDsdYordSH49VhS6hGo164RLwfcQe9FGow5ftSUG#vm-1","controller":"did:iden3:privado:main:2SZDsdYordSH49VhS6hGo164RLwfcQe9FGow5ftSUG","type":"EcdsaSecp256k1RecoveryMethod2020","blockchainAccountId":"eip155:21000:0x964e496a1b2541ed029abd5e49fd01e41cd02995"}],"authentication":["did:iden3:privado:main:2SZDsdYordSH49VhS6hGo164RLwfcQe9FGow5ftSUG#vm-1"]}`
 
 // add kid for select key
 func TestPKHKey(t *testing.T) {
@@ -170,22 +171,7 @@ func TestES256K_RecoverableFalse(t *testing.T) {
 	p := JWSPacker{
 		didResolverHandler: DIDResolverHandlerFunc(func(_ string) (*verifiable.DIDDocument, error) {
 			didDoc := &verifiable.DIDDocument{}
-			err := json.Unmarshal([]byte(`{
-					"@context": [
-						"https://www.w3.org/ns/did/v1",
-						"https://w3id.org/security/suites/secp256k1recovery-2020/v2"
-					],
-					"id": "did:iden3:privado:main:2SZDsdYordSH49VhS6hGo164RLwfcQe9FGow5ftSUG",
-					"verificationMethod": [
-					{
-						"id": "did:iden3:privado:main:2SZDsdYordSH49VhS6hGo164RLwfcQe9FGow5ftSUG#vm-1",
-						"controller": "did:iden3:privado:main:2SZDsdYordSH49VhS6hGo164RLwfcQe9FGow5ftSUG",
-						"type": "EcdsaSecp256k1RecoveryMethod2020",
-						"blockchainAccountId": "eip155:21000:0x964e496a1b2541ed029abd5e49fd01e41cd02995"
-					}
-					],
-					"authentication": ["did:iden3:privado:main:2SZDsdYordSH49VhS6hGo164RLwfcQe9FGow5ftSUG#vm-1"]
-					}`), didDoc)
+			err := json.Unmarshal([]byte(exampleDidDocResRecoverableFalse), didDoc)
 			require.NoError(t, err)
 			return didDoc, nil
 		}),
@@ -201,22 +187,7 @@ func TestES256K_R_RecoverableFalse(t *testing.T) {
 	p := JWSPacker{
 		didResolverHandler: DIDResolverHandlerFunc(func(_ string) (*verifiable.DIDDocument, error) {
 			didDoc := &verifiable.DIDDocument{}
-			err := json.Unmarshal([]byte(`{
-					"@context": [
-						"https://www.w3.org/ns/did/v1",
-						"https://w3id.org/security/suites/secp256k1recovery-2020/v2"
-					],
-					"id": "did:iden3:privado:main:2SZDsdYordSH49VhS6hGo164RLwfcQe9FGow5ftSUG",
-					"verificationMethod": [
-					{
-						"id": "did:iden3:privado:main:2SZDsdYordSH49VhS6hGo164RLwfcQe9FGow5ftSUG#vm-1",
-						"controller": "did:iden3:privado:main:2SZDsdYordSH49VhS6hGo164RLwfcQe9FGow5ftSUG",
-						"type": "EcdsaSecp256k1RecoveryMethod2020",
-						"blockchainAccountId": "eip155:21000:0x964e496a1b2541ed029abd5e49fd01e41cd02995"
-					}
-					],
-					"authentication": ["did:iden3:privado:main:2SZDsdYordSH49VhS6hGo164RLwfcQe9FGow5ftSUG#vm-1"]
-					}`), didDoc)
+			err := json.Unmarshal([]byte(exampleDidDocResRecoverableFalse), didDoc)
 			require.NoError(t, err)
 			return didDoc, nil
 		}),
