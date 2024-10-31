@@ -79,8 +79,7 @@ func TestPaymentRequestMessagePaymentTypeUnmarshall(t *testing.T) {
                                         "name": "MCPayment",
                                         "version": "1.0.0",
                                         "chainId": "80002",
-                                        "verifyingContract": "0x74Ac6aa5dDC433A654d84aFCE5D95c32df16cC0A",
-                                        "salt": ""
+                                        "verifyingContract": "0x74Ac6aa5dDC433A654d84aFCE5D95c32df16cC0A"
                                     }
                                 }
                             }
@@ -112,8 +111,7 @@ func TestPaymentRequestMessagePaymentTypeUnmarshall(t *testing.T) {
                                         "name": "MCPayment",
                                         "version": "1.0.0",
                                         "chainId": "1101",
-                                        "verifyingContract": "0x74Ac6aa5dDC433A654d84aFCE5D95c32df16cC0A",
-                                        "salt": ""
+                                        "verifyingContract": "0x74Ac6aa5dDC433A654d84aFCE5D95c32df16cC0A"
                                     }
                                 }
                             }
@@ -145,8 +143,7 @@ func TestPaymentRequestMessagePaymentTypeUnmarshall(t *testing.T) {
                                         "name": "MCPayment",
                                         "version": "1.0.0",
                                         "chainId": "59141",
-                                        "verifyingContract": "0x74Ac6aa5dDC433A654d84aFCE5D95c32df16cC0A",
-                                        "salt": ""
+                                        "verifyingContract": "0x74Ac6aa5dDC433A654d84aFCE5D95c32df16cC0A"
                                     }
                                 }
                             }
@@ -166,6 +163,67 @@ func TestPaymentRequestMessagePaymentTypeUnmarshall(t *testing.T) {
 }
 `
 
+	const paymentRequestTypeIden3PaymentRailsERC20RequestV1 = `
+{
+  "id": "54782ed3-8d83-427b-856d-eac57a9aa94a",
+  "thid": "54782ed3-8d83-427b-856d-eac57a9aa94a",
+  "from": "did:iden3:polygon:amoy:xCRp75DgAdS63W65fmXHz6p9DwdonuRU9e46DifhX",
+  "to": "did:iden3:polygon:amoy:x7Z95VkUuyo6mqraJw2VGwCfqTzdqhM1RVjRHzcpK",
+  "typ": "application/iden3comm-plain-json",
+  "type": "https://iden3-communication.io/credentials/0.1/payment-request",
+  "body": {
+    "agent": "agent.example.com",
+    "payments": [
+      {
+        "data": [
+          {
+            "type": "Iden3PaymentRailsERC20RequestV1",
+            "@context": [
+              "https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsERC20RequestV1",
+              "https://w3id.org/security/suites/eip712sig-2021/v1"
+            ],
+            "tokenAddress": "0x2FE40749812FAC39a0F380649eF59E01bccf3a1A",
+            "features": ["EIP-2612"],
+            "recipient": "0xE9D7fCDf32dF4772A7EF7C24c76aB40E4A42274a",
+            "amount": "40",
+            "currency": "ERC20Token",
+            "expirationDate": "2024-10-28T16:02:36.816Z",
+            "nonce": "3008",
+            "metadata": "0x",
+            "proof": [
+              {
+                "type": "EthereumEip712Signature2021",
+                "proofPurpose": "assertionMethod",
+                "proofValue": "0xc3d9d6fa9aa7af03863943f7568ce61303e84221e3e29277309fd42581742024402802816cca5542620c19895331f4bdc1ea6fed0d0c6a1cf8656556d3acfde61b",
+                "verificationMethod": "did:pkh:eip155:80002:0xE9D7fCDf32dF4772A7EF7C24c76aB40E4A42274a#blockchainAccountId",
+                "created": "2024-10-28T15:02:36.946Z",
+                "eip712": {
+                  "types": "https://schema.iden3.io/core/json/Iden3PaymentRailsRequestV1.json",
+                  "primaryType": "Iden3PaymentRailsRequestV1",
+                  "domain": {
+                    "name": "MCPayment",
+                    "version": "1.0.0",
+                    "chainId": "80002",
+                    "verifyingContract": "0x6f742EBA99C3043663f995a7f566e9F012C07925"
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "credentials": [
+          {
+            "type": "AML",
+            "context": "http://test.com"
+          }
+        ],
+        "description": "Iden3PaymentRailsRequestV1 payment-request integration test"
+      }
+    ]
+  }
+}
+`
+
 	for _, tc := range []struct {
 		desc            string
 		payload         []byte
@@ -180,6 +238,11 @@ func TestPaymentRequestMessagePaymentTypeUnmarshall(t *testing.T) {
 			desc:            "PaymentRequestMessage of type Iden3PaymentRailsRequestV1",
 			payload:         []byte(paymentRequestTypeIden3PaymentRailsRequestV1),
 			expectedPayload: []byte(paymentRequestTypeIden3PaymentRailsRequestV1),
+		},
+		{
+			desc:            "PaymentRequestMessage of type Iden3PaymentRailsERC20RequestV1",
+			payload:         []byte(paymentRequestTypeIden3PaymentRailsERC20RequestV1),
+			expectedPayload: []byte(paymentRequestTypeIden3PaymentRailsERC20RequestV1),
 		},
 	} {
 
@@ -211,8 +274,7 @@ func TestEthereumEip712Signature2021Col(t *testing.T) {
 								"name": "MCPayment",
 								"version": "1.0.0",
 								"chainId": "59141",
-								"verifyingContract": "0x74Ac6aa5dDC433A654d84aFCE5D95c32df16cC0A",
-								"salt": ""
+								"verifyingContract": "0x74Ac6aa5dDC433A654d84aFCE5D95c32df16cC0A"
 							}
 						}
 					}
@@ -233,8 +295,7 @@ func TestEthereumEip712Signature2021Col(t *testing.T) {
 							"name": "MCPayment",
 							"version": "1.0.0",
 							"chainId": "59141",
-							"verifyingContract": "0x74Ac6aa5dDC433A654d84aFCE5D95c32df16cC0A",
-							"salt": ""
+							"verifyingContract": "0x74Ac6aa5dDC433A654d84aFCE5D95c32df16cC0A"
 						}
 					}
 				}
@@ -321,8 +382,7 @@ func TestPaymentRequestInfoDataUnmarshalMarshall(t *testing.T) {
                                         "name": "MCPayment",
                                         "version": "1.0.0",
                                         "chainId": "80002",
-                                        "verifyingContract": "0x74Ac6aa5dDC433A654d84aFCE5D95c32df16cC0A",
-                                        "salt": ""
+                                        "verifyingContract": "0x74Ac6aa5dDC433A654d84aFCE5D95c32df16cC0A"
                                     }
                                 }
                             }
@@ -354,8 +414,7 @@ func TestPaymentRequestInfoDataUnmarshalMarshall(t *testing.T) {
                                         "name": "MCPayment",
                                         "version": "1.0.0",
                                         "chainId": "1101",
-                                        "verifyingContract": "0x74Ac6aa5dDC433A654d84aFCE5D95c32df16cC0A",
-                                        "salt": ""
+                                        "verifyingContract": "0x74Ac6aa5dDC433A654d84aFCE5D95c32df16cC0A"
                                     }
                                 }
                             }
@@ -387,8 +446,7 @@ func TestPaymentRequestInfoDataUnmarshalMarshall(t *testing.T) {
                                         "name": "MCPayment",
                                         "version": "1.0.0",
                                         "chainId": "59141",
-                                        "verifyingContract": "0x74Ac6aa5dDC433A654d84aFCE5D95c32df16cC0A",
-                                        "salt": ""
+                                        "verifyingContract": "0x74Ac6aa5dDC433A654d84aFCE5D95c32df16cC0A"
                                     }
                                 }
                             }
@@ -461,6 +519,108 @@ func TestPaymentContext(t *testing.T) {
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
 			var msg PaymentContext
+			require.NoError(t, json.Unmarshal(tc.payload, &msg))
+			payload, err := json.Marshal(msg)
+			require.NoError(t, err)
+			assert.JSONEq(t, string(tc.expectedPayload), string(payload))
+		})
+	}
+}
+
+func TestPaymentMarshalUnmarshal(t *testing.T) {
+	const paymentCryptoV1 = `
+{
+  "id": "36f9e851-d713-4b50-8f8d-8a9382f138ca",
+  "thid": "36f9e851-d713-4b50-8f8d-8a9382f138ca",
+  "typ": "application/iden3comm-plain-json",
+  "type": "https://iden3-communication.io/credentials/0.1/payment",
+  "body": {
+     "payments": [
+          {
+           "id":"123",
+           "type":"Iden3PaymentCryptoV1",
+           "@context": "https://schema.iden3.io/core/jsonld/payment.jsonld",
+            "paymentData": { 
+               "txId": "0x123"
+            }
+         }
+      ]
+  },
+  "to": "did:polygonid:polygon:mumbai:2qJUZDSCFtpR8QvHyBC4eFm6ab9sJo5rqPbcaeyGC4",
+  "from": "did:iden3:polygon:mumbai:x3HstHLj2rTp6HHXk2WczYP7w3rpCsRbwCMeaQ2H2"
+}
+`
+	const paymentNative = `
+{
+  "id": "36f9e851-d713-4b50-8f8d-8a9382f138ca",
+  "thid": "36f9e851-d713-4b50-8f8d-8a9382f138ca",
+  "typ": "application/iden3comm-plain-json",
+  "type": "https://iden3-communication.io/credentials/0.1/payment",
+  "body": {
+     "payments": [
+          {
+           "nonce":"123",
+           "type":"Iden3PaymentRailsV1",
+           "@context": "https://schema.iden3.io/core/jsonld/payment.jsonld",
+            "paymentData": { 
+               "txId": "0x123",
+               "chainId": "123"
+            }
+         }
+      ]
+  },
+  "to": "did:polygonid:polygon:mumbai:2qJUZDSCFtpR8QvHyBC4eFm6ab9sJo5rqPbcaeyGC4",
+  "from": "did:iden3:polygon:mumbai:x3HstHLj2rTp6HHXk2WczYP7w3rpCsRbwCMeaQ2H2"
+}
+`
+	const paymentERC20 = `
+{
+  "id": "36f9e851-d713-4b50-8f8d-8a9382f138ca",
+  "thid": "36f9e851-d713-4b50-8f8d-8a9382f138ca",
+  "typ": "application/iden3comm-plain-json",
+  "type": "https://iden3-communication.io/credentials/0.1/payment",
+  "body": {
+     "payments": [
+          {
+           "nonce":"123",
+           "type":"Iden3PaymentRailsERC20V1",
+           "@context": "https://schema.iden3.io/core/jsonld/payment.jsonld",
+            "paymentData": { 
+               "txId": "0x123",
+               "chainId": "123",
+               "tokenAddress": "0x123" 
+            }
+         }
+      ]
+  },
+  "to": "did:polygonid:polygon:mumbai:2qJUZDSCFtpR8QvHyBC4eFm6ab9sJo5rqPbcaeyGC4",
+  "from": "did:iden3:polygon:mumbai:x3HstHLj2rTp6HHXk2WczYP7w3rpCsRbwCMeaQ2H2"
+}
+`
+
+	for _, tc := range []struct {
+		desc            string
+		payload         []byte
+		expectedPayload []byte
+	}{
+		{
+			desc:            "Crypto payment",
+			payload:         []byte(paymentCryptoV1),
+			expectedPayload: []byte(paymentCryptoV1),
+		},
+		{
+			desc:            "Native payment",
+			payload:         []byte(paymentNative),
+			expectedPayload: []byte(paymentNative),
+		},
+		{
+			desc:            "ERC20 payment",
+			payload:         []byte(paymentERC20),
+			expectedPayload: []byte(paymentERC20),
+		},
+	} {
+		t.Run(tc.desc, func(t *testing.T) {
+			var msg PaymentMessage
 			require.NoError(t, json.Unmarshal(tc.payload, &msg))
 			payload, err := json.Marshal(msg)
 			require.NoError(t, err)

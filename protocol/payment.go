@@ -23,11 +23,17 @@ const (
 	// Iden3PaymentRailsRequestV1Type is a Iden3PaymentRailsRequestV1 payment type
 	Iden3PaymentRailsRequestV1Type = "Iden3PaymentRailsRequestV1"
 
+	// Iden3PaymentRailsERC20RequestV1Type is a Iden3PaymentRequestCryptoV1 payment type
+	Iden3PaymentRailsERC20RequestV1Type = "Iden3PaymentRailsERC20RequestV1"
+
 	// Iden3PaymentCryptoV1Type is a Iden3PaymentCryptoV1 payment type
 	Iden3PaymentCryptoV1Type = "Iden3PaymentCryptoV1"
 
 	// Iden3PaymentRailsV1Type is a Iden3PaymentRailsV1 payment type
 	Iden3PaymentRailsV1Type = "Iden3PaymentRailsV1"
+
+	// Iden3PaymentRailsERC20V1Type is a Iden3PaymentRailsERC20V1 payment type
+	Iden3PaymentRailsERC20V1Type = "Iden3PaymentRailsERC20V1"
 )
 
 // PaymentRequestMessage represents Iden3message for payment request.
@@ -60,97 +66,137 @@ type PaymentRequestInfo struct {
 // PaymentRequestInfoData is a union type for field Data in PaymentRequestInfo.
 // Only one of the fields can be set at a time.
 type PaymentRequestInfoData struct {
-	crypto []Iden3PaymentRequestCryptoV1
-	rails  []Iden3PaymentRailsRequestV1
+	dataType string
+	crypto   []Iden3PaymentRequestCryptoV1
+	rails    []Iden3PaymentRailsRequestV1
+	railsERC []Iden3PaymentRailsERC20RequestV1
 }
 
 // NewPaymentRequestInfoDataCrypto creates a new PaymentRequestInfoData with Iden3PaymentRequestCryptoV1 data.
 func NewPaymentRequestInfoDataCrypto(data Iden3PaymentRequestCryptoV1) PaymentRequestInfoData {
 	return PaymentRequestInfoData{
-		rails:  nil,
-		crypto: []Iden3PaymentRequestCryptoV1{data},
+		dataType: Iden3PaymentRequestCryptoV1Type,
+		crypto:   []Iden3PaymentRequestCryptoV1{data},
 	}
 }
 
 // NewPaymentRequestInfoDataRails creates a new PaymentRequestInfoData with Iden3PaymentRailsRequestV1 data.
 func NewPaymentRequestInfoDataRails(data Iden3PaymentRailsRequestV1) PaymentRequestInfoData {
 	return PaymentRequestInfoData{
-		rails:  []Iden3PaymentRailsRequestV1{data},
-		crypto: nil,
+		dataType: Iden3PaymentRailsRequestV1Type,
+		rails:    []Iden3PaymentRailsRequestV1{data},
+	}
+}
+
+func NewPaymentRequestInfoDataRailsERC20(data Iden3PaymentRailsERC20RequestV1) PaymentRequestInfoData {
+	return PaymentRequestInfoData{
+		dataType: Iden3PaymentRailsERC20RequestV1Type,
+		railsERC: []Iden3PaymentRailsERC20RequestV1{data},
 	}
 }
 
 // Type returns the type of the data in the union. You can use Data() to get the data.
 func (p *PaymentRequestInfoData) Type() string {
-	if len(p.crypto) != 0 {
-		return Iden3PaymentRequestCryptoV1Type
-	}
-	if len(p.rails) != 0 {
-		return Iden3PaymentRailsRequestV1Type
-	}
-	return ""
+	return p.dataType
 }
 
 // Data returns the data in the union. You can use Type() to determine the type of the data.
 func (p *PaymentRequestInfoData) Data() interface{} {
-	if len(p.crypto) != 0 {
+	switch p.dataType {
+	case Iden3PaymentRequestCryptoV1Type:
 		return p.crypto
-	}
-	if len(p.rails) != 0 {
+	case Iden3PaymentRailsRequestV1Type:
 		return p.rails
+	case Iden3PaymentRailsERC20RequestV1Type:
+		return p.railsERC
 	}
 	return nil
 }
 
 // MarshalJSON marshals the PaymentRequestInfoData into JSON.
 func (p PaymentRequestInfoData) MarshalJSON() ([]byte, error) {
-	if len(p.crypto) != 0 {
+	switch p.dataType {
+	case Iden3PaymentRequestCryptoV1Type:
 		return json.Marshal(p.crypto[0])
-	}
-	if len(p.rails) != 0 {
+	case Iden3PaymentRailsRequestV1Type:
 		return json.Marshal(p.rails)
+	case Iden3PaymentRailsERC20RequestV1Type:
+		return json.Marshal(p.railsERC)
 	}
 	return nil, errors.New("failed to marshal not initialized PaymentRequestInfoData")
 }
 
 // UnmarshalJSON unmarshal the PaymentRequestInfoData from JSON.
 func (p *PaymentRequestInfoData) UnmarshalJSON(data []byte) error {
-	var crypto Iden3PaymentRequestCryptoV1
-	var cryptoCol []Iden3PaymentRequestCryptoV1
-	var rails Iden3PaymentRailsRequestV1
-	var railsCol []Iden3PaymentRailsRequestV1
+	var item struct {
+		Type string `json:"type"`
+	}
+	var collection []struct {
+		Type string `json:"type"`
+	}
 
-	p.crypto, p.rails = nil, nil
+	p.crypto, p.rails, p.railsERC = nil, nil, nil
 
-	if err := json.Unmarshal(data, &crypto); err == nil {
-		if crypto.Type == Iden3PaymentRequestCryptoV1Type {
-			p.crypto = append(p.crypto, crypto)
+	if err := json.Unmarshal(data, &item); err == nil {
+		p.dataType = item.Type
+		return p.unmarshalFromItem(item.Type, data)
+	}
+
+	if err := json.Unmarshal(data, &collection); err == nil {
+		if len(collection) == 0 {
 			return nil
 		}
+
+		p.dataType = collection[0].Type
+		return p.unmarshalFromCollection(p.dataType, data)
 	}
-	if err := json.Unmarshal(data, &cryptoCol); err == nil {
-		if len(cryptoCol) != 0 {
-			if cryptoCol[0].Type == Iden3PaymentRequestCryptoV1Type {
-				p.crypto = append(p.crypto, cryptoCol...)
-				return nil
-			}
+	return errors.New("failed to unmarshal PaymentRequestInfoData. not a single item nor a collection")
+}
+
+func (p *PaymentRequestInfoData) unmarshalFromItem(typ string, data []byte) error {
+	switch typ {
+	case Iden3PaymentRequestCryptoV1Type:
+		var o Iden3PaymentRequestCryptoV1
+		if err := json.Unmarshal(data, &o); err != nil {
+			return fmt.Errorf("unmarshalling PaymentRequestInfoData: %w", err)
 		}
-	}
-	if err := json.Unmarshal(data, &rails); err == nil {
-		if rails.Type == Iden3PaymentRailsRequestV1Type {
-			p.rails = append(p.rails, rails)
-			return nil
+		p.crypto = []Iden3PaymentRequestCryptoV1{o}
+	case Iden3PaymentRailsRequestV1Type:
+		var o Iden3PaymentRailsRequestV1
+		if err := json.Unmarshal(data, &o); err != nil {
+			return fmt.Errorf("unmarshalling PaymentRequestInfoData: %w", err)
 		}
-	}
-	if err := json.Unmarshal(data, &railsCol); err == nil {
-		if len(railsCol) != 0 {
-			if railsCol[0].Type == Iden3PaymentRailsRequestV1Type {
-				p.rails = append(p.rails, railsCol...)
-				return nil
-			}
+		p.rails = []Iden3PaymentRailsRequestV1{o}
+	case Iden3PaymentRailsERC20RequestV1Type:
+		var o Iden3PaymentRailsERC20RequestV1
+		if err := json.Unmarshal(data, &o); err != nil {
+			return fmt.Errorf("unmarshalling PaymentRequestInfoData: %w", err)
 		}
+		p.railsERC = []Iden3PaymentRailsERC20RequestV1{o}
+	default:
+		return errors.Errorf("unmarshalling PaymentRequestInfoData. unknown type: %s", typ)
 	}
-	return errors.Errorf("failed to unmarshal PaymentRequestInfoData: %s", string(data))
+	return nil
+}
+
+func (p *PaymentRequestInfoData) unmarshalFromCollection(typ string, data []byte) error {
+	switch typ {
+	case Iden3PaymentRequestCryptoV1Type:
+		if err := json.Unmarshal(data, &p.crypto); err != nil {
+			return fmt.Errorf("unmarshalling PaymentRequestInfoData: %w", err)
+		}
+	case Iden3PaymentRailsRequestV1Type:
+		if err := json.Unmarshal(data, &p.rails); err != nil {
+			return fmt.Errorf("unmarshalling PaymentRequestInfoData: %w", err)
+		}
+	case Iden3PaymentRailsERC20RequestV1Type:
+		if err := json.Unmarshal(data, &p.railsERC); err != nil {
+			return fmt.Errorf("unmarshalling PaymentRequestInfoData: %w", err)
+		}
+	default:
+		return errors.Errorf("unmarshalling PaymentRequestInfoData. unknown type: %s", typ)
+	}
+	return nil
 }
 
 // Iden3PaymentRequestCryptoV1 represents the Iden3PaymentRequestCryptoV1 payment request data.
@@ -177,6 +223,23 @@ type Iden3PaymentRailsRequestV1 struct {
 	Metadata       string                         `json:"metadata"`
 	Currency       string                         `json:"currency"`
 }
+
+// Iden3PaymentRailsERC20RequestV1 represents the Iden3PaymentRailsERC20RequestV1 payment request data.
+type Iden3PaymentRailsERC20RequestV1 struct {
+	Nonce          string                         `json:"nonce"`
+	Type           string                         `json:"type"`
+	Context        PaymentContext                 `json:"@context"`
+	Recipient      string                         `json:"recipient"`
+	Amount         string                         `json:"amount"` // Not negative number
+	ExpirationDate string                         `json:"expirationDate"`
+	Proof          EthereumEip712Signature2021Col `json:"proof"`
+	Metadata       string                         `json:"metadata"`
+	Currency       string                         `json:"currency"`
+	TokenAddress   string                         `json:"tokenAddress"`
+	Features       []PaymentFeatures              `json:"features,omitempty"`
+}
+
+type PaymentFeatures string
 
 // EthereumEip712Signature2021Col is a list of EthereumEip712Signature2021.
 type EthereumEip712Signature2021Col []EthereumEip712Signature2021
@@ -218,7 +281,6 @@ type Eip712Domain struct {
 	Version           string `json:"version"`
 	ChainID           string `json:"chainId"`
 	VerifyingContract string `json:"verifyingContract"`
-	Salt              string `json:"salt"`
 }
 
 // PaymentRequestInfoCredentials represents the payment request credentials.
@@ -248,58 +310,60 @@ type PaymentMessageBody struct {
 // Payment is a union type for field Payments in PaymentMessageBody.
 // Only one of the fields can be set at a time.
 type Payment struct {
-	crypto *Iden3PaymentCryptoV1
-	rails  *Iden3PaymentRailsV1
+	dataType string
+	crypto   *Iden3PaymentCryptoV1
+	rails    *Iden3PaymentRailsV1
+	railsERC *Iden3PaymentRailsERC20V1
 }
 
 // Type returns the type of the data in the union. You can use Data() to get the data.
 func (p *Payment) Type() string {
-	if p.crypto != nil {
-		return Iden3PaymentCryptoV1Type
-	}
-	if p.rails != nil {
-		return Iden3PaymentRailsV1Type
-	}
-	return ""
+	return p.dataType
 }
 
 // Data returns the data in the union. You can use Type() to determine the type of the data.
 func (p *Payment) Data() interface{} {
-	if p.crypto != nil {
+	switch p.dataType {
+	case Iden3PaymentCryptoV1Type:
 		return p.crypto
-	}
-	if p.rails != nil {
+	case Iden3PaymentRailsV1Type:
 		return p.rails
+	case Iden3PaymentRailsERC20V1Type:
+		return p.railsERC
 	}
 	return nil
 }
 
 // UnmarshalJSON unmarshal the Payment from JSON.
 func (p *Payment) UnmarshalJSON(bytes []byte) error {
-	var crypto Iden3PaymentCryptoV1
-	var rails Iden3PaymentRailsV1
-	if json.Unmarshal(bytes, &crypto) == nil {
-		if crypto.Type == Iden3PaymentCryptoV1Type {
-			p.crypto = &crypto
-			return nil
-		}
+	var item struct {
+		Type string `json:"type"`
 	}
-	if json.Unmarshal(bytes, &rails) == nil {
-		if rails.Type == Iden3PaymentRailsV1Type {
-			p.rails = &rails
-			return nil
-		}
+	if err := json.Unmarshal(bytes, &item); err != nil {
+		return fmt.Errorf("failed to unmarshal Payment: %w", err)
+	}
+
+	p.dataType = item.Type
+	switch item.Type {
+	case Iden3PaymentCryptoV1Type:
+		return json.Unmarshal(bytes, &p.crypto)
+	case Iden3PaymentRailsV1Type:
+		return json.Unmarshal(bytes, &p.rails)
+	case Iden3PaymentRailsERC20V1Type:
+		return json.Unmarshal(bytes, &p.railsERC)
 	}
 	return errors.Errorf("failed to unmarshal PaymentRequestInfoData: %s", string(bytes))
 }
 
 // MarshalJSON marshals the Payment into JSON.
 func (p Payment) MarshalJSON() ([]byte, error) {
-	if p.crypto != nil {
+	switch p.dataType {
+	case Iden3PaymentCryptoV1Type:
 		return json.Marshal(p.crypto)
-	}
-	if p.rails != nil {
+	case Iden3PaymentRailsV1Type:
 		return json.Marshal(p.rails)
+	case Iden3PaymentRailsERC20V1Type:
+		return json.Marshal(p.railsERC)
 	}
 	return nil, errors.New("failed to marshal not initialized Payment")
 }
@@ -322,6 +386,17 @@ type Iden3PaymentRailsV1 struct {
 	PaymentData struct {
 		TxID    string `json:"txId"`
 		ChainID string `json:"chainId"`
+	} `json:"paymentData"`
+}
+
+type Iden3PaymentRailsERC20V1 struct {
+	Nonce       string         `json:"nonce"`
+	Type        string         `json:"type"`
+	Context     PaymentContext `json:"@context,omitempty"`
+	PaymentData struct {
+		TxID         string `json:"txId"`
+		ChainID      string `json:"chainId"`
+		TokenAddress string `json:"tokenAddress"`
 	} `json:"paymentData"`
 }
 
