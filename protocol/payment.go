@@ -88,6 +88,7 @@ func NewPaymentRequestInfoDataRails(data Iden3PaymentRailsRequestV1) PaymentRequ
 	}
 }
 
+// NewPaymentRequestInfoDataRailsERC20 creates a new PaymentRequestInfoData with Iden3PaymentRailsERC20RequestV1 data.
 func NewPaymentRequestInfoDataRailsERC20(data Iden3PaymentRailsERC20RequestV1) PaymentRequestInfoData {
 	return PaymentRequestInfoData{
 		dataType: Iden3PaymentRailsERC20RequestV1Type,
@@ -239,6 +240,7 @@ type Iden3PaymentRailsERC20RequestV1 struct {
 	Features       []PaymentFeatures              `json:"features,omitempty"`
 }
 
+// PaymentFeatures represents type Features used in ERC20 payment request.
 type PaymentFeatures string
 
 // EthereumEip712Signature2021Col is a list of EthereumEip712Signature2021.
@@ -316,6 +318,30 @@ type Payment struct {
 	railsERC *Iden3PaymentRailsERC20V1
 }
 
+// NewPaymentCrypto creates a new Payment with Iden3PaymentCryptoV1 data.
+func NewPaymentCrypto(data Iden3PaymentCryptoV1) Payment {
+	return Payment{
+		dataType: Iden3PaymentCryptoV1Type,
+		crypto:   &data,
+	}
+}
+
+// NewPaymentRails creates a new Payment with Iden3PaymentRailsV1 data.
+func NewPaymentRails(data Iden3PaymentRailsV1) Payment {
+	return Payment{
+		dataType: Iden3PaymentRailsV1Type,
+		rails:    &data,
+	}
+}
+
+// NEwPaymentRailsERC20 creates a new Payment with Iden3PaymentRailsERC20V1 data.
+func NEwPaymentRailsERC20(data Iden3PaymentRailsERC20V1) Payment {
+	return Payment{
+		dataType: Iden3PaymentRailsERC20V1Type,
+		railsERC: &data,
+	}
+}
+
 // Type returns the type of the data in the union. You can use Data() to get the data.
 func (p *Payment) Type() string {
 	return p.dataType
@@ -389,6 +415,7 @@ type Iden3PaymentRailsV1 struct {
 	} `json:"paymentData"`
 }
 
+// Iden3PaymentRailsERC20V1 represents the Iden3PaymentRailsERC20V1 payment data.
 type Iden3PaymentRailsERC20V1 struct {
 	Nonce       string         `json:"nonce"`
 	Type        string         `json:"type"`
