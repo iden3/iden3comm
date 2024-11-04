@@ -246,6 +246,7 @@ type Iden3PaymentRailsERC20RequestV1 struct {
 // PaymentFeatures represents type Features used in ERC20 payment request.
 type PaymentFeatures string
 
+// PaymentProof represents a payment proof.
 type PaymentProof struct {
 	dataType        string
 	eip712Signature []EthereumEip712Signature2021
