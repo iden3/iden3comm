@@ -34,6 +34,9 @@ const (
 
 	// Iden3PaymentRailsERC20V1Type is a Iden3PaymentRailsERC20V1 payment type
 	Iden3PaymentRailsERC20V1Type = "Iden3PaymentRailsERC20V1"
+
+	// Eip712SignatureProofType is a EthereumEip712Signature2021 proof type
+	Eip712SignatureProofType = "EthereumEip712Signature2021"
 )
 
 // PaymentRequestMessage represents Iden3message for payment request.
@@ -214,40 +217,43 @@ type Iden3PaymentRequestCryptoV1 struct {
 
 // Iden3PaymentRailsRequestV1 represents the Iden3PaymentRailsRequestV1 payment request data.
 type Iden3PaymentRailsRequestV1 struct {
-	Nonce          string                         `json:"nonce"`
-	Type           string                         `json:"type"`
-	Context        PaymentContext                 `json:"@context"`
-	Recipient      string                         `json:"recipient"`
-	Amount         string                         `json:"amount"` // Not negative number
-	ExpirationDate string                         `json:"expirationDate"`
-	Proof          EthereumEip712Signature2021Col `json:"proof"`
-	Metadata       string                         `json:"metadata"`
-	Currency       string                         `json:"currency"`
+	Nonce          string         `json:"nonce"`
+	Type           string         `json:"type"`
+	Context        PaymentContext `json:"@context"`
+	Recipient      string         `json:"recipient"`
+	Amount         string         `json:"amount"` // Not negative number
+	ExpirationDate string         `json:"expirationDate"`
+	Proof          PaymentProof   `json:"proof"`
+	Metadata       string         `json:"metadata"`
+	Currency       string         `json:"currency"`
 }
 
 // Iden3PaymentRailsERC20RequestV1 represents the Iden3PaymentRailsERC20RequestV1 payment request data.
 type Iden3PaymentRailsERC20RequestV1 struct {
-	Nonce          string                         `json:"nonce"`
-	Type           string                         `json:"type"`
-	Context        PaymentContext                 `json:"@context"`
-	Recipient      string                         `json:"recipient"`
-	Amount         string                         `json:"amount"` // Not negative number
-	ExpirationDate string                         `json:"expirationDate"`
-	Proof          EthereumEip712Signature2021Col `json:"proof"`
-	Metadata       string                         `json:"metadata"`
-	Currency       string                         `json:"currency"`
-	TokenAddress   string                         `json:"tokenAddress"`
-	Features       []PaymentFeatures              `json:"features,omitempty"`
+	Nonce          string            `json:"nonce"`
+	Type           string            `json:"type"`
+	Context        PaymentContext    `json:"@context"`
+	Recipient      string            `json:"recipient"`
+	Amount         string            `json:"amount"` // Not negative number
+	ExpirationDate string            `json:"expirationDate"`
+	Proof          PaymentProof      `json:"proof"`
+	Metadata       string            `json:"metadata"`
+	Currency       string            `json:"currency"`
+	TokenAddress   string            `json:"tokenAddress"`
+	Features       []PaymentFeatures `json:"features,omitempty"`
 }
 
 // PaymentFeatures represents type Features used in ERC20 payment request.
 type PaymentFeatures string
 
-// EthereumEip712Signature2021Col is a list of EthereumEip712Signature2021.
-type EthereumEip712Signature2021Col []EthereumEip712Signature2021
+type PaymentProof struct {
+	dataType        string
+	eip712Signature []EthereumEip712Signature2021
+}
 
 // UnmarshalJSON unmarshal the PaymentRequestInfoData from JSON.
-func (p *EthereumEip712Signature2021Col) UnmarshalJSON(data []byte) error {
+func (p *PaymentProof) UnmarshalJSON(data []byte) error {
+	p.dataType = Eip712SignatureProofType
 	var col []EthereumEip712Signature2021
 	if err := json.Unmarshal(data, &col); err != nil {
 		var single EthereumEip712Signature2021
@@ -256,8 +262,16 @@ func (p *EthereumEip712Signature2021Col) UnmarshalJSON(data []byte) error {
 		}
 		col = append(col, single)
 	}
-	*p = col
+	p.eip712Signature = col
 	return nil
+}
+
+// MarshalJSON marshals the PaymentProof into JSON.
+func (p PaymentProof) MarshalJSON() ([]byte, error) {
+	if p.dataType == Eip712SignatureProofType {
+		return json.Marshal(p.eip712Signature)
+	}
+	return nil, errors.New("failed to marshal not initialized PaymentProof")
 }
 
 // EthereumEip712Signature2021 represents the Ethereum EIP712 signature.

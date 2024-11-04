@@ -317,7 +317,7 @@ func TestEthereumEip712Signature2021Col(t *testing.T) {
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
-			var msg EthereumEip712Signature2021Col
+			var msg PaymentProof
 			require.NoError(t, json.Unmarshal(tc.payload, &msg))
 			payload, err := json.Marshal(msg)
 			require.NoError(t, err)
