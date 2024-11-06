@@ -102,6 +102,6 @@ func TestPlainMessagePacker_Unpack(t *testing.T) {
 
 }
 
-func verifyStateMock(_ circuits.CircuitID, _ []string, _ ...DefaultZKPUnpackerOption) error {
+func verifyStateMock(_ circuits.CircuitID, _ []string, _ ...ZKPPUnpackerParams) error {
 	return nil
 }

@@ -196,6 +196,6 @@ func initPackageManager(t *testing.T) *iden3comm.PackageManager {
 }
 
 // VerifyState return no error always
-func verifyStateMock(_ circuits.CircuitID, _ []string, _ ...packers.DefaultZKPUnpackerOption) error {
+func verifyStateMock(_ circuits.CircuitID, _ []string, _ ...packers.ZKPPUnpackerParams) error {
 	return nil
 }
