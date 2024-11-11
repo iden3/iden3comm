@@ -261,6 +261,14 @@ type PaymentProof struct {
 	eip712Signature []EthereumEip712Signature2021
 }
 
+// NewPaymentProofEip712Signature creates a new PaymentProof with EthereumEip712Signature2021 data.
+func NewPaymentProofEip712Signature(data []EthereumEip712Signature2021) PaymentProof {
+	return PaymentProof{
+		dataType:        Eip712SignatureProofType,
+		eip712Signature: data,
+	}
+}
+
 // UnmarshalJSON unmarshal the PaymentRequestInfoData from JSON.
 func (p *PaymentProof) UnmarshalJSON(data []byte) error {
 	p.dataType = Eip712SignatureProofType
