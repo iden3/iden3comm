@@ -322,7 +322,7 @@ func (d *defaultZKPUnpacker) defaultZkpUnpackerVerificationFn(id circuits.Circui
 			globalState.String(), globalStateInfo.Root.String())
 	}
 
-	var authVerifyDelay time.Duration
+	authVerifyDelay := time.Minute * 5
 	if len(opts) > 0 {
 		authVerifyDelay = opts[0].authVerifyDelay
 	}
