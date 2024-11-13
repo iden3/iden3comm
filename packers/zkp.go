@@ -263,33 +263,14 @@ func (p *ZKPPacker) MediaType() iden3comm.MediaType {
 	return MediaTypeZKPMessage
 }
 
-// DefaultZKPUnpackerOption is a function that sets the default ZKP unpacker options
-type DefaultZKPUnpackerOption func(*zkUnpackerOpts)
-
-// WithAuthVerifyDelay sets the delay for the auth verification
-func WithAuthVerifyDelay(delay time.Duration) DefaultZKPUnpackerOption {
-	return func(p *zkUnpackerOpts) {
-		p.authVerifyDelay = delay
-	}
-}
-
-type zkUnpackerOpts struct {
-	authVerifyDelay time.Duration
-}
-
 type defaultZKPUnpacker struct {
 	resolvers map[int]eth.Resolver
-	opts      zkUnpackerOpts
 }
 
 // DefaultZKPUnpacker creates a default ZKP unpacker with the provided verification key and resolvers
-func DefaultZKPUnpacker(verificationKey []byte, resolvers map[int]eth.Resolver, opts ...DefaultZKPUnpackerOption) *ZKPPacker {
+func DefaultZKPUnpacker(verificationKey []byte, resolvers map[int]eth.Resolver) *ZKPPacker {
 	def := &defaultZKPUnpacker{
 		resolvers: resolvers,
-		opts:      zkUnpackerOpts{authVerifyDelay: time.Minute * 5},
-	}
-	for _, opt := range opts {
-		opt(&def.opts)
 	}
 	verifications := make(map[jwz.ProvingMethodAlg]VerificationParams)
 	verifications[jwz.AuthV2Groth16Alg] = NewVerificationParams(verificationKey, def.defaultZkpUnpackerVerificationFn)
@@ -297,11 +278,6 @@ func DefaultZKPUnpacker(verificationKey []byte, resolvers map[int]eth.Resolver, 
 }
 
 func (d *defaultZKPUnpacker) defaultZkpUnpackerVerificationFn(id circuits.CircuitID, pubsignals []string, opts ...ZKPPUnpackerParams) error {
-	authVerifyDelay := d.opts.authVerifyDelay
-	if len(opts) == 1 {
-		authVerifyDelay = opts[0].authVerifyDelay
-	}
-
 	if id != circuits.AuthV2CircuitID {
 		return errors.Errorf("circuit ID '%s' is not supported", id)
 	}
@@ -344,6 +320,11 @@ func (d *defaultZKPUnpacker) defaultZkpUnpackerVerificationFn(id circuits.Circui
 	if globalState.Cmp(globalStateInfo.Root) != 0 {
 		return errors.Errorf("invalid global state info in the smart contract, expected root %s, got %s",
 			globalState.String(), globalStateInfo.Root.String())
+	}
+
+	authVerifyDelay := time.Minute * 5
+	if len(opts) > 0 {
+		authVerifyDelay = opts[0].authVerifyDelay
 	}
 
 	if (big.NewInt(0)).Cmp(globalStateInfo.ReplacedByRoot) != 0 &&
