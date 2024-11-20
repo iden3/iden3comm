@@ -22,6 +22,9 @@ type RevocationStatusRequestMessage struct {
 
 	From string `json:"from,omitempty"`
 	To   string `json:"to,omitempty"`
+
+	CreatedTime *int64 `json:"created_time,omitempty"`
+	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // RevocationStatusRequestMessageBody is struct the represents request for revocation status
@@ -40,6 +43,9 @@ type RevocationStatusResponseMessage struct {
 
 	From string `json:"from,omitempty"`
 	To   string `json:"to,omitempty"`
+
+	CreatedTime *int64 `json:"created_time,omitempty"`
+	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // RevocationStatusResponseMessageBody is struct the represents request for revocation status
