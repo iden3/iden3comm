@@ -39,7 +39,8 @@ func TestPaymentRequestMessagePaymentTypeUnmarshall(t *testing.T) {
 	  ]
   },
   "to": "did:polygonid:polygon:mumbai:2qJUZDSCFtpR8QvHyBC4eFm6ab9sJo5rqPbcaeyGC4",
-  "from": "did:iden3:polygon:mumbai:x3HstHLj2rTp6HHXk2WczYP7w3rpCsRbwCMeaQ2H2"
+  "from": "did:iden3:polygon:mumbai:x3HstHLj2rTp6HHXk2WczYP7w3rpCsRbwCMeaQ2H2",
+  "created_time": 1732111531
 }
 `
 
@@ -51,6 +52,7 @@ func TestPaymentRequestMessagePaymentTypeUnmarshall(t *testing.T) {
     "to": "did:iden3:polygon:amoy:x7Z95VkUuyo6mqraJw2VGwCfqTzdqhM1RVjRHzcpK",
     "typ": "application/iden3comm-plain-json",
     "type": "https://iden3-communication.io/credentials/0.1/payment-request",
+    "created_time": 1732111531,
     "body": {
         "agent": "",
         "payments": [
@@ -170,6 +172,7 @@ func TestPaymentRequestMessagePaymentTypeUnmarshall(t *testing.T) {
   "from": "did:iden3:polygon:amoy:xCRp75DgAdS63W65fmXHz6p9DwdonuRU9e46DifhX",
   "to": "did:iden3:polygon:amoy:x7Z95VkUuyo6mqraJw2VGwCfqTzdqhM1RVjRHzcpK",
   "typ": "application/iden3comm-plain-json",
+  "created_time": 1732111531,
   "type": "https://iden3-communication.io/credentials/0.1/payment-request",
   "body": {
     "agent": "agent.example.com",
@@ -547,7 +550,8 @@ func TestPaymentMarshalUnmarshal(t *testing.T) {
       ]
   },
   "to": "did:polygonid:polygon:mumbai:2qJUZDSCFtpR8QvHyBC4eFm6ab9sJo5rqPbcaeyGC4",
-  "from": "did:iden3:polygon:mumbai:x3HstHLj2rTp6HHXk2WczYP7w3rpCsRbwCMeaQ2H2"
+  "from": "did:iden3:polygon:mumbai:x3HstHLj2rTp6HHXk2WczYP7w3rpCsRbwCMeaQ2H2",
+  "created_time": 1732111531
 }
 `
 	const paymentNative = `
@@ -570,7 +574,8 @@ func TestPaymentMarshalUnmarshal(t *testing.T) {
       ]
   },
   "to": "did:polygonid:polygon:mumbai:2qJUZDSCFtpR8QvHyBC4eFm6ab9sJo5rqPbcaeyGC4",
-  "from": "did:iden3:polygon:mumbai:x3HstHLj2rTp6HHXk2WczYP7w3rpCsRbwCMeaQ2H2"
+  "from": "did:iden3:polygon:mumbai:x3HstHLj2rTp6HHXk2WczYP7w3rpCsRbwCMeaQ2H2",
+  "created_time": 1732111531
 }
 `
 	const paymentERC20 = `
@@ -594,7 +599,8 @@ func TestPaymentMarshalUnmarshal(t *testing.T) {
       ]
   },
   "to": "did:polygonid:polygon:mumbai:2qJUZDSCFtpR8QvHyBC4eFm6ab9sJo5rqPbcaeyGC4",
-  "from": "did:iden3:polygon:mumbai:x3HstHLj2rTp6HHXk2WczYP7w3rpCsRbwCMeaQ2H2"
+  "from": "did:iden3:polygon:mumbai:x3HstHLj2rTp6HHXk2WczYP7w3rpCsRbwCMeaQ2H2",
+  "created_time": 1732111531
 }
 `
 

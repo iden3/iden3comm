@@ -98,6 +98,9 @@ type CredentialIssuanceRequestMessage struct {
 
 	From string `json:"from,omitempty"`
 	To   string `json:"to,omitempty"`
+
+	CreatedTime *int64 `json:"created_time,omitempty"`
+	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // CredentialIssuanceRequestMessageBody represents data for credential issuance request
@@ -118,6 +121,9 @@ type CredentialsOfferMessage struct {
 
 	From string `json:"from,omitempty"`
 	To   string `json:"to,omitempty"`
+
+	CreatedTime *int64 `json:"created_time,omitempty"`
+	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // CredentialsOfferMessageBody is struct the represents offer message
@@ -144,6 +150,9 @@ type CredentialIssuanceMessage struct {
 
 	From string `json:"from,omitempty"`
 	To   string `json:"to,omitempty"`
+
+	CreatedTime *int64 `json:"created_time,omitempty"`
+	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // IssuanceMessageBody is struct the represents message when credential is issued
@@ -161,6 +170,9 @@ type CredentialFetchRequestMessage struct {
 
 	From string `json:"from,omitempty"`
 	To   string `json:"to,omitempty"`
+
+	CreatedTime *int64 `json:"created_time,omitempty"`
+	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // CredentialFetchRequestMessageBody is msg body for fetch request
@@ -186,6 +198,9 @@ type CredentialStatusUpdateMessage struct {
 
 	From string `json:"from,omitempty"`
 	To   string `json:"to,omitempty"`
+
+	CreatedTime *int64 `json:"created_time,omitempty"`
+	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // CredentialStatusUpdateMessageBody the structure that represents the body of credential status update message
@@ -205,6 +220,9 @@ type CredentialRefreshMessage struct {
 
 	From string `json:"from,omitempty"`
 	To   string `json:"to,omitempty"`
+
+	CreatedTime *int64 `json:"created_time,omitempty"`
+	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // CredentialRefreshMessageBody is msg body for refresh message
@@ -224,6 +242,9 @@ type CredentialsOnchainOfferMessage struct {
 
 	From string `json:"from,omitempty"`
 	To   string `json:"to,omitempty"`
+
+	CreatedTime *int64 `json:"created_time,omitempty"`
+	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // CredentialsOnchainOfferMessageBody is struct the represents onchain offer message
@@ -247,6 +268,9 @@ type CredentialsProposalRequestMessage struct {
 
 	From string `json:"from,omitempty"`
 	To   string `json:"to,omitempty"`
+
+	CreatedTime *int64 `json:"created_time,omitempty"`
+	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // CredentialsProposalMessage represents Iden3message for credential proposal
@@ -264,6 +288,9 @@ type CredentialsProposalMessage struct {
 
 	From string `json:"from,omitempty"`
 	To   string `json:"to,omitempty"`
+
+	CreatedTime *int64 `json:"created_time,omitempty"`
+	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // CredentialsProposalRequestBody is msg body for proposal requests
@@ -334,6 +361,9 @@ type CredentialPaymentRequestMessage struct {
 
 	From string `json:"from,omitempty"`
 	To   string `json:"to,omitempty"`
+
+	CreatedTime *int64 `json:"created_time,omitempty"`
+	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // CredentialPaymentRequestBody is msg body for payment requests
@@ -389,6 +419,9 @@ type CredentialPaymentMessage struct {
 
 	From string `json:"from,omitempty"`
 	To   string `json:"to,omitempty"`
+
+	CreatedTime *int64 `json:"created_time,omitempty"`
+	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // CredentialPaymentBody is msg body for payment
