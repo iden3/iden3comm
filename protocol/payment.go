@@ -76,9 +76,7 @@ type PaymentRequestInfo struct {
 
 // PaymentRequestInfoData is a union type for field Data in PaymentRequestInfo.
 // Only one of the fields can be set at a time.
-type PaymentRequestInfoData struct {
-	Data []PaymentRequestInfoDataItem
-}
+type PaymentRequestInfoData []PaymentRequestInfoDataItem
 
 // PaymentRequestInfoDataItem is the interface that any PaymentRequestInfoData.Data item must implement.
 type PaymentRequestInfoDataItem interface {
@@ -87,10 +85,10 @@ type PaymentRequestInfoDataItem interface {
 
 // MarshalJSON marshals the PaymentRequestInfoData into JSON.
 func (p PaymentRequestInfoData) MarshalJSON() ([]byte, error) {
-	if len(p.Data) == 1 && p.Data[0].PaymentRequestType() == Iden3PaymentRequestCryptoV1Type {
-		return json.Marshal(p.Data[0])
+	if len(p) == 1 && p[0].PaymentRequestType() == Iden3PaymentRequestCryptoV1Type {
+		return json.Marshal(p[0])
 	}
-	return json.Marshal(p.Data)
+	return json.Marshal([]PaymentRequestInfoDataItem(p))
 }
 
 // UnmarshalJSON unmarshal the PaymentRequestInfoData from JSON.
@@ -109,7 +107,7 @@ func (p *PaymentRequestInfoData) UnmarshalJSON(data []byte) error {
 		if errItem != nil {
 			return errItem
 		}
-		p.Data = append(p.Data, o)
+		*p = append(*p, o)
 		return nil
 	}
 
@@ -126,7 +124,7 @@ func (p *PaymentRequestInfoData) UnmarshalJSON(data []byte) error {
 		if err != nil {
 			return err
 		}
-		p.Data = append(p.Data, o)
+		*p = append(*p, o)
 	}
 	return nil
 }
