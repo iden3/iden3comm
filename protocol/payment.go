@@ -75,7 +75,6 @@ type PaymentRequestInfo struct {
 }
 
 // PaymentRequestInfoData is a union type for field Data in PaymentRequestInfo.
-// Only one of the fields can be set at a time.
 type PaymentRequestInfoData []PaymentRequestInfoDataItem
 
 // PaymentRequestInfoDataItem is the interface that any PaymentRequestInfoData.Data item must implement.
