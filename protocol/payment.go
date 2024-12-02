@@ -69,7 +69,6 @@ type PaymentRequestMessageBody struct {
 
 // PaymentRequestInfo represents the payments request information.
 type PaymentRequestInfo struct {
-	Type        string                          `json:"type,omitempty"`
 	Credentials []PaymentRequestInfoCredentials `json:"credentials"`
 	Description string                          `json:"description"`
 	Data        PaymentRequestInfoData          `json:"data"`
@@ -78,138 +77,83 @@ type PaymentRequestInfo struct {
 // PaymentRequestInfoData is a union type for field Data in PaymentRequestInfo.
 // Only one of the fields can be set at a time.
 type PaymentRequestInfoData struct {
-	dataType   PaymentRequestType
-	crypto     []Iden3PaymentRequestCryptoV1
-	rails      []Iden3PaymentRailsRequestV1
-	railsERC20 []Iden3PaymentRailsERC20RequestV1
+	Data []PaymentRequestInfoDataItem
 }
 
-// NewPaymentRequestInfoDataCrypto creates a new PaymentRequestInfoData with Iden3PaymentRequestCryptoV1 data.
-func NewPaymentRequestInfoDataCrypto(data Iden3PaymentRequestCryptoV1) PaymentRequestInfoData {
-	return PaymentRequestInfoData{
-		dataType: Iden3PaymentRequestCryptoV1Type,
-		crypto:   []Iden3PaymentRequestCryptoV1{data},
-	}
-}
-
-// NewPaymentRequestInfoDataRails creates a new PaymentRequestInfoData with Iden3PaymentRailsRequestV1 data.
-func NewPaymentRequestInfoDataRails(data Iden3PaymentRailsRequestV1) PaymentRequestInfoData {
-	return PaymentRequestInfoData{
-		dataType: Iden3PaymentRailsRequestV1Type,
-		rails:    []Iden3PaymentRailsRequestV1{data},
-	}
-}
-
-// NewPaymentRequestInfoDataRailsERC20 creates a new PaymentRequestInfoData with Iden3PaymentRailsERC20RequestV1 data.
-func NewPaymentRequestInfoDataRailsERC20(data Iden3PaymentRailsERC20RequestV1) PaymentRequestInfoData {
-	return PaymentRequestInfoData{
-		dataType:   Iden3PaymentRailsERC20RequestV1Type,
-		railsERC20: []Iden3PaymentRailsERC20RequestV1{data},
-	}
-}
-
-// Type returns the type of the data in the union. You can use Data() to get the data.
-func (p *PaymentRequestInfoData) Type() PaymentRequestType {
-	return p.dataType
-}
-
-// Data returns the data in the union. You can use Type() to determine the type of the data.
-func (p *PaymentRequestInfoData) Data() interface{} {
-	switch p.dataType {
-	case Iden3PaymentRequestCryptoV1Type:
-		return p.crypto
-	case Iden3PaymentRailsRequestV1Type:
-		return p.rails
-	case Iden3PaymentRailsERC20RequestV1Type:
-		return p.railsERC20
-	}
-	return nil
+// PaymentRequestInfoDataItem is the interface that any PaymentRequestInfoData.Data item must implement.
+type PaymentRequestInfoDataItem interface {
+	PaymentRequestType() PaymentRequestType
 }
 
 // MarshalJSON marshals the PaymentRequestInfoData into JSON.
 func (p PaymentRequestInfoData) MarshalJSON() ([]byte, error) {
-	switch p.dataType {
-	case Iden3PaymentRequestCryptoV1Type:
-		return json.Marshal(p.crypto[0])
-	case Iden3PaymentRailsRequestV1Type:
-		return json.Marshal(p.rails)
-	case Iden3PaymentRailsERC20RequestV1Type:
-		return json.Marshal(p.railsERC20)
+	if len(p.Data) == 1 && p.Data[0].PaymentRequestType() == Iden3PaymentRequestCryptoV1Type {
+		return json.Marshal(p.Data[0])
 	}
-	return nil, errors.New("failed to marshal not initialized PaymentRequestInfoData")
+	return json.Marshal(p.Data)
 }
 
 // UnmarshalJSON unmarshal the PaymentRequestInfoData from JSON.
 func (p *PaymentRequestInfoData) UnmarshalJSON(data []byte) error {
-	var item struct {
-		Type PaymentRequestType `json:"type"`
-	}
-	var collection []struct {
+	type rawItem struct {
 		Type PaymentRequestType `json:"type"`
 	}
 
-	p.crypto, p.rails, p.railsERC20 = nil, nil, nil
+	var item rawItem
+	var collection []json.RawMessage
 
-	if err := json.Unmarshal(data, &item); err == nil {
-		p.dataType = item.Type
-		return p.unmarshalFromItem(item.Type, data)
-	}
-
-	if err := json.Unmarshal(data, &collection); err == nil {
-		if len(collection) == 0 {
-			return nil
+	// Let's see if this is a single item
+	err := json.Unmarshal(data, &item)
+	if err == nil {
+		o, errItem := p.unmarshalFromItem(item.Type, data)
+		if errItem != nil {
+			return errItem
 		}
-
-		p.dataType = collection[0].Type
-		return p.unmarshalFromCollection(p.dataType, data)
+		p.Data = append(p.Data, o)
+		return nil
 	}
-	return errors.New("failed to unmarshal PaymentRequestInfoData. not a single item nor a collection")
+
+	// Let's see if this is a collection. Then we will unmarshal each single item
+	err = json.Unmarshal(data, &collection)
+	if err != nil {
+		return fmt.Errorf("PaymentRequestInfoData must be a PaymentRequestInfoDataItem or a collection: %w", err)
+	}
+	for n, rawItem := range collection {
+		if err := json.Unmarshal(rawItem, &item); err != nil {
+			return fmt.Errorf("field PaymentRequestInfoData[%d].Type not found: %w", n, err)
+		}
+		o, err := p.unmarshalFromItem(item.Type, rawItem)
+		if err != nil {
+			return err
+		}
+		p.Data = append(p.Data, o)
+	}
+	return nil
 }
 
-func (p *PaymentRequestInfoData) unmarshalFromItem(typ PaymentRequestType, data []byte) error {
+func (p *PaymentRequestInfoData) unmarshalFromItem(typ PaymentRequestType, data []byte) (PaymentRequestInfoDataItem, error) {
 	switch typ {
 	case Iden3PaymentRequestCryptoV1Type:
 		var o Iden3PaymentRequestCryptoV1
 		if err := json.Unmarshal(data, &o); err != nil {
-			return fmt.Errorf("unmarshalling PaymentRequestInfoData: %w", err)
+			return nil, fmt.Errorf("unmarshalling PaymentRequestInfoData: %w", err)
 		}
-		p.crypto = []Iden3PaymentRequestCryptoV1{o}
+		return o, nil
 	case Iden3PaymentRailsRequestV1Type:
 		var o Iden3PaymentRailsRequestV1
 		if err := json.Unmarshal(data, &o); err != nil {
-			return fmt.Errorf("unmarshalling PaymentRequestInfoData: %w", err)
+			return nil, fmt.Errorf("unmarshalling PaymentRequestInfoData: %w", err)
 		}
-		p.rails = []Iden3PaymentRailsRequestV1{o}
+		return o, nil
 	case Iden3PaymentRailsERC20RequestV1Type:
 		var o Iden3PaymentRailsERC20RequestV1
 		if err := json.Unmarshal(data, &o); err != nil {
-			return fmt.Errorf("unmarshalling PaymentRequestInfoData: %w", err)
+			return nil, fmt.Errorf("unmarshalling PaymentRequestInfoData: %w", err)
 		}
-		p.railsERC20 = []Iden3PaymentRailsERC20RequestV1{o}
+		return o, nil
 	default:
-		return errors.Errorf("unmarshalling PaymentRequestInfoData. unknown type: %s", typ)
+		return nil, errors.Errorf("unmarshalling PaymentRequestInfoData. unknown type: %s", typ)
 	}
-	return nil
-}
-
-func (p *PaymentRequestInfoData) unmarshalFromCollection(typ PaymentRequestType, data []byte) error {
-	switch typ {
-	case Iden3PaymentRequestCryptoV1Type:
-		if err := json.Unmarshal(data, &p.crypto); err != nil {
-			return fmt.Errorf("unmarshalling PaymentRequestInfoData: %w", err)
-		}
-	case Iden3PaymentRailsRequestV1Type:
-		if err := json.Unmarshal(data, &p.rails); err != nil {
-			return fmt.Errorf("unmarshalling PaymentRequestInfoData: %w", err)
-		}
-	case Iden3PaymentRailsERC20RequestV1Type:
-		if err := json.Unmarshal(data, &p.railsERC20); err != nil {
-			return fmt.Errorf("unmarshalling PaymentRequestInfoData: %w", err)
-		}
-	default:
-		return errors.Errorf("unmarshalling PaymentRequestInfoData. unknown type: %s", typ)
-	}
-	return nil
 }
 
 // Iden3PaymentRequestCryptoV1 represents the Iden3PaymentRequestCryptoV1 payment request data.
@@ -222,6 +166,11 @@ type Iden3PaymentRequestCryptoV1 struct {
 	Amount     string             `json:"amount"`
 	Currency   string             `json:"currency"`
 	Expiration string             `json:"expiration,omitempty"`
+}
+
+// PaymentRequestType implements the PaymentRequestInfoDataItem interface.
+func (i Iden3PaymentRequestCryptoV1) PaymentRequestType() PaymentRequestType {
+	return Iden3PaymentRequestCryptoV1Type
 }
 
 // Iden3PaymentRailsRequestV1 represents the Iden3PaymentRailsRequestV1 payment request data.
@@ -237,6 +186,11 @@ type Iden3PaymentRailsRequestV1 struct {
 	Currency       string             `json:"currency"`
 }
 
+// PaymentRequestType implements the PaymentRequestInfoDataItem interface.
+func (i Iden3PaymentRailsRequestV1) PaymentRequestType() PaymentRequestType {
+	return Iden3PaymentRailsRequestV1Type
+}
+
 // Iden3PaymentRailsERC20RequestV1 represents the Iden3PaymentRailsERC20RequestV1 payment request data.
 type Iden3PaymentRailsERC20RequestV1 struct {
 	Nonce          string             `json:"nonce"`
@@ -250,6 +204,11 @@ type Iden3PaymentRailsERC20RequestV1 struct {
 	Currency       string             `json:"currency"`
 	TokenAddress   string             `json:"tokenAddress"`
 	Features       []PaymentFeatures  `json:"features,omitempty"`
+}
+
+// PaymentRequestType implements the PaymentRequestInfoDataItem interface.
+func (i Iden3PaymentRailsERC20RequestV1) PaymentRequestType() PaymentRequestType {
+	return Iden3PaymentRailsERC20RequestV1Type
 }
 
 // PaymentFeatures represents type Features used in ERC20 payment request.
@@ -358,8 +317,8 @@ func NewPaymentRails(data Iden3PaymentRailsV1) Payment {
 	}
 }
 
-// NEwPaymentRailsERC20 creates a new Payment with Iden3PaymentRailsERC20V1 data.
-func NEwPaymentRailsERC20(data Iden3PaymentRailsERC20V1) Payment {
+// NewPaymentRailsERC20 creates a new Payment with Iden3PaymentRailsERC20V1 data.
+func NewPaymentRailsERC20(data Iden3PaymentRailsERC20V1) Payment {
 	return Payment{
 		dataType: Iden3PaymentRailsERC20V1Type,
 		railsERC: &data,
