@@ -9,13 +9,13 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
       - name: Install Go
         uses: actions/setup-go@v4
         with:
           go-version-file: go.mod
           cache: true
+      - name: Checkout code
+        uses: actions/checkout@v3
       - name: Print branch
         run: git branch --show-current
       - name: Clear golangci-lint cache
