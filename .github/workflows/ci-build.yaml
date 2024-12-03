@@ -1,0 +1,28 @@
+name: Lint
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Download Go modules
+        run: go mod tidy && go mod download
+
+      - name: Clear module cache
+        run: go clean -modcache
+
+      - name: build
+        run: go build ./...
