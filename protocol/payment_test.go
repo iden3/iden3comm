@@ -1,9 +1,11 @@
-package protocol
+package protocol_test
 
 import (
 	"encoding/json"
 	"testing"
 
+	"github.com/iden3/driver-did-iden3/pkg/document"
+	"github.com/iden3/iden3comm/v2/protocol"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -247,7 +249,7 @@ func TestPaymentRequestMessagePaymentTypeUnmarshall(t *testing.T) {
 	} {
 
 		t.Run(tc.desc, func(t *testing.T) {
-			var msg PaymentRequestMessage
+			var msg protocol.PaymentRequestMessage
 			err := json.Unmarshal(tc.payload, &msg)
 			require.NoError(t, err)
 			payload, err := json.Marshal(msg)
@@ -317,7 +319,7 @@ func TestEthereumEip712Signature2021Col(t *testing.T) {
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
-			var msg PaymentProof
+			var msg protocol.PaymentProof
 			require.NoError(t, json.Unmarshal(tc.payload, &msg))
 			payload, err := json.Marshal(msg)
 			require.NoError(t, err)
@@ -454,6 +456,111 @@ func TestPaymentRequestInfoDataUnmarshalMarshall(t *testing.T) {
                     }
                 ]
 			`
+	const paymentRequestMixedTypesInList = `
+				[
+				  {
+					"@context": [
+					  "https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsRequestV1",
+					  "https://w3id.org/security/suites/eip712sig-2021/v1"
+					],
+					"type": "Iden3PaymentRailsRequestV1",
+					"recipient": "0xaddress",
+					"amount": "100",
+					"currency": "ETHWEI",
+					"expirationDate": "ISO string",
+					"nonce": "25",
+					"metadata": "0x",
+					"proof": [
+					  {
+						"type": "EthereumEip712Signature2021",
+						"proofPurpose": "assertionMethod",
+						"proofValue": "0xa05292e9874240c5c2bbdf5a8fefff870c9fc801bde823189fc013d8ce39c7e5431bf0585f01c7e191ea7bbb7110a22e018d7f3ea0ed81a5f6a3b7b828f70f2d1c",
+						"verificationMethod": "did:pkh:eip155:0:0x3e1cFE1b83E7C1CdB0c9558236c1f6C7B203C34e#blockchainAccountId",
+						"created": "2024-09-26T12:28:19.702580067Z",
+						"eip712": {
+						  "types": "https://schema.iden3.io/core/json/Iden3PaymentRailsRequestV1.json",
+						  "primaryType": "Iden3PaymentRailsRequestV1",
+						  "domain": {
+							"name": "MCPayment",
+							"version": "1.0.0",
+							"chainId": "0x0",
+							"verifyingContract": "0x0000000000000000000000000000000000000000"
+						  }
+						}
+					  }
+					]
+				  },
+				  {
+					"type": "Iden3PaymentRailsERC20RequestV1",
+					"@context": [
+					  "https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsERC20RequestV1",
+					  "https://w3id.org/security/suites/eip712sig-2021/v1"
+					],
+					"tokenAddress": "0x2FE40749812FAC39a0F380649eF59E01bccf3a1A",
+					"features": [
+					  "EIP-2612"
+					],
+					"recipient": "0xE9D7fCDf32dF4772A7EF7C24c76aB40E4A42274a",
+					"amount": "40",
+					"currency": "ERC20Token",
+					"expirationDate": "2024-10-28T16:02:36.816Z",
+					"nonce": "3008",
+					"metadata": "0x",
+					"proof": [
+					  {
+						"type": "EthereumEip712Signature2021",
+						"proofPurpose": "assertionMethod",
+						"proofValue": "0xc3d9d6fa9aa7af03863943f7568ce61303e84221e3e29277309fd42581742024402802816cca5542620c19895331f4bdc1ea6fed0d0c6a1cf8656556d3acfde61b",
+						"verificationMethod": "did:pkh:eip155:80002:0xE9D7fCDf32dF4772A7EF7C24c76aB40E4A42274a#blockchainAccountId",
+						"created": "2024-10-28T15:02:36.946Z",
+						"eip712": {
+						  "types": "https://schema.iden3.io/core/json/Iden3PaymentRailsRequestV1.json",
+						  "primaryType": "Iden3PaymentRailsRequestV1",
+						  "domain": {
+							"name": "MCPayment",
+							"version": "1.0.0",
+							"chainId": "80002",
+							"verifyingContract": "0x6f742EBA99C3043663f995a7f566e9F012C07925"
+						  }
+						}
+					  }
+					]
+				  },
+				  {
+					"@context": [
+					  "https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsRequestV1",
+					  "https://w3id.org/security/suites/eip712sig-2021/v1"
+					],
+					"type": "Iden3PaymentRailsRequestV1",
+					"recipient": "0xaddress2",
+					"amount": "200",
+					"currency": "ETHWEI",
+					"expirationDate": "ISO string",
+					"nonce": "25",
+					"metadata": "0x",
+					"proof": [
+					  {
+						"type": "EthereumEip712Signature2021",
+						"proofPurpose": "assertionMethod",
+						"proofValue": "0xa05292e9874240c5c2bbdf5a8fefff870c9fc801bde823189fc013d8ce39c7e5431bf0585f01c7e191ea7bbb7110a22e018d7f3ea0ed81a5f6a3b7b828f70f2d1c",
+						"verificationMethod": "did:pkh:eip155:0:0x3e1cFE1b83E7C1CdB0c9558236c1f6C7B203C34e#blockchainAccountId",
+						"created": "2024-09-26T12:28:19.702580067Z",
+						"eip712": {
+						  "types": "https://schema.iden3.io/core/json/Iden3PaymentRailsRequestV1.json",
+						  "primaryType": "Iden3PaymentRailsRequestV1",
+						  "domain": {
+							"name": "MCPayment",
+							"version": "1.0.0",
+							"chainId": "0x1",
+							"verifyingContract": "0x0000000000000000000000000000000000000002"
+						  }
+						}
+					  }
+					]
+				  }
+				]
+			`
+
 	for _, tc := range []struct {
 		desc            string
 		payload         []byte
@@ -474,15 +581,167 @@ func TestPaymentRequestInfoDataUnmarshalMarshall(t *testing.T) {
 			payload:         []byte(paymentRequestRailsV1InList),
 			expectedPayload: []byte(paymentRequestRailsV1InList),
 		},
+		{
+			desc:            "Mixed types: Iden3PaymentRailsRequestV1 and Iden3PaymentRailsERC20RequestV1 in a list",
+			payload:         []byte(paymentRequestMixedTypesInList),
+			expectedPayload: []byte(paymentRequestMixedTypesInList),
+		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
-			var msg PaymentRequestInfoData
+			var msg protocol.PaymentRequestInfoData
 			require.NoError(t, json.Unmarshal(tc.payload, &msg))
 			payload, err := json.Marshal(msg)
 			require.NoError(t, err)
 			assert.JSONEq(t, string(tc.expectedPayload), string(payload))
 		})
 	}
+}
+
+func TestPaymentRequestInfoData_Construction(t *testing.T) {
+	const paymentRequestMixedTypesInList = `
+[
+  {
+	"@context": [
+	  "https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsRequestV1",
+	  "https://w3id.org/security/suites/eip712sig-2021/v1"
+	],
+	"type": "Iden3PaymentRailsRequestV1",
+	"recipient": "0xaddress",
+	"amount": "100",
+	"currency": "ETHWEI",
+	"proof": [
+	  {
+		"type": "EthereumEip712Signature2021",
+		"proofPurpose": "assertionMethod",
+		"proofValue": "0xa05292e9874240c5c2bbdf5a8fefff870c9fc801bde823189fc013d8ce39c7e5431bf0585f01c7e191ea7bbb7110a22e018d7f3ea0ed81a5f6a3b7b828f70f2d1c",
+		"verificationMethod": "did:pkh:eip155:0:0x3e1cFE1b83E7C1CdB0c9558236c1f6C7B203C34e#blockchainAccountId",
+		"created": "2024-09-26T12:28:19.702580067Z",
+		"eip712": {
+		  "types": "https://schema.iden3.io/core/json/Iden3PaymentRailsRequestV1.json",
+		  "primaryType": "Iden3PaymentRailsRequestV1",
+		  "domain": {
+			"name": "MCPayment",
+			"version": "1.0.0",
+			"chainId": "0x0",
+			"verifyingContract": "0x0000000000000000000000000000000000000000"
+		  }
+		}
+	  }
+	],
+	"expirationDate": "ISO string",
+	"nonce": "25",
+	"metadata": "0x"
+  },
+  {
+	"type": "Iden3PaymentRailsERC20RequestV1",
+	"@context": [
+	  "https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsERC20RequestV1",
+	  "https://w3id.org/security/suites/eip712sig-2021/v1"
+	],
+	"tokenAddress": "0x2FE40749812FAC39a0F380649eF59E01bccf3a1A",
+	"features": [
+	  "EIP-2612"
+	],
+	"recipient": "0xE9D7fCDf32dF4772A7EF7C24c76aB40E4A42274a",
+	"amount": "40",
+	"currency": "ERC20Token",
+	"proof": [
+	  {
+		"type": "EthereumEip712Signature2021",
+		"proofPurpose": "assertionMethod",
+		"proofValue": "0xc3d9d6fa9aa7af03863943f7568ce61303e84221e3e29277309fd42581742024402802816cca5542620c19895331f4bdc1ea6fed0d0c6a1cf8656556d3acfde61b",
+		"verificationMethod": "did:pkh:eip155:80002:0xE9D7fCDf32dF4772A7EF7C24c76aB40E4A42274a#blockchainAccountId",
+		"created": "2024-10-28T15:02:36.946Z",
+		"eip712": {
+		  "types": "https://schema.iden3.io/core/json/Iden3PaymentRailsRequestV1.json",
+		  "primaryType": "Iden3PaymentRailsRequestV1",
+		  "domain": {
+			"name": "MCPayment",
+			"version": "1.0.0",
+			"chainId": "80002",
+			"verifyingContract": "0x6f742EBA99C3043663f995a7f566e9F012C07925"
+		  }
+		}
+	  }
+	],
+	"expirationDate": "2024-10-28T16:02:36.816Z",
+	"nonce": "3008",
+	"metadata": "0x"
+  }
+]
+`
+	data := protocol.PaymentRequestInfoData{
+		protocol.Iden3PaymentRailsRequestV1{
+			Nonce: "25",
+			Type:  protocol.Iden3PaymentRailsRequestV1Type,
+			Context: protocol.NewPaymentContextString(
+				"https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsRequestV1",
+				"https://w3id.org/security/suites/eip712sig-2021/v1",
+			),
+			Recipient:      "0xaddress",
+			Amount:         "100",
+			ExpirationDate: "ISO string",
+			Proof: protocol.PaymentProof{
+				protocol.EthereumEip712Signature2021{
+					Type:               document.EthereumEip712SignatureProof2021Type,
+					ProofPurpose:       "assertionMethod",
+					ProofValue:         "0xa05292e9874240c5c2bbdf5a8fefff870c9fc801bde823189fc013d8ce39c7e5431bf0585f01c7e191ea7bbb7110a22e018d7f3ea0ed81a5f6a3b7b828f70f2d1c",
+					VerificationMethod: "did:pkh:eip155:0:0x3e1cFE1b83E7C1CdB0c9558236c1f6C7B203C34e#blockchainAccountId",
+					Created:            "2024-09-26T12:28:19.702580067Z",
+					Eip712: protocol.Eip712Data{
+						Types:       "https://schema.iden3.io/core/json/Iden3PaymentRailsRequestV1.json",
+						PrimaryType: "Iden3PaymentRailsRequestV1",
+						Domain: protocol.Eip712Domain{
+							Name:              "MCPayment",
+							Version:           "1.0.0",
+							ChainID:           "0x0",
+							VerifyingContract: "0x0000000000000000000000000000000000000000",
+						},
+					},
+				},
+			},
+			Metadata: "0x",
+			Currency: "ETHWEI",
+		},
+		protocol.Iden3PaymentRailsERC20RequestV1{
+			Nonce: "3008",
+			Type:  protocol.Iden3PaymentRailsERC20RequestV1Type,
+			Context: protocol.NewPaymentContextString(
+				"https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsERC20RequestV1",
+				"https://w3id.org/security/suites/eip712sig-2021/v1",
+			),
+			Recipient:      "0xE9D7fCDf32dF4772A7EF7C24c76aB40E4A42274a",
+			Amount:         "40",
+			ExpirationDate: "2024-10-28T16:02:36.816Z",
+			Proof: protocol.PaymentProof{
+				protocol.EthereumEip712Signature2021{
+					Type:               document.EthereumEip712SignatureProof2021Type,
+					ProofPurpose:       "assertionMethod",
+					ProofValue:         "0xc3d9d6fa9aa7af03863943f7568ce61303e84221e3e29277309fd42581742024402802816cca5542620c19895331f4bdc1ea6fed0d0c6a1cf8656556d3acfde61b",
+					VerificationMethod: "did:pkh:eip155:80002:0xE9D7fCDf32dF4772A7EF7C24c76aB40E4A42274a#blockchainAccountId",
+					Created:            "2024-10-28T15:02:36.946Z",
+					Eip712: protocol.Eip712Data{
+						Types:       "https://schema.iden3.io/core/json/Iden3PaymentRailsRequestV1.json",
+						PrimaryType: "Iden3PaymentRailsRequestV1",
+						Domain: protocol.Eip712Domain{
+							Name:              "MCPayment",
+							Version:           "1.0.0",
+							ChainID:           "80002",
+							VerifyingContract: "0x6f742EBA99C3043663f995a7f566e9F012C07925",
+						},
+					},
+				},
+			},
+			Metadata:     "0x",
+			Currency:     "ERC20Token",
+			TokenAddress: "0x2FE40749812FAC39a0F380649eF59E01bccf3a1A",
+			Features:     []protocol.PaymentFeatures{"EIP-2612"},
+		},
+	}
+	payload, err := json.Marshal(data)
+	require.NoError(t, err)
+
+	assert.JSONEq(t, paymentRequestMixedTypesInList, string(payload))
 }
 
 func TestPaymentContext(t *testing.T) {
@@ -518,7 +777,7 @@ func TestPaymentContext(t *testing.T) {
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
-			var msg PaymentContext
+			var msg protocol.PaymentContext
 			require.NoError(t, json.Unmarshal(tc.payload, &msg))
 			payload, err := json.Marshal(msg)
 			require.NoError(t, err)
@@ -620,7 +879,7 @@ func TestPaymentMarshalUnmarshal(t *testing.T) {
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
-			var msg PaymentMessage
+			var msg protocol.PaymentMessage
 			require.NoError(t, json.Unmarshal(tc.payload, &msg))
 			payload, err := json.Marshal(msg)
 			require.NoError(t, err)

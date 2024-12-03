@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/iden3/driver-did-iden3/pkg/document"
 	"github.com/iden3/go-schema-processor/v2/verifiable"
 	"github.com/pkg/errors"
 
@@ -34,9 +35,6 @@ const (
 
 	// Iden3PaymentRailsERC20V1Type is a Iden3PaymentRailsERC20V1 payment type
 	Iden3PaymentRailsERC20V1Type PaymentType = "Iden3PaymentRailsERC20V1"
-
-	// Eip712SignatureProofType is a EthereumEip712Signature2021 proof type
-	Eip712SignatureProofType ProofType = "EthereumEip712Signature2021"
 )
 
 // PaymentType is type for Payment
@@ -44,9 +42,6 @@ type PaymentType string
 
 // PaymentRequestType is type for Payment request
 type PaymentRequestType string
-
-// ProofType is type for Proof
-type ProofType string
 
 // PaymentRequestMessage represents Iden3message for payment request.
 type PaymentRequestMessage struct {
@@ -212,14 +207,15 @@ func (i Iden3PaymentRailsERC20RequestV1) PaymentRequestType() PaymentRequestType
 type PaymentFeatures string
 
 // PaymentProof represents a payment proof.
-type PaymentProof struct {
-	dataType        ProofType
-	eip712Signature []EthereumEip712Signature2021
+type PaymentProof []PaymentProofItem
+
+// PaymentProofItem is the interface that any PaymentProof item must implement.
+type PaymentProofItem interface {
+	PaymentProofItem() verifiable.ProofType
 }
 
 // UnmarshalJSON unmarshal the PaymentRequestInfoData from JSON.
 func (p *PaymentProof) UnmarshalJSON(data []byte) error {
-	p.dataType = Eip712SignatureProofType
 	var col []EthereumEip712Signature2021
 	if err := json.Unmarshal(data, &col); err != nil {
 		var single EthereumEip712Signature2021
@@ -228,16 +224,15 @@ func (p *PaymentProof) UnmarshalJSON(data []byte) error {
 		}
 		col = append(col, single)
 	}
-	p.eip712Signature = col
+	for _, item := range col {
+		*p = append(*p, item)
+	}
 	return nil
 }
 
 // MarshalJSON marshals the PaymentProof into JSON.
 func (p PaymentProof) MarshalJSON() ([]byte, error) {
-	if p.dataType == Eip712SignatureProofType {
-		return json.Marshal(p.eip712Signature)
-	}
-	return nil, errors.New("failed to marshal not initialized PaymentProof")
+	return json.Marshal([]PaymentProofItem(p))
 }
 
 // EthereumEip712Signature2021 represents the Ethereum EIP712 signature.
@@ -248,6 +243,10 @@ type EthereumEip712Signature2021 struct {
 	VerificationMethod string               `json:"verificationMethod"`
 	Created            string               `json:"created"`
 	Eip712             Eip712Data           `json:"eip712"`
+}
+
+func (e EthereumEip712Signature2021) PaymentProofItem() verifiable.ProofType {
+	return document.EthereumEip712SignatureProof2021Type
 }
 
 // Eip712Data represents the EIP712 data.
@@ -415,17 +414,15 @@ type PaymentContext struct {
 }
 
 // NewPaymentContextString creates a new PaymentContext with a string.
-func NewPaymentContextString(str string) PaymentContext {
-	return PaymentContext{str: &str}
-}
-
-// NewPaymentContextStringCol creates a new PaymentContext with a string collection.
-func NewPaymentContextStringCol(strCol []string) PaymentContext {
-	return PaymentContext{strCol: strCol}
+func NewPaymentContextString(str ...string) PaymentContext {
+	if len(str) == 1 {
+		return PaymentContext{str: &str[0]}
+	}
+	return PaymentContext{strCol: str}
 }
 
 // NewPaymentContextItemCol creates a new PaymentContext with an interface{} collection.
-func NewPaymentContextItemCol(itemCol []interface{}) PaymentContext {
+func NewPaymentContextItemCol(itemCol ...interface{}) PaymentContext {
 	return PaymentContext{itemCol: itemCol}
 }
 
