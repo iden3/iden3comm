@@ -97,7 +97,6 @@ func (p *PaymentRequestInfoData) UnmarshalJSON(data []byte) error {
 	var item rawItem
 	var collection []json.RawMessage
 
-	// Let's see if this is a single item
 	err := json.Unmarshal(data, &item)
 	if err == nil {
 		o, errItem := p.unmarshalFromItem(item.Type, data)
@@ -108,7 +107,6 @@ func (p *PaymentRequestInfoData) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
-	// Let's see if this is a collection. Then we will unmarshal each single item
 	err = json.Unmarshal(data, &collection)
 	if err != nil {
 		return fmt.Errorf("PaymentRequestInfoData must be a PaymentRequestInfoDataItem or a collection: %w", err)
