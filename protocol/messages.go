@@ -18,6 +18,9 @@ type MessageFetchRequestMessage struct {
 
 	From string `json:"from,omitempty"`
 	To   string `json:"to,omitempty"`
+
+	CreatedTime *int64 `json:"created_time,omitempty"`
+	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // MessageFetchRequestMessageBody is struct the represents body for message fetch request.
