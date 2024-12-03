@@ -19,15 +19,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - uses: actions/cache@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
         with:
-          path: |
-            ~/.cache/go-build
-            /go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-      - name: Update go modules
-        run: go mod tidy
+          go-version-file: go.mod
+          cache: true
+
       - name: Unit Tests
         run: go test -v -race -timeout=60s ./...
