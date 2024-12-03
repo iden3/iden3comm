@@ -19,8 +19,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: Print branch
-        run: git branch --show-current
       - uses: actions/cache@v3
         with:
           path: |
