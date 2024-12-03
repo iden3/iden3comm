@@ -13,24 +13,21 @@ jobs:
   test:
     strategy:
       matrix:
-        containers: [ 1.21.7 ]
+        containers: [ 1.20.4, 1.19, 1.18 ]
     runs-on: ubuntu-latest
     container: golang:${{ matrix.containers }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Set up Go
-        uses: actions/setup-go@v3
+      - uses: actions/cache@v3
         with:
-          go-version-file: go.mod
-          cache: true
-
-      - name: Download Go modules
-        run: go mod tidy && go mod download
-
-      - name: Clear module cache
-        run: go clean -modcache
-
+          path: |
+            ~/.cache/go-build
+            /go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Update go modules
+        run: go mod tidy
       - name: Unit Tests
-        run: go test -v -race -timeout=60s  ./...
+        run: go test -v -race -timeout=60s ./...

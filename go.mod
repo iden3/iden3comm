@@ -1,6 +1,6 @@
 module github.com/iden3/iden3comm/v2
 
-go 1.21.7
+go 1.18
 
 require (
 	github.com/dustinxie/ecc v0.0.0-20210511000915-959544187564
