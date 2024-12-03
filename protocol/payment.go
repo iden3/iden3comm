@@ -216,16 +216,16 @@ type PaymentProofItem interface {
 
 // UnmarshalJSON unmarshal the PaymentRequestInfoData from JSON.
 func (p *PaymentProof) UnmarshalJSON(data []byte) error {
-	var col []EthereumEip712Signature2021
+	var col []*EthereumEip712Signature2021
 	if err := json.Unmarshal(data, &col); err != nil {
 		var single EthereumEip712Signature2021
 		if err := json.Unmarshal(data, &single); err != nil {
 			return fmt.Errorf("failed to unmarshal EthereumEip712Signature2021Col: %w", err)
 		}
-		col = append(col, single)
+		col = append(col, &single)
 	}
 	for _, item := range col {
-		*p = append(*p, item)
+		*p = append(*p, *item)
 	}
 	return nil
 }
@@ -245,6 +245,7 @@ type EthereumEip712Signature2021 struct {
 	Eip712             Eip712Data           `json:"eip712"`
 }
 
+// PaymentProofItem implements the PaymentProofItem interface.
 func (e EthereumEip712Signature2021) PaymentProofItem() verifiable.ProofType {
 	return document.EthereumEip712SignatureProof2021Type
 }
