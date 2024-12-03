@@ -18,8 +18,9 @@ jobs:
           cache: true
       - name: Print branch
         run: git branch --show-current
+      - name: Clear golangci-lint cache
+        run: golangci-lint cache clean
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
           version: v1.60.3
-          skip-save-cache: true
