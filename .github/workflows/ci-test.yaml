@@ -26,5 +26,11 @@ jobs:
           go-version-file: go.mod
           cache: true
 
+      - name: Download Go modules
+        run: go mod tidy && go mod download
+
+      - name: Clear module cache
+        run: go clean -modcache
+
       - name: Unit Tests
-        run: go test -v -race -timeout=60s ./...
+        run: go test -v -race -timeout=60s  ./...
