@@ -16,6 +16,8 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
+      - name: Print branch
+        run: git branch --show-current
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
