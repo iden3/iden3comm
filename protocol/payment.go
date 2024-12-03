@@ -54,6 +54,9 @@ type PaymentRequestMessage struct {
 
 	From string `json:"from,omitempty"`
 	To   string `json:"to,omitempty"`
+
+	CreatedTime *int64 `json:"created_time,omitempty"`
+	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // PaymentRequestMessageBody represents the body of the PaymentRequestMessage.
@@ -214,6 +217,14 @@ type PaymentProofItem interface {
 	PaymentProofItem() verifiable.ProofType
 }
 
+// NewPaymentProofEip712Signature creates a new PaymentProof with EthereumEip712Signature2021 data.
+func NewPaymentProofEip712Signature(data []EthereumEip712Signature2021) PaymentProof {
+	return PaymentProof{
+		dataType:        Eip712SignatureProofType,
+		eip712Signature: data,
+	}
+}
+
 // UnmarshalJSON unmarshal the PaymentRequestInfoData from JSON.
 func (p *PaymentProof) UnmarshalJSON(data []byte) error {
 	var col []*EthereumEip712Signature2021
@@ -282,6 +293,9 @@ type PaymentMessage struct {
 
 	From string `json:"from,omitempty"`
 	To   string `json:"to,omitempty"`
+
+	CreatedTime *int64 `json:"created_time,omitempty"`
+	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // PaymentMessageBody represents the body of the PaymentMessage.

@@ -26,6 +26,9 @@ type AuthorizationResponseMessage struct {
 
 	From string `json:"from,omitempty"`
 	To   string `json:"to,omitempty"`
+
+	CreatedTime *int64 `json:"created_time,omitempty"`
+	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // AuthorizationMessageResponseBody is struct the represents authorization response data
@@ -45,6 +48,9 @@ type AuthorizationRequestMessage struct {
 
 	From string `json:"from,omitempty"`
 	To   string `json:"to,omitempty"`
+
+	CreatedTime *int64 `json:"created_time,omitempty"`
+	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // AuthorizationRequestMessageBody is body for authorization request
