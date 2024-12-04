@@ -176,7 +176,6 @@ type Iden3PaymentRailsRequestV1 struct {
 	ExpirationDate string             `json:"expirationDate"`
 	Proof          PaymentProof       `json:"proof"`
 	Metadata       string             `json:"metadata"`
-	Currency       string             `json:"currency"`
 }
 
 // PaymentRequestType implements the PaymentRequestInfoDataItem interface.
@@ -194,7 +193,6 @@ type Iden3PaymentRailsERC20RequestV1 struct {
 	ExpirationDate string             `json:"expirationDate"`
 	Proof          PaymentProof       `json:"proof"`
 	Metadata       string             `json:"metadata"`
-	Currency       string             `json:"currency"`
 	TokenAddress   string             `json:"tokenAddress"`
 	Features       []PaymentFeatures  `json:"features,omitempty"`
 }
