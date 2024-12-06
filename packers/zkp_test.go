@@ -28,7 +28,7 @@ func TestZKPPacker_Pack(t *testing.T) {
 	})
 
 	mockVerificationParam := make(map[jwz.ProvingMethodAlg]VerificationParams)
-	mockVerificationParam[mockedProvingMethod.ProvingMethodAlg] = NewVerificationParams([]byte(""), mock.VerifyState)
+	mockVerificationParam[mockedProvingMethod.ProvingMethodAlg] = NewVerificationParams([]byte(""), verifyStateMock)
 
 	mockProvingParamMap := make(map[jwz.ProvingMethodAlg]ProvingParams)
 	mockProvingParamMap[mockedProvingMethod.ProvingMethodAlg] =
@@ -77,7 +77,7 @@ func TestPlainMessagePacker_Unpack(t *testing.T) {
 	})
 
 	mockVerificationParam := make(map[jwz.ProvingMethodAlg]VerificationParams)
-	mockVerificationParam[mockedProvingMethod.ProvingMethodAlg] = NewVerificationParams([]byte(""), mock.VerifyState)
+	mockVerificationParam[mockedProvingMethod.ProvingMethodAlg] = NewVerificationParams([]byte(""), verifyStateMock)
 
 	mockProvingParamMap := make(map[jwz.ProvingMethodAlg]ProvingParams)
 	mockProvingParamMap[mockedProvingMethod.ProvingMethodAlg] =
@@ -100,4 +100,8 @@ func TestPlainMessagePacker_Unpack(t *testing.T) {
 	assert.Equal(t, protocol.AuthorizationResponseMessageType, authResponse.Type)
 	assert.Len(t, authResponse.Body.Scope, 0)
 
+}
+
+func verifyStateMock(_ circuits.CircuitID, _ []string, _ ...ZKPPUnpackerParams) error {
+	return nil
 }

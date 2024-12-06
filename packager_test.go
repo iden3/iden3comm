@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/iden3/go-circuits/v2"
 	"github.com/iden3/go-iden3-core/v2/w3c"
 	"github.com/iden3/go-jwz/v2"
 	"github.com/iden3/iden3comm/v2"
@@ -182,7 +183,7 @@ func initPackageManager(t *testing.T) *iden3comm.PackageManager {
 
 	mockVerificationParam := make(map[jwz.ProvingMethodAlg]packers.VerificationParams)
 	mockVerificationParam[mockedProvingMethod.ProvingMethodAlg] = packers.NewVerificationParams([]byte(""),
-		mock.VerifyState)
+		verifyStateMock)
 
 	mockProvingParamMap := make(map[jwz.ProvingMethodAlg]packers.ProvingParams)
 	mockProvingParamMap[mockedProvingMethod.ProvingMethodAlg] = packers.NewProvingParams(mock.PrepareAuthInputs,
@@ -192,4 +193,9 @@ func initPackageManager(t *testing.T) *iden3comm.PackageManager {
 	require.NoError(t, err)
 
 	return pm
+}
+
+// VerifyState return no error always
+func verifyStateMock(_ circuits.CircuitID, _ []string, _ ...packers.ZKPPUnpackerParams) error {
+	return nil
 }
