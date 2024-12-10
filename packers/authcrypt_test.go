@@ -19,11 +19,9 @@ var (
 )
 
 func TestAuthCry(t *testing.T) {
-	a := Authcrypt{
-		kr: func(kid string) (interface{}, error) {
-			return senderKey, nil
-		},
-	}
+	a := NewAuthcrypt(func(kid string) (interface{}, error) {
+		return senderKey, nil
+	})
 
 	recipient, err := echdToECDSA(recipientKey.PublicKey())
 	if err != nil {
@@ -37,11 +35,9 @@ func TestAuthCry(t *testing.T) {
 		t.Fatalf("failed to encrypt message: %s", err)
 	}
 
-	a = Authcrypt{
-		kr: func(kid string) (interface{}, error) {
-			return recipientKey, nil
-		},
-	}
+	a = NewAuthcrypt(func(kid string) (interface{}, error) {
+		return recipientKey, nil
+	})
 
 	payload, err := a.Decrypt(jwetoken, senderKey.PublicKey())
 	if err != nil {
