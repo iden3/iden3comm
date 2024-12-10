@@ -4,9 +4,9 @@ package packers
 import (
 	"encoding/json"
 
+	"github.com/go-jose/go-jose/v4"
 	"github.com/iden3/iden3comm/v2"
 	"github.com/pkg/errors"
-	"gopkg.in/go-jose/go-jose.v2"
 )
 
 // MediaTypeEncryptedMessage is media type for ecnrypted message
@@ -67,7 +67,8 @@ func (p *AnoncryptPacker) Pack(payload []byte, params iden3comm.PackerParams) ([
 // Unpack returns unpacked message from transport envelope
 func (p *AnoncryptPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 
-	jwe, err := jose.ParseEncrypted(string(envelope))
+	jwe, err := jose.ParseEncrypted(
+		string(envelope), []jose.KeyAlgorithm{jose.ECDH_ES_A256KW}, []jose.ContentEncryption{jose.A256CBC_HS512})
 	if err != nil {
 		return nil, err
 	}
