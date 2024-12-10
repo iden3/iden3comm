@@ -10,12 +10,12 @@ import (
 	"encoding/json"
 	"math/big"
 
+	"github.com/go-jose/go-jose/v4"
 	"github.com/iden3/go-circuits/v2"
 	"github.com/iden3/go-iden3-core/v2/w3c"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-jwz/v2"
 	"github.com/iden3/go-rapidsnark/types"
-	"gopkg.in/go-jose/go-jose.v2"
 )
 
 // ProvingMethodGroth16AuthV2 proving method to avoid using of proving key and wasm files

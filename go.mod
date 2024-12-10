@@ -1,9 +1,13 @@
 module github.com/iden3/iden3comm/v2
 
-go 1.18
+go 1.21
+
+toolchain go1.22.5
 
 require (
+	github.com/ProtonMail/go-crypto v1.1.3
 	github.com/dustinxie/ecc v0.0.0-20210511000915-959544187564
+	github.com/go-jose/go-jose/v4 v4.0.4
 	github.com/google/uuid v1.6.0
 	github.com/iden3/driver-did-iden3 v0.0.5
 	github.com/iden3/go-circuits/v2 v2.4.0
@@ -16,7 +20,7 @@ require (
 	github.com/mr-tron/base58 v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.9.0
-	gopkg.in/go-jose/go-jose.v2 v2.6.1
+	golang.org/x/crypto v0.25.0
 )
 
 require (
@@ -31,7 +35,6 @@ require (
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/go-stack/stack v1.8.1 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
-	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/holiman/uint256 v1.2.0 // indirect
 	github.com/iden3/contracts-abi/state/go/abi v1.0.1 // indirect
@@ -55,10 +58,9 @@ require (
 	github.com/tklauser/go-sysconf v0.3.11 // indirect
 	github.com/tklauser/numcpus v0.6.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
-	golang.org/x/crypto v0.12.0 // indirect
-	golang.org/x/net v0.10.0 // indirect
-	golang.org/x/sys v0.15.0 // indirect
-	golang.org/x/text v0.12.0 // indirect
+	golang.org/x/net v0.21.0 // indirect
+	golang.org/x/sys v0.22.0 // indirect
+	golang.org/x/text v0.16.0 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

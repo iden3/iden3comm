@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/go-jose/go-jose/v4"
 	"github.com/iden3/iden3comm/v2/mock"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/go-jose/go-jose.v2"
 )
 
 func TestAnoncryptPacker_Pack(t *testing.T) {
@@ -26,7 +26,8 @@ func TestAnoncryptPacker_Pack(t *testing.T) {
 	require.NotEqual(t, 0, len(ciphertext))
 
 	// decrypt in user side.
-	jwe, err := jose.ParseEncrypted(string(ciphertext))
+	jwe, err := jose.ParseEncrypted(
+		string(ciphertext), []jose.KeyAlgorithm{jose.ECDH_ES_A256KW}, []jose.ContentEncryption{jose.A256CBC_HS512})
 	require.NoError(t, err)
 	require.EqualValues(t, jwe.Header.ExtraHeaders[jose.HeaderType], MediaTypeEncryptedMessage)
 
