@@ -2,8 +2,10 @@ package packers
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/iden3/iden3comm/v2"
+	"github.com/iden3/iden3comm/v2/protocol"
 	"github.com/pkg/errors"
 )
 
@@ -45,4 +47,15 @@ func (p *PlainMessagePacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, e
 // MediaType for iden3comm
 func (p *PlainMessagePacker) MediaType() iden3comm.MediaType {
 	return MediaTypePlainMessage
+}
+
+// GetSupportedProfiles gets packer envelope (supported profiles) with options
+func (p *PlainMessagePacker) GetSupportedProfiles() []string {
+	return []string{
+		fmt.Sprintf(
+			"%s;env=%s",
+			protocol.ProtocolVersionV1,
+			p.MediaType(),
+		),
+	}
 }

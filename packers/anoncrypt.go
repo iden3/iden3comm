@@ -3,8 +3,10 @@ package packers
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/iden3/iden3comm/v2"
+	"github.com/iden3/iden3comm/v2/protocol"
 	"github.com/pkg/errors"
 	"gopkg.in/go-jose/go-jose.v2"
 )
@@ -90,4 +92,15 @@ func (p *AnoncryptPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, erro
 // MediaType for iden3comm
 func (p *AnoncryptPacker) MediaType() iden3comm.MediaType {
 	return MediaTypeEncryptedMessage
+}
+
+// GetSupportedProfiles gets packer envelope (supported profiles) with options
+func (p *AnoncryptPacker) GetSupportedProfiles() []string {
+	return []string{
+		fmt.Sprintf(
+			"%s;env=%s",
+			protocol.ProtocolVersionV1,
+			p.MediaType(),
+		),
+	}
 }

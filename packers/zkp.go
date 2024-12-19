@@ -17,6 +17,7 @@ import (
 	"github.com/iden3/go-iden3-core/v2/w3c"
 	"github.com/iden3/go-jwz/v2"
 	"github.com/iden3/iden3comm/v2"
+	"github.com/iden3/iden3comm/v2/protocol"
 	"github.com/pkg/errors"
 )
 
@@ -237,6 +238,27 @@ func unmarshalPubSignals(obj circuits.PubSignalsUnmarshaller, pubSignals []strin
 // MediaType for iden3comm that returns MediaTypeZKPMessage
 func (p *ZKPPacker) MediaType() iden3comm.MediaType {
 	return MediaTypeZKPMessage
+}
+
+// GetSupportedProfiles gets packer envelope (supported profiles) with options
+func (p *ZKPPacker) GetSupportedProfiles() []string {
+	return []string{
+		fmt.Sprintf(
+			"%s;env=%s&alg=%s&circuitIds=%s",
+			protocol.ProtocolVersionV1,
+			p.MediaType(),
+			strings.Join(p.getSupportedAlgorithms(), ","),
+			strings.Join(p.getSupportedCircuitIDs(), ","),
+		),
+	}
+}
+
+func (p *ZKPPacker) getSupportedAlgorithms() []string {
+	return []string{string(protocol.AcceptJwzAlgorithmsGroth16)}
+}
+
+func (p *ZKPPacker) getSupportedCircuitIDs() []string {
+	return []string{string(protocol.AcceptAuthCircuitsAuthV2)}
 }
 
 // DefaultZKPUnpackerOption is a function that sets the default ZKP unpacker options

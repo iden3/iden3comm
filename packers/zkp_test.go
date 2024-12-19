@@ -12,6 +12,7 @@ import (
 	"github.com/iden3/iden3comm/v2/mock"
 	"github.com/iden3/iden3comm/v2/protocol"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestZKPPacker_Pack(t *testing.T) {
@@ -100,4 +101,10 @@ func TestPlainMessagePacker_Unpack(t *testing.T) {
 	assert.Equal(t, protocol.AuthorizationResponseMessageType, authResponse.Type)
 	assert.Len(t, authResponse.Body.Scope, 0)
 
+}
+
+func TestZKPSupportedProfiles(t *testing.T) {
+	p := ZKPPacker{}
+	acceptProfiles := p.GetSupportedProfiles()
+	require.Equal(t, []string{"iden3comm/v1;env=application/iden3-zkp-json&alg=groth16&circuitIds=authV2"}, acceptProfiles)
 }
