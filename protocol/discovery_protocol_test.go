@@ -85,35 +85,35 @@ func TestDiscoverFeatureDisclosuresMessageCreation(t *testing.T) {
 			Disclosures: []protocol.DiscoverFeatureDisclosure{
 				{
 					FeatureType: protocol.DiscoveryProtocolFeatureTypeAccept,
-					Id:          "iden3comm/v1;env=application/iden3-zkp-json;circuitId=authV2,authV3;alg=groth16",
+					ID:          "iden3comm/v1;env=application/iden3-zkp-json;circuitId=authV2,authV3;alg=groth16",
 				},
 				{
 					FeatureType: protocol.DiscoveryProtocolFeatureTypeAccept,
-					Id:          "iden3comm/v1;env=application/iden3comm-signed-json;alg=ES256K-R",
+					ID:          "iden3comm/v1;env=application/iden3comm-signed-json;alg=ES256K-R",
 				},
 				{
 					FeatureType: protocol.DiscoveryProtocolFeatureTypeProtocol,
-					Id:          "https://iden3-communication.io/authorization/1.0",
+					ID:          "https://iden3-communication.io/authorization/1.0",
 				},
 				{
 					FeatureType: protocol.DiscoveryProtocolFeatureTypeHeader,
-					Id:          "id",
+					ID:          "id",
 				},
 				{
 					FeatureType: protocol.DiscoveryProtocolFeatureTypeHeader,
-					Id:          "type",
+					ID:          "type",
 				},
 				{
 					FeatureType: protocol.DiscoveryProtocolFeatureTypeHeader,
-					Id:          "body",
+					ID:          "body",
 				},
 				{
 					FeatureType: protocol.DiscoveryProtocolFeatureTypeHeader,
-					Id:          "created_time",
+					ID:          "created_time",
 				},
 				{
 					FeatureType: protocol.DiscoveryProtocolFeatureTypeHeader,
-					Id:          "expires_time",
+					ID:          "expires_time",
 				},
 			},
 		},

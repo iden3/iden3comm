@@ -2,14 +2,21 @@ package protocol
 
 import "github.com/iden3/iden3comm/v2"
 
-// DiscoveryFeatureType is type for query feature-type.
+// DiscoveryProtocolFeatureType is type for query feature-type.
 type DiscoveryProtocolFeatureType string
 
 const (
-	DiscoveryProtocolFeatureTypeAccept   DiscoveryProtocolFeatureType = "accept"
+	// DiscoveryProtocolFeatureTypeAccept is "accept" type for query feature-type.
+	DiscoveryProtocolFeatureTypeAccept DiscoveryProtocolFeatureType = "accept"
+
+	// DiscoveryProtocolFeatureTypeProtocol is "protocol" type for query feature-type.
 	DiscoveryProtocolFeatureTypeProtocol DiscoveryProtocolFeatureType = "protocol"
+
+	// DiscoveryProtocolFeatureTypeGoalCode is "goal-code" type for query feature-type.
 	DiscoveryProtocolFeatureTypeGoalCode DiscoveryProtocolFeatureType = "goal-code"
-	DiscoveryProtocolFeatureTypeHeader   DiscoveryProtocolFeatureType = "header"
+
+	// DiscoveryProtocolFeatureTypeHeader is "header" type for query feature-type.
+	DiscoveryProtocolFeatureTypeHeader DiscoveryProtocolFeatureType = "header"
 )
 
 // DiscoverFeatureQueriesMessage represents discover feature queries message.
@@ -63,5 +70,5 @@ type DiscoverFeatureDiscloseMessageBody struct {
 // DiscoverFeatureDisclosure represents discover feature disclosure.
 type DiscoverFeatureDisclosure struct {
 	FeatureType DiscoveryProtocolFeatureType `json:"feature-type"`
-	Id          string                       `json:"id"`
+	ID          string                       `json:"id"`
 }
