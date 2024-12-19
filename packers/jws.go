@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/dustinxie/ecc"
@@ -13,6 +14,7 @@ import (
 	"github.com/iden3/iden3comm/v2"
 	"github.com/iden3/iden3comm/v2/packers/providers/bjj"
 	"github.com/iden3/iden3comm/v2/packers/providers/es256k"
+	"github.com/iden3/iden3comm/v2/protocol"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jws"
@@ -330,6 +332,22 @@ func recoverEthereumAddress(token *jws.Message, vm verifiable.CommonVerification
 // MediaType for iden3comm that returns MediaTypeSignedMessage
 func (p *JWSPacker) MediaType() iden3comm.MediaType {
 	return MediaTypeSignedMessage
+}
+
+// GetSupportedProfiles gets packer envelope (supported profiles) with options
+func (p *JWSPacker) GetSupportedProfiles() []string {
+	return []string{
+		fmt.Sprintf(
+			"%s;env=%s&alg=%s",
+			protocol.ProtocolVersionV1,
+			p.MediaType(),
+			strings.Join(p.getSupportedAlgorithms(), ","),
+		),
+	}
+}
+
+func (p *JWSPacker) getSupportedAlgorithms() []string {
+	return []string{string(protocol.AcceptJwsAlgorithmsES256K), string(protocol.AcceptJwsAlgorithmsES256KR)}
 }
 
 // resolveVerificationMethods looks for all verification methods in the DID document.
