@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/dustinxie/ecc"
@@ -13,6 +14,8 @@ import (
 	"github.com/iden3/iden3comm/v2"
 	"github.com/iden3/iden3comm/v2/packers/providers/bjj"
 	"github.com/iden3/iden3comm/v2/packers/providers/es256k"
+	"github.com/iden3/iden3comm/v2/protocol"
+	"github.com/iden3/iden3comm/v2/utils"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jws"
@@ -330,6 +333,60 @@ func recoverEthereumAddress(token *jws.Message, vm verifiable.CommonVerification
 // MediaType for iden3comm that returns MediaTypeSignedMessage
 func (p *JWSPacker) MediaType() iden3comm.MediaType {
 	return MediaTypeSignedMessage
+}
+
+// GetSupportedProfiles gets packer envelope (supported profiles) with options
+func (p *JWSPacker) GetSupportedProfiles() []string {
+	return []string{
+		fmt.Sprintf(
+			"%s;env=%s&alg=%s",
+			protocol.ProtocolVersionV1,
+			p.MediaType(),
+			strings.Join(p.getSupportedAlgorithms(), ","),
+		),
+	}
+}
+
+// IsProfileSupported checks if profile is supported by packer
+func (p *JWSPacker) IsProfileSupported(profile string) bool {
+	parsedProfile, err := utils.ParseAcceptProfile(profile)
+	if err != nil {
+		return false
+	}
+
+	if parsedProfile.ProtocolVersion != protocol.ProtocolVersionV1 {
+		return false
+	}
+
+	if parsedProfile.Env != p.MediaType() {
+		return false
+	}
+
+	if len(parsedProfile.Circuits) > 0 || len(parsedProfile.AcceptAnoncryptAlgorithms) > 0 || len(parsedProfile.AcceptJwzAlgorithms) > 0 {
+		return false
+	}
+
+	supportedAlgorithms := p.getSupportedAlgorithms()
+	algSupported := len(parsedProfile.AcceptJwsAlgorithms) == 0
+	if !algSupported {
+		for _, alg := range parsedProfile.AcceptJwsAlgorithms {
+			for _, supportedAlg := range supportedAlgorithms {
+				if string(alg) == supportedAlg {
+					algSupported = true
+					break
+				}
+			}
+			if algSupported {
+				break
+			}
+		}
+	}
+
+	return algSupported
+}
+
+func (p *JWSPacker) getSupportedAlgorithms() []string {
+	return []string{string(protocol.AcceptJwsAlgorithmsES256K), string(protocol.AcceptJwsAlgorithmsES256KR)}
 }
 
 // resolveVerificationMethods looks for all verification methods in the DID document.

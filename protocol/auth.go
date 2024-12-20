@@ -60,6 +60,7 @@ type AuthorizationRequestMessageBody struct {
 	Message     string                      `json:"message,omitempty"`
 	DIDDoc      json.RawMessage             `json:"did_doc,omitempty"`
 	Scope       []ZeroKnowledgeProofRequest `json:"scope"`
+	Accept      []string                    `json:"accept,omitempty"`
 }
 
 // ZeroKnowledgeProofRequest represents structure of zkp request object
