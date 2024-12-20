@@ -18,6 +18,7 @@ import (
 	"github.com/iden3/go-jwz/v2"
 	"github.com/iden3/iden3comm/v2"
 	"github.com/iden3/iden3comm/v2/protocol"
+	"github.com/iden3/iden3comm/v2/utils"
 	"github.com/pkg/errors"
 )
 
@@ -251,6 +252,60 @@ func (p *ZKPPacker) GetSupportedProfiles() []string {
 			strings.Join(p.getSupportedCircuitIDs(), ","),
 		),
 	}
+}
+
+// IsProfileSupported checks if profile is supported by packer
+func (p *ZKPPacker) IsProfileSupported(profile string) bool {
+	parsedProfile, err := utils.ParseAcceptProfile(profile)
+	if err != nil {
+		return false
+	}
+
+	if parsedProfile.ProtocolVersion != protocol.ProtocolVersionV1 {
+		return false
+	}
+
+	if parsedProfile.Env != p.MediaType() {
+		return false
+	}
+
+	supportedCircuitIDs := p.getSupportedCircuitIDs()
+	circuitIDSupported := len(parsedProfile.Circuits) == 0
+	if !circuitIDSupported {
+		for _, circuit := range parsedProfile.Circuits {
+			for _, supportedCircuit := range supportedCircuitIDs {
+				if string(circuit) == supportedCircuit {
+					circuitIDSupported = true
+					break
+				}
+			}
+			if circuitIDSupported {
+				break
+			}
+		}
+	}
+
+	if len(parsedProfile.AcceptAnoncryptAlgorithms) > 0 || len(parsedProfile.AcceptJwsAlgorithms) > 0 {
+		return false
+	}
+
+	supportedAlgorithms := p.getSupportedAlgorithms()
+	algSupported := len(parsedProfile.AcceptJwzAlgorithms) == 0
+	if !algSupported {
+		for _, alg := range parsedProfile.AcceptJwzAlgorithms {
+			for _, supportedAlg := range supportedAlgorithms {
+				if string(alg) == supportedAlg {
+					algSupported = true
+					break
+				}
+			}
+			if algSupported {
+				break
+			}
+		}
+	}
+
+	return circuitIDSupported && algSupported
 }
 
 func (p *ZKPPacker) getSupportedAlgorithms() []string {

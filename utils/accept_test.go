@@ -4,10 +4,97 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/iden3/iden3comm/v2/packers"
 	"github.com/iden3/iden3comm/v2/protocol"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestBuildAcceptProfile(t *testing.T) {
+	type expected struct {
+		accept []string
+		err    error
+	}
+	for _, tc := range []struct {
+		desc     string
+		profile  []protocol.AcceptProfile
+		expected expected
+	}{
+		{
+			desc: "Valid plain text accept profile",
+			profile: []protocol.AcceptProfile{{
+				ProtocolVersion: protocol.ProtocolVersionV1,
+				Env:             mediaTypePlainMessage,
+			}},
+			expected: expected{
+				accept: []string{"iden3comm/v1;env=application/iden3comm-plain-json"},
+			},
+		},
+		{
+			desc: "Valid anoncrypt accept profile",
+			profile: []protocol.AcceptProfile{{
+				ProtocolVersion:           protocol.ProtocolVersionV1,
+				Env:                       mediaTypeEncryptedMessage,
+				AcceptAnoncryptAlgorithms: []protocol.AcceptAnoncryptAlgorithms{protocol.AcceptAnoncryptECDHESA256KW},
+			}},
+			expected: expected{
+				accept: []string{"iden3comm/v1;env=application/iden3comm-encrypted-json;alg=ECDH-ES+A256KW"},
+			},
+		},
+		{
+			desc: "Valid JWS accept profile",
+			profile: []protocol.AcceptProfile{{
+				ProtocolVersion:     protocol.ProtocolVersionV1,
+				Env:                 mediaTypeJWSMessage,
+				AcceptJwsAlgorithms: []protocol.AcceptJwsAlgorithms{protocol.AcceptJwsAlgorithmsES256KR},
+			}},
+			expected: expected{
+				accept: []string{"iden3comm/v1;env=application/iden3comm-signed-json;alg=ES256K-R"},
+			},
+		},
+		{
+			desc: "Valid JWZ accept profile",
+			profile: []protocol.AcceptProfile{{
+				ProtocolVersion:     protocol.ProtocolVersionV1,
+				Env:                 mediaTypeZKPMessage,
+				AcceptJwzAlgorithms: []protocol.AcceptJwzAlgorithms{protocol.AcceptJwzAlgorithmsGroth16},
+				Circuits:            []protocol.AcceptAuthCircuits{protocol.AcceptAuthCircuitsAuthV2, protocol.AcceptAuthCircuitsAuthV3},
+			}},
+			expected: expected{
+				accept: []string{"iden3comm/v1;env=application/iden3-zkp-json;circuitId=authV2,authV3;alg=groth16"},
+			},
+		},
+		{
+			desc: "Circuit ID for JWS",
+			profile: []protocol.AcceptProfile{{
+				ProtocolVersion:     protocol.ProtocolVersionV1,
+				Env:                 mediaTypeJWSMessage,
+				AcceptJwsAlgorithms: []protocol.AcceptJwsAlgorithms{protocol.AcceptJwsAlgorithmsES256K},
+				Circuits:            []protocol.AcceptAuthCircuits{protocol.AcceptAuthCircuitsAuthV2, protocol.AcceptAuthCircuitsAuthV3},
+			}},
+			expected: expected{
+				err: errors.New("circuits not supported for env 'application/iden3comm-signed-json'"),
+			},
+		},
+		{
+			desc: "Wrong alg fro media type",
+			profile: []protocol.AcceptProfile{{
+				ProtocolVersion:           protocol.ProtocolVersionV1,
+				Env:                       mediaTypeJWSMessage,
+				AcceptAnoncryptAlgorithms: []protocol.AcceptAnoncryptAlgorithms{protocol.AcceptAnoncryptECDHESA256KW},
+			}},
+			expected: expected{
+				err: errors.New("anoncrypt algorithms not supported for env 'application/iden3comm-signed-json'"),
+			},
+		},
+	} {
+		t.Run(tc.desc, func(t *testing.T) {
+			profile, err := BuildAcceptProfile(tc.profile)
+			if tc.expected.err != nil {
+				assert.Equal(t, err.Error(), tc.expected.err.Error())
+			}
+			assert.Equal(t, profile, tc.expected.accept)
+		})
+	}
+}
 
 func TestAcceptProfileParser(t *testing.T) {
 	type expected struct {
@@ -25,7 +112,7 @@ func TestAcceptProfileParser(t *testing.T) {
 			expected: expected{
 				profile: protocol.AcceptProfile{
 					ProtocolVersion: protocol.ProtocolVersionV1,
-					Env:             packers.MediaTypePlainMessage,
+					Env:             mediaTypePlainMessage,
 				},
 			},
 		},
@@ -35,7 +122,7 @@ func TestAcceptProfileParser(t *testing.T) {
 			expected: expected{
 				profile: protocol.AcceptProfile{
 					ProtocolVersion:           protocol.ProtocolVersionV1,
-					Env:                       packers.MediaTypeEncryptedMessage,
+					Env:                       mediaTypeEncryptedMessage,
 					AcceptAnoncryptAlgorithms: []protocol.AcceptAnoncryptAlgorithms{protocol.AcceptAnoncryptECDHESA256KW},
 				},
 			},
@@ -46,7 +133,7 @@ func TestAcceptProfileParser(t *testing.T) {
 			expected: expected{
 				profile: protocol.AcceptProfile{
 					ProtocolVersion:     protocol.ProtocolVersionV1,
-					Env:                 packers.MediaTypeSignedMessage,
+					Env:                 mediaTypeJWSMessage,
 					AcceptJwsAlgorithms: []protocol.AcceptJwsAlgorithms{protocol.AcceptJwsAlgorithmsES256KR},
 				},
 			},
@@ -57,7 +144,7 @@ func TestAcceptProfileParser(t *testing.T) {
 			expected: expected{
 				profile: protocol.AcceptProfile{
 					ProtocolVersion:     protocol.ProtocolVersionV1,
-					Env:                 packers.MediaTypeZKPMessage,
+					Env:                 mediaTypeZKPMessage,
 					AcceptJwzAlgorithms: []protocol.AcceptJwzAlgorithms{protocol.AcceptJwzAlgorithmsGroth16},
 					Circuits:            []protocol.AcceptAuthCircuits{protocol.AcceptAuthCircuitsAuthV2, protocol.AcceptAuthCircuitsAuthV3},
 				},

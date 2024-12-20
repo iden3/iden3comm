@@ -21,6 +21,8 @@ type Packer interface {
 	MediaType() MediaType
 	// GetSupportedProfiles returns supported accept profiles
 	GetSupportedProfiles() []string
+	// IsProfileSupported checks if profile is supported by packer
+	IsProfileSupported(profile string) bool
 }
 
 // PackerParams mock interface for packer params
@@ -109,6 +111,17 @@ func (r *PackageManager) GetSupportedProfiles() []string {
 		acceptProfiles = append(acceptProfiles, profiles...)
 	}
 	return acceptProfiles
+}
+
+// IsProfileSupported checks if profile is supported by packer manager
+func (r *PackageManager) IsProfileSupported(profile string) bool {
+	for _, p := range r.packers {
+		isSupported := p.IsProfileSupported(profile)
+		if isSupported {
+			return true
+		}
+	}
+	return false
 }
 
 type envelopeStub struct {

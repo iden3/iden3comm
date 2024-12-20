@@ -6,6 +6,7 @@ import (
 
 	"github.com/iden3/iden3comm/v2"
 	"github.com/iden3/iden3comm/v2/protocol"
+	"github.com/iden3/iden3comm/v2/utils"
 	"github.com/pkg/errors"
 )
 
@@ -58,4 +59,22 @@ func (p *PlainMessagePacker) GetSupportedProfiles() []string {
 			p.MediaType(),
 		),
 	}
+}
+
+// IsProfileSupported checks if profile is supported by packer
+func (p *PlainMessagePacker) IsProfileSupported(profile string) bool {
+	parsedProfile, err := utils.ParseAcceptProfile(profile)
+	if err != nil {
+		return false
+	}
+
+	if parsedProfile.ProtocolVersion != protocol.ProtocolVersionV1 {
+		return false
+	}
+
+	if parsedProfile.Env != p.MediaType() {
+		return false
+	}
+
+	return true
 }

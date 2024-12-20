@@ -15,6 +15,7 @@ import (
 	"github.com/iden3/iden3comm/v2/packers/providers/bjj"
 	"github.com/iden3/iden3comm/v2/packers/providers/es256k"
 	"github.com/iden3/iden3comm/v2/protocol"
+	"github.com/iden3/iden3comm/v2/utils"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jws"
@@ -344,6 +345,44 @@ func (p *JWSPacker) GetSupportedProfiles() []string {
 			strings.Join(p.getSupportedAlgorithms(), ","),
 		),
 	}
+}
+
+// IsProfileSupported checks if profile is supported by packer
+func (p *JWSPacker) IsProfileSupported(profile string) bool {
+	parsedProfile, err := utils.ParseAcceptProfile(profile)
+	if err != nil {
+		return false
+	}
+
+	if parsedProfile.ProtocolVersion != protocol.ProtocolVersionV1 {
+		return false
+	}
+
+	if parsedProfile.Env != p.MediaType() {
+		return false
+	}
+
+	if len(parsedProfile.Circuits) > 0 || len(parsedProfile.AcceptAnoncryptAlgorithms) > 0 || len(parsedProfile.AcceptJwzAlgorithms) > 0 {
+		return false
+	}
+
+	supportedAlgorithms := p.getSupportedAlgorithms()
+	algSupported := len(parsedProfile.AcceptJwsAlgorithms) == 0
+	if !algSupported {
+		for _, alg := range parsedProfile.AcceptJwsAlgorithms {
+			for _, supportedAlg := range supportedAlgorithms {
+				if string(alg) == supportedAlg {
+					algSupported = true
+					break
+				}
+			}
+			if algSupported {
+				break
+			}
+		}
+	}
+
+	return algSupported
 }
 
 func (p *JWSPacker) getSupportedAlgorithms() []string {

@@ -4,9 +4,11 @@ package packers
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/iden3/iden3comm/v2"
 	"github.com/iden3/iden3comm/v2/protocol"
+	"github.com/iden3/iden3comm/v2/utils"
 	"github.com/pkg/errors"
 	"gopkg.in/go-jose/go-jose.v2"
 )
@@ -101,7 +103,49 @@ func (p *AnoncryptPacker) GetSupportedProfiles() []string {
 			"%s;env=%s&alg=%s",
 			protocol.ProtocolVersionV1,
 			p.MediaType(),
-			jose.ECDH_ES_A256KW,
+			strings.Join(p.getSupportedAlgorithms(), ","),
 		),
 	}
+}
+
+// IsProfileSupported checks if profile is supported by packer
+func (p *AnoncryptPacker) IsProfileSupported(profile string) bool {
+	parsedProfile, err := utils.ParseAcceptProfile(profile)
+	if err != nil {
+		return false
+	}
+
+	if parsedProfile.ProtocolVersion != protocol.ProtocolVersionV1 {
+		return false
+	}
+
+	if parsedProfile.Env != p.MediaType() {
+		return false
+	}
+
+	if len(parsedProfile.Circuits) > 0 || len(parsedProfile.AcceptJwzAlgorithms) > 0 || len(parsedProfile.AcceptJwsAlgorithms) > 0 {
+		return false
+	}
+
+	supportedAlgorithms := p.getSupportedAlgorithms()
+	algSupported := len(parsedProfile.AcceptAnoncryptAlgorithms) == 0
+	if !algSupported {
+		for _, alg := range parsedProfile.AcceptAnoncryptAlgorithms {
+			for _, supportedAlg := range supportedAlgorithms {
+				if string(alg) == supportedAlg {
+					algSupported = true
+					break
+				}
+			}
+			if algSupported {
+				break
+			}
+		}
+	}
+
+	return algSupported
+}
+
+func (p *AnoncryptPacker) getSupportedAlgorithms() []string {
+	return []string{string(jose.ECDH_ES_A256KW)}
 }

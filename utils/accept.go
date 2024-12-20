@@ -5,9 +5,74 @@ import (
 	"strings"
 
 	"github.com/iden3/iden3comm/v2"
-	"github.com/iden3/iden3comm/v2/packers"
 	"github.com/iden3/iden3comm/v2/protocol"
 )
+
+const (
+	mediaTypePlainMessage     = "application/iden3comm-plain-json"
+	mediaTypeEncryptedMessage = "application/iden3comm-encrypted-json"
+	mediaTypeZKPMessage       = "application/iden3-zkp-json"
+	mediaTypeJWSMessage       = "application/iden3comm-signed-json"
+)
+
+// BuildAcceptProfile builds the accept profile string array from the AcceptProfile structures
+func BuildAcceptProfile(profiles []protocol.AcceptProfile) ([]string, error) {
+	result := []string{}
+
+	for i := range profiles {
+		accept := string(profiles[i].ProtocolVersion) + ";env=" + string(profiles[i].Env)
+
+		if len(profiles[i].Circuits) > 0 && profiles[i].Env != mediaTypeZKPMessage {
+			return nil, errors.New("circuits not supported for env '" + string(profiles[i].Env) + "'")
+		}
+
+		if len(profiles[i].Circuits) > 0 {
+			circuits := []string{}
+			for _, circuit := range profiles[i].Circuits {
+				circuits = append(circuits, string(circuit))
+			}
+			accept += ";circuitId=" + strings.Join(circuits, ",")
+		}
+
+		if len(profiles[i].AcceptAnoncryptAlgorithms) > 0 && profiles[i].Env != mediaTypeEncryptedMessage {
+			return nil, errors.New("anoncrypt algorithms not supported for env '" + string(profiles[i].Env) + "'")
+		}
+
+		if len(profiles[i].AcceptJwsAlgorithms) > 0 && profiles[i].Env != mediaTypeJWSMessage {
+			return nil, errors.New("jws algorithms not supported for env '" + string(profiles[i].Env) + "'")
+		}
+
+		if len(profiles[i].AcceptJwzAlgorithms) > 0 && profiles[i].Env != mediaTypeZKPMessage {
+			return nil, errors.New("jwz algorithms not supported for env '" + string(profiles[i].Env) + "'")
+		}
+
+		if len(profiles[i].AcceptJwzAlgorithms) > 0 {
+			algorithms := []string{}
+			for _, algorithm := range profiles[i].AcceptJwzAlgorithms {
+				algorithms = append(algorithms, string(algorithm))
+			}
+			accept += ";alg=" + strings.Join(algorithms, ",")
+		}
+		if len(profiles[i].AcceptJwsAlgorithms) > 0 {
+			algorithms := []string{}
+			for _, algorithm := range profiles[i].AcceptJwsAlgorithms {
+				algorithms = append(algorithms, string(algorithm))
+			}
+			accept += ";alg=" + strings.Join(algorithms, ",")
+		}
+		if len(profiles[i].AcceptAnoncryptAlgorithms) > 0 {
+			algorithms := []string{}
+			for _, algorithm := range profiles[i].AcceptAnoncryptAlgorithms {
+				algorithms = append(algorithms, string(algorithm))
+			}
+			accept += ";alg=" + strings.Join(algorithms, ",")
+		}
+
+		result = append(result, accept)
+	}
+
+	return result, nil
+}
 
 // ParseAcceptProfile parses the accept profile string and returns the AcceptProfile struct
 func ParseAcceptProfile(profile string) (protocol.AcceptProfile, error) {
@@ -39,7 +104,7 @@ func ParseAcceptProfile(profile string) (protocol.AcceptProfile, error) {
 		}
 	}
 
-	if env != string(packers.MediaTypeZKPMessage) && circuitsIndex > 0 {
+	if env != string(mediaTypeZKPMessage) && circuitsIndex > 0 {
 		return protocol.AcceptProfile{}, errors.New("circuits not supported for env '" + env + "'")
 	}
 
@@ -69,7 +134,7 @@ func ParseAcceptProfile(profile string) (protocol.AcceptProfile, error) {
 	if algIndex > 0 {
 		algStr := strings.Split(strings.Split(params[algIndex], "=")[1], ",")
 		switch env {
-		case string(packers.MediaTypeZKPMessage):
+		case mediaTypeZKPMessage:
 			for _, a := range algStr {
 				a = strings.TrimSpace(a)
 				if !isAcceptJwzAlgorithms(a) {
@@ -77,7 +142,7 @@ func ParseAcceptProfile(profile string) (protocol.AcceptProfile, error) {
 				}
 				jwzAlgs = append(jwzAlgs, protocol.AcceptJwzAlgorithms(a))
 			}
-		case string(packers.MediaTypeSignedMessage):
+		case mediaTypeJWSMessage:
 			for _, a := range algStr {
 				a = strings.TrimSpace(a)
 				if !isAcceptJwsAlgorithms(a) {
@@ -85,7 +150,7 @@ func ParseAcceptProfile(profile string) (protocol.AcceptProfile, error) {
 				}
 				jwsAlgs = append(jwsAlgs, protocol.AcceptJwsAlgorithms(a))
 			}
-		case string(packers.MediaTypeEncryptedMessage):
+		case mediaTypeEncryptedMessage:
 			for _, a := range algStr {
 				a = strings.TrimSpace(a)
 				if !isAcceptAnoncryptAlgorithms(a) {
@@ -178,10 +243,10 @@ func isAcceptAnoncryptAlgorithms(value string) bool {
 func isMediaType(value string) bool {
 	// List all possible JWS algorithms
 	validAlgorithms := []iden3comm.MediaType{
-		packers.MediaTypeEncryptedMessage,
-		packers.MediaTypePlainMessage,
-		packers.MediaTypeZKPMessage,
-		packers.MediaTypeSignedMessage,
+		mediaTypeEncryptedMessage,
+		mediaTypePlainMessage,
+		mediaTypeZKPMessage,
+		mediaTypeJWSMessage,
 	}
 	for _, v := range validAlgorithms {
 		if iden3comm.MediaType(value) == v {
