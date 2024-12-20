@@ -98,9 +98,10 @@ func (p *AnoncryptPacker) MediaType() iden3comm.MediaType {
 func (p *AnoncryptPacker) GetSupportedProfiles() []string {
 	return []string{
 		fmt.Sprintf(
-			"%s;env=%s",
+			"%s;env=%s&alg=%s",
 			protocol.ProtocolVersionV1,
 			p.MediaType(),
+			jose.ECDH_ES_A256KW,
 		),
 	}
 }

@@ -1,5 +1,19 @@
 package protocol
 
+import (
+	"github.com/iden3/iden3comm/v2"
+)
+
+// AcceptProfile is a struct that represents the accept header
+type AcceptProfile struct {
+	ProtocolVersion           AcceptProtocolVersion
+	Env                       iden3comm.MediaType
+	Circuits                  []AcceptAuthCircuits
+	AcceptJwzAlgorithms       []AcceptJwzAlgorithms
+	AcceptJwsAlgorithms       []AcceptJwsAlgorithms
+	AcceptAnoncryptAlgorithms []AcceptAnoncryptAlgorithms
+}
+
 // AcceptProtocolVersion is a type of supported versions of the protocol used in the accept header
 type AcceptProtocolVersion string
 
@@ -35,4 +49,12 @@ const (
 
 	// AcceptJwsAlgorithmsES256KR is a ES256K-R accepted JWS algorithm
 	AcceptJwsAlgorithmsES256KR AcceptJwsAlgorithms = "ES256K-R"
+)
+
+// AcceptAnoncryptAlgorithms is a type of accepted anoncrypt algorithms
+type AcceptAnoncryptAlgorithms string
+
+const (
+	// AcceptAnoncryptECDHESA256KW is a ECDH-ES+A256KW accepted Anoncrypt algorithm
+	AcceptAnoncryptECDHESA256KW AcceptAnoncryptAlgorithms = "ECDH-ES+A256KW"
 )
