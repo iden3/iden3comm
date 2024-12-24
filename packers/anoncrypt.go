@@ -101,7 +101,7 @@ func (p *AnoncryptPacker) GetSupportedProfiles() []string {
 	return []string{
 		fmt.Sprintf(
 			"%s;env=%s&alg=%s",
-			protocol.ProtocolVersionV1,
+			protocol.Version1,
 			p.MediaType(),
 			strings.Join(p.getSupportedAlgorithms(), ","),
 		),
@@ -115,7 +115,7 @@ func (p *AnoncryptPacker) IsProfileSupported(profile string) bool {
 		return false
 	}
 
-	if parsedProfile.ProtocolVersion != protocol.ProtocolVersionV1 {
+	if parsedProfile.AcceptedVersion != protocol.Version1 {
 		return false
 	}
 
@@ -123,27 +123,24 @@ func (p *AnoncryptPacker) IsProfileSupported(profile string) bool {
 		return false
 	}
 
-	if len(parsedProfile.Circuits) > 0 || len(parsedProfile.AcceptJwzAlgorithms) > 0 || len(parsedProfile.AcceptJwsAlgorithms) > 0 {
+	if len(parsedProfile.AcceptCircuits) > 0 || len(parsedProfile.AcceptJwzAlgorithms) > 0 || len(parsedProfile.AcceptJwsAlgorithms) > 0 {
 		return false
 	}
 
+	if len(parsedProfile.AcceptAnoncryptAlgorithms) == 0 {
+		return true
+	}
+
 	supportedAlgorithms := p.getSupportedAlgorithms()
-	algSupported := len(parsedProfile.AcceptAnoncryptAlgorithms) == 0
-	if !algSupported {
-		for _, alg := range parsedProfile.AcceptAnoncryptAlgorithms {
-			for _, supportedAlg := range supportedAlgorithms {
-				if string(alg) == supportedAlg {
-					algSupported = true
-					break
-				}
-			}
-			if algSupported {
-				break
+	for _, alg := range parsedProfile.AcceptAnoncryptAlgorithms {
+		for _, supportedAlg := range supportedAlgorithms {
+			if string(alg) == supportedAlg {
+				return true
 			}
 		}
 	}
+	return false
 
-	return algSupported
 }
 
 func (p *AnoncryptPacker) getSupportedAlgorithms() []string {

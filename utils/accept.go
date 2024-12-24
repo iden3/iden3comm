@@ -20,15 +20,15 @@ func BuildAcceptProfile(profiles []protocol.AcceptProfile) ([]string, error) {
 	result := []string{}
 
 	for i := range profiles {
-		accept := string(profiles[i].ProtocolVersion) + ";env=" + string(profiles[i].Env)
+		accept := string(profiles[i].AcceptedVersion) + ";env=" + string(profiles[i].Env)
 
-		if len(profiles[i].Circuits) > 0 && profiles[i].Env != mediaTypeZKPMessage {
+		if len(profiles[i].AcceptCircuits) > 0 && profiles[i].Env != mediaTypeZKPMessage {
 			return nil, errors.New("circuits not supported for env '" + string(profiles[i].Env) + "'")
 		}
 
-		if len(profiles[i].Circuits) > 0 {
+		if len(profiles[i].AcceptCircuits) > 0 {
 			circuits := []string{}
-			for _, circuit := range profiles[i].Circuits {
+			for _, circuit := range profiles[i].AcceptCircuits {
 				circuits = append(circuits, string(circuit))
 			}
 			accept += ";circuitId=" + strings.Join(circuits, ",")
@@ -108,7 +108,7 @@ func ParseAcceptProfile(profile string) (protocol.AcceptProfile, error) {
 		return protocol.AcceptProfile{}, errors.New("circuits not supported for env '" + env + "'")
 	}
 
-	var circuits []protocol.AcceptAuthCircuits
+	var circuits []protocol.AuthCircuits
 	if circuitsIndex > 0 {
 		circuitsStr := strings.Split(strings.Split(params[circuitsIndex], "=")[1], ",")
 		for _, c := range circuitsStr {
@@ -116,7 +116,7 @@ func ParseAcceptProfile(profile string) (protocol.AcceptProfile, error) {
 			if !isAcceptAuthCircuits(c) {
 				return protocol.AcceptProfile{}, errors.New("circuit '" + c + "' not supported")
 			}
-			circuits = append(circuits, protocol.AcceptAuthCircuits(c))
+			circuits = append(circuits, protocol.AuthCircuits(c))
 		}
 	}
 
@@ -128,9 +128,9 @@ func ParseAcceptProfile(profile string) (protocol.AcceptProfile, error) {
 		}
 	}
 
-	var jwzAlgs []protocol.AcceptJwzAlgorithms
-	var jwsAlgs []protocol.AcceptJwsAlgorithms
-	var anoncryptAlgs []protocol.AcceptAnoncryptAlgorithms
+	var jwzAlgs []protocol.JwzAlgorithms
+	var jwsAlgs []protocol.JwsAlgorithms
+	var anoncryptAlgs []protocol.AnoncryptAlgorithms
 	if algIndex > 0 {
 		algStr := strings.Split(strings.Split(params[algIndex], "=")[1], ",")
 		switch env {
@@ -140,7 +140,7 @@ func ParseAcceptProfile(profile string) (protocol.AcceptProfile, error) {
 				if !isAcceptJwzAlgorithms(a) {
 					return protocol.AcceptProfile{}, errors.New("algorithm '" + a + "' not supported for '" + env + "'")
 				}
-				jwzAlgs = append(jwzAlgs, protocol.AcceptJwzAlgorithms(a))
+				jwzAlgs = append(jwzAlgs, protocol.JwzAlgorithms(a))
 			}
 		case mediaTypeJWSMessage:
 			for _, a := range algStr {
@@ -148,7 +148,7 @@ func ParseAcceptProfile(profile string) (protocol.AcceptProfile, error) {
 				if !isAcceptJwsAlgorithms(a) {
 					return protocol.AcceptProfile{}, errors.New("algorithm '" + a + "' not supported for '" + env + "'")
 				}
-				jwsAlgs = append(jwsAlgs, protocol.AcceptJwsAlgorithms(a))
+				jwsAlgs = append(jwsAlgs, protocol.JwsAlgorithms(a))
 			}
 		case mediaTypeEncryptedMessage:
 			for _, a := range algStr {
@@ -156,7 +156,7 @@ func ParseAcceptProfile(profile string) (protocol.AcceptProfile, error) {
 				if !isAcceptAnoncryptAlgorithms(a) {
 					return protocol.AcceptProfile{}, errors.New("algorithm '" + a + "' not supported for '" + env + "'")
 				}
-				anoncryptAlgs = append(anoncryptAlgs, protocol.AcceptAnoncryptAlgorithms(a))
+				anoncryptAlgs = append(anoncryptAlgs, protocol.AnoncryptAlgorithms(a))
 			}
 		default:
 			return protocol.AcceptProfile{}, errors.New("algorithm not supported for '" + env + "'")
@@ -164,9 +164,9 @@ func ParseAcceptProfile(profile string) (protocol.AcceptProfile, error) {
 	}
 
 	return protocol.AcceptProfile{
-		ProtocolVersion:           protocol.AcceptProtocolVersion(protocolVersion),
+		AcceptedVersion:           protocol.Version(protocolVersion),
 		Env:                       iden3comm.MediaType(env),
-		Circuits:                  circuits,
+		AcceptCircuits:            circuits,
 		AcceptJwsAlgorithms:       jwsAlgs,
 		AcceptJwzAlgorithms:       jwzAlgs,
 		AcceptAnoncryptAlgorithms: anoncryptAlgs,
@@ -175,11 +175,11 @@ func ParseAcceptProfile(profile string) (protocol.AcceptProfile, error) {
 
 func isProtocolVersion(value string) bool {
 	// List all possible protocol versions
-	validVersions := []protocol.AcceptProtocolVersion{
-		protocol.ProtocolVersionV1,
+	validVersions := []protocol.Version{
+		protocol.Version1,
 	}
 	for _, v := range validVersions {
-		if protocol.AcceptProtocolVersion(value) == v {
+		if protocol.Version(value) == v {
 			return true
 		}
 	}
@@ -188,12 +188,12 @@ func isProtocolVersion(value string) bool {
 
 func isAcceptAuthCircuits(value string) bool {
 	// List all possible authentication circuits
-	validCircuits := []protocol.AcceptAuthCircuits{
-		protocol.AcceptAuthCircuitsAuthV2,
-		protocol.AcceptAuthCircuitsAuthV3,
+	validCircuits := []protocol.AuthCircuits{
+		protocol.AuthCircuitsAuthV2,
+		protocol.AuthCircuitsAuthV3,
 	}
 	for _, v := range validCircuits {
-		if protocol.AcceptAuthCircuits(value) == v {
+		if protocol.AuthCircuits(value) == v {
 			return true
 		}
 	}
@@ -202,11 +202,11 @@ func isAcceptAuthCircuits(value string) bool {
 
 func isAcceptJwzAlgorithms(value string) bool {
 	// List all possible JWZ algorithms
-	validAlgorithms := []protocol.AcceptJwzAlgorithms{
-		protocol.AcceptJwzAlgorithmsGroth16,
+	validAlgorithms := []protocol.JwzAlgorithms{
+		protocol.JwzAlgorithmsGroth16,
 	}
 	for _, v := range validAlgorithms {
-		if protocol.AcceptJwzAlgorithms(value) == v {
+		if protocol.JwzAlgorithms(value) == v {
 			return true
 		}
 	}
@@ -215,12 +215,12 @@ func isAcceptJwzAlgorithms(value string) bool {
 
 func isAcceptJwsAlgorithms(value string) bool {
 	// List all possible JWS algorithms
-	validAlgorithms := []protocol.AcceptJwsAlgorithms{
-		protocol.AcceptJwsAlgorithmsES256K,
-		protocol.AcceptJwsAlgorithmsES256KR,
+	validAlgorithms := []protocol.JwsAlgorithms{
+		protocol.JwsAlgorithmsES256K,
+		protocol.JwsAlgorithmsES256KR,
 	}
 	for _, v := range validAlgorithms {
-		if protocol.AcceptJwsAlgorithms(value) == v {
+		if protocol.JwsAlgorithms(value) == v {
 			return true
 		}
 	}
@@ -229,11 +229,11 @@ func isAcceptJwsAlgorithms(value string) bool {
 
 func isAcceptAnoncryptAlgorithms(value string) bool {
 	// List all possible Anoncrypt algorithms
-	validAlgorithms := []protocol.AcceptAnoncryptAlgorithms{
-		protocol.AcceptAnoncryptECDHESA256KW,
+	validAlgorithms := []protocol.AnoncryptAlgorithms{
+		protocol.AnoncryptECDHESA256KW,
 	}
 	for _, v := range validAlgorithms {
-		if protocol.AcceptAnoncryptAlgorithms(value) == v {
+		if protocol.AnoncryptAlgorithms(value) == v {
 			return true
 		}
 	}

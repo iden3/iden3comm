@@ -340,7 +340,7 @@ func (p *JWSPacker) GetSupportedProfiles() []string {
 	return []string{
 		fmt.Sprintf(
 			"%s;env=%s&alg=%s",
-			protocol.ProtocolVersionV1,
+			protocol.Version1,
 			p.MediaType(),
 			strings.Join(p.getSupportedAlgorithms(), ","),
 		),
@@ -354,7 +354,7 @@ func (p *JWSPacker) IsProfileSupported(profile string) bool {
 		return false
 	}
 
-	if parsedProfile.ProtocolVersion != protocol.ProtocolVersionV1 {
+	if parsedProfile.AcceptedVersion != protocol.Version1 {
 		return false
 	}
 
@@ -362,31 +362,27 @@ func (p *JWSPacker) IsProfileSupported(profile string) bool {
 		return false
 	}
 
-	if len(parsedProfile.Circuits) > 0 || len(parsedProfile.AcceptAnoncryptAlgorithms) > 0 || len(parsedProfile.AcceptJwzAlgorithms) > 0 {
+	if len(parsedProfile.AcceptCircuits) > 0 || len(parsedProfile.AcceptAnoncryptAlgorithms) > 0 || len(parsedProfile.AcceptJwzAlgorithms) > 0 {
 		return false
 	}
 
+	if len(parsedProfile.AcceptJwsAlgorithms) == 0 {
+		return true
+	}
+
 	supportedAlgorithms := p.getSupportedAlgorithms()
-	algSupported := len(parsedProfile.AcceptJwsAlgorithms) == 0
-	if !algSupported {
-		for _, alg := range parsedProfile.AcceptJwsAlgorithms {
-			for _, supportedAlg := range supportedAlgorithms {
-				if string(alg) == supportedAlg {
-					algSupported = true
-					break
-				}
-			}
-			if algSupported {
-				break
+	for _, alg := range parsedProfile.AcceptJwsAlgorithms {
+		for _, supportedAlg := range supportedAlgorithms {
+			if string(alg) == supportedAlg {
+				return true
 			}
 		}
 	}
-
-	return algSupported
+	return false
 }
 
 func (p *JWSPacker) getSupportedAlgorithms() []string {
-	return []string{string(protocol.AcceptJwsAlgorithmsES256K), string(protocol.AcceptJwsAlgorithmsES256KR)}
+	return []string{string(protocol.JwsAlgorithmsES256K), string(protocol.JwsAlgorithmsES256KR)}
 }
 
 // resolveVerificationMethods looks for all verification methods in the DID document.

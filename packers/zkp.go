@@ -246,7 +246,7 @@ func (p *ZKPPacker) GetSupportedProfiles() []string {
 	return []string{
 		fmt.Sprintf(
 			"%s;env=%s&alg=%s&circuitIds=%s",
-			protocol.ProtocolVersionV1,
+			protocol.Version1,
 			p.MediaType(),
 			strings.Join(p.getSupportedAlgorithms(), ","),
 			strings.Join(p.getSupportedCircuitIDs(), ","),
@@ -261,7 +261,7 @@ func (p *ZKPPacker) IsProfileSupported(profile string) bool {
 		return false
 	}
 
-	if parsedProfile.ProtocolVersion != protocol.ProtocolVersionV1 {
+	if parsedProfile.AcceptedVersion != protocol.Version1 {
 		return false
 	}
 
@@ -270,9 +270,9 @@ func (p *ZKPPacker) IsProfileSupported(profile string) bool {
 	}
 
 	supportedCircuitIDs := p.getSupportedCircuitIDs()
-	circuitIDSupported := len(parsedProfile.Circuits) == 0
+	circuitIDSupported := len(parsedProfile.AcceptCircuits) == 0
 	if !circuitIDSupported {
-		for _, circuit := range parsedProfile.Circuits {
+		for _, circuit := range parsedProfile.AcceptCircuits {
 			for _, supportedCircuit := range supportedCircuitIDs {
 				if string(circuit) == supportedCircuit {
 					circuitIDSupported = true
@@ -309,11 +309,11 @@ func (p *ZKPPacker) IsProfileSupported(profile string) bool {
 }
 
 func (p *ZKPPacker) getSupportedAlgorithms() []string {
-	return []string{string(protocol.AcceptJwzAlgorithmsGroth16)}
+	return []string{string(protocol.JwzAlgorithmsGroth16)}
 }
 
 func (p *ZKPPacker) getSupportedCircuitIDs() []string {
-	return []string{string(protocol.AcceptAuthCircuitsAuthV2)}
+	return []string{string(protocol.AuthCircuitsAuthV2)}
 }
 
 // DefaultZKPUnpackerOption is a function that sets the default ZKP unpacker options

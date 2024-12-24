@@ -21,7 +21,7 @@ func TestBuildAcceptProfile(t *testing.T) {
 		{
 			desc: "Valid plain text accept profile",
 			profile: []protocol.AcceptProfile{{
-				ProtocolVersion: protocol.ProtocolVersionV1,
+				AcceptedVersion: protocol.Version1,
 				Env:             mediaTypePlainMessage,
 			}},
 			expected: expected{
@@ -31,9 +31,9 @@ func TestBuildAcceptProfile(t *testing.T) {
 		{
 			desc: "Valid anoncrypt accept profile",
 			profile: []protocol.AcceptProfile{{
-				ProtocolVersion:           protocol.ProtocolVersionV1,
+				AcceptedVersion:           protocol.Version1,
 				Env:                       mediaTypeEncryptedMessage,
-				AcceptAnoncryptAlgorithms: []protocol.AcceptAnoncryptAlgorithms{protocol.AcceptAnoncryptECDHESA256KW},
+				AcceptAnoncryptAlgorithms: []protocol.AnoncryptAlgorithms{protocol.AnoncryptECDHESA256KW},
 			}},
 			expected: expected{
 				accept: []string{"iden3comm/v1;env=application/iden3comm-encrypted-json;alg=ECDH-ES+A256KW"},
@@ -42,9 +42,9 @@ func TestBuildAcceptProfile(t *testing.T) {
 		{
 			desc: "Valid JWS accept profile",
 			profile: []protocol.AcceptProfile{{
-				ProtocolVersion:     protocol.ProtocolVersionV1,
+				AcceptedVersion:     protocol.Version1,
 				Env:                 mediaTypeJWSMessage,
-				AcceptJwsAlgorithms: []protocol.AcceptJwsAlgorithms{protocol.AcceptJwsAlgorithmsES256KR},
+				AcceptJwsAlgorithms: []protocol.JwsAlgorithms{protocol.JwsAlgorithmsES256KR},
 			}},
 			expected: expected{
 				accept: []string{"iden3comm/v1;env=application/iden3comm-signed-json;alg=ES256K-R"},
@@ -53,10 +53,10 @@ func TestBuildAcceptProfile(t *testing.T) {
 		{
 			desc: "Valid JWZ accept profile",
 			profile: []protocol.AcceptProfile{{
-				ProtocolVersion:     protocol.ProtocolVersionV1,
+				AcceptedVersion:     protocol.Version1,
 				Env:                 mediaTypeZKPMessage,
-				AcceptJwzAlgorithms: []protocol.AcceptJwzAlgorithms{protocol.AcceptJwzAlgorithmsGroth16},
-				Circuits:            []protocol.AcceptAuthCircuits{protocol.AcceptAuthCircuitsAuthV2, protocol.AcceptAuthCircuitsAuthV3},
+				AcceptJwzAlgorithms: []protocol.JwzAlgorithms{protocol.JwzAlgorithmsGroth16},
+				AcceptCircuits:      []protocol.AuthCircuits{protocol.AuthCircuitsAuthV2, protocol.AuthCircuitsAuthV3},
 			}},
 			expected: expected{
 				accept: []string{"iden3comm/v1;env=application/iden3-zkp-json;circuitId=authV2,authV3;alg=groth16"},
@@ -65,10 +65,10 @@ func TestBuildAcceptProfile(t *testing.T) {
 		{
 			desc: "Circuit ID for JWS",
 			profile: []protocol.AcceptProfile{{
-				ProtocolVersion:     protocol.ProtocolVersionV1,
+				AcceptedVersion:     protocol.Version1,
 				Env:                 mediaTypeJWSMessage,
-				AcceptJwsAlgorithms: []protocol.AcceptJwsAlgorithms{protocol.AcceptJwsAlgorithmsES256K},
-				Circuits:            []protocol.AcceptAuthCircuits{protocol.AcceptAuthCircuitsAuthV2, protocol.AcceptAuthCircuitsAuthV3},
+				AcceptJwsAlgorithms: []protocol.JwsAlgorithms{protocol.JwsAlgorithmsES256K},
+				AcceptCircuits:      []protocol.AuthCircuits{protocol.AuthCircuitsAuthV2, protocol.AuthCircuitsAuthV3},
 			}},
 			expected: expected{
 				err: errors.New("circuits not supported for env 'application/iden3comm-signed-json'"),
@@ -77,9 +77,9 @@ func TestBuildAcceptProfile(t *testing.T) {
 		{
 			desc: "Wrong alg fro media type",
 			profile: []protocol.AcceptProfile{{
-				ProtocolVersion:           protocol.ProtocolVersionV1,
+				AcceptedVersion:           protocol.Version1,
 				Env:                       mediaTypeJWSMessage,
-				AcceptAnoncryptAlgorithms: []protocol.AcceptAnoncryptAlgorithms{protocol.AcceptAnoncryptECDHESA256KW},
+				AcceptAnoncryptAlgorithms: []protocol.AnoncryptAlgorithms{protocol.AnoncryptECDHESA256KW},
 			}},
 			expected: expected{
 				err: errors.New("anoncrypt algorithms not supported for env 'application/iden3comm-signed-json'"),
@@ -111,7 +111,7 @@ func TestAcceptProfileParser(t *testing.T) {
 			accept: "iden3comm/v1;env=application/iden3comm-plain-json",
 			expected: expected{
 				profile: protocol.AcceptProfile{
-					ProtocolVersion: protocol.ProtocolVersionV1,
+					AcceptedVersion: protocol.Version1,
 					Env:             mediaTypePlainMessage,
 				},
 			},
@@ -121,9 +121,9 @@ func TestAcceptProfileParser(t *testing.T) {
 			accept: "iden3comm/v1;env=application/iden3comm-encrypted-json;alg=ECDH-ES+A256KW",
 			expected: expected{
 				profile: protocol.AcceptProfile{
-					ProtocolVersion:           protocol.ProtocolVersionV1,
+					AcceptedVersion:           protocol.Version1,
 					Env:                       mediaTypeEncryptedMessage,
-					AcceptAnoncryptAlgorithms: []protocol.AcceptAnoncryptAlgorithms{protocol.AcceptAnoncryptECDHESA256KW},
+					AcceptAnoncryptAlgorithms: []protocol.AnoncryptAlgorithms{protocol.AnoncryptECDHESA256KW},
 				},
 			},
 		},
@@ -132,9 +132,9 @@ func TestAcceptProfileParser(t *testing.T) {
 			accept: "iden3comm/v1;env=application/iden3comm-signed-json;alg=ES256K-R",
 			expected: expected{
 				profile: protocol.AcceptProfile{
-					ProtocolVersion:     protocol.ProtocolVersionV1,
+					AcceptedVersion:     protocol.Version1,
 					Env:                 mediaTypeJWSMessage,
-					AcceptJwsAlgorithms: []protocol.AcceptJwsAlgorithms{protocol.AcceptJwsAlgorithmsES256KR},
+					AcceptJwsAlgorithms: []protocol.JwsAlgorithms{protocol.JwsAlgorithmsES256KR},
 				},
 			},
 		},
@@ -143,10 +143,10 @@ func TestAcceptProfileParser(t *testing.T) {
 			accept: "iden3comm/v1;env=application/iden3-zkp-json;circuitId=authV2,authV3;alg=groth16",
 			expected: expected{
 				profile: protocol.AcceptProfile{
-					ProtocolVersion:     protocol.ProtocolVersionV1,
+					AcceptedVersion:     protocol.Version1,
 					Env:                 mediaTypeZKPMessage,
-					AcceptJwzAlgorithms: []protocol.AcceptJwzAlgorithms{protocol.AcceptJwzAlgorithmsGroth16},
-					Circuits:            []protocol.AcceptAuthCircuits{protocol.AcceptAuthCircuitsAuthV2, protocol.AcceptAuthCircuitsAuthV3},
+					AcceptJwzAlgorithms: []protocol.JwzAlgorithms{protocol.JwzAlgorithmsGroth16},
+					AcceptCircuits:      []protocol.AuthCircuits{protocol.AuthCircuitsAuthV2, protocol.AuthCircuitsAuthV3},
 				},
 			},
 		},

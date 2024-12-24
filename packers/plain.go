@@ -55,7 +55,7 @@ func (p *PlainMessagePacker) GetSupportedProfiles() []string {
 	return []string{
 		fmt.Sprintf(
 			"%s;env=%s",
-			protocol.ProtocolVersionV1,
+			protocol.Version1,
 			p.MediaType(),
 		),
 	}
@@ -68,7 +68,7 @@ func (p *PlainMessagePacker) IsProfileSupported(profile string) bool {
 		return false
 	}
 
-	if parsedProfile.ProtocolVersion != protocol.ProtocolVersionV1 {
+	if parsedProfile.AcceptedVersion != protocol.Version1 {
 		return false
 	}
 
