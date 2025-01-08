@@ -23,8 +23,9 @@ type ProofGenerationRequestMessage struct {
 	From string `json:"from,omitempty"`
 	To   string `json:"to,omitempty"`
 
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
+	CreatedTime *int64                `json:"created_time,omitempty"`
+	ExpiresTime *int64                `json:"expires_time,omitempty"`
+	Attachments iden3comm.Attachments `json:"attachments,omitempty"`
 }
 
 // ProofGenerationRequestMessageBody is struct the represents body for proof generation request
@@ -44,8 +45,9 @@ type ProofGenerationResponseMessage struct {
 	From string `json:"from,omitempty"`
 	To   string `json:"to,omitempty"`
 
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
+	CreatedTime *int64                `json:"created_time,omitempty"`
+	ExpiresTime *int64                `json:"expires_time,omitempty"`
+	Attachments iden3comm.Attachments `json:"attachments,omitempty"`
 }
 
 // ResponseMessageBody is struct the represents request for revocation status

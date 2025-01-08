@@ -59,8 +59,9 @@ type ProblemReportMessage struct {
 	From string `json:"from,omitempty"`
 	To   string `json:"to,omitempty"`
 
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
+	CreatedTime *int64                `json:"created_time,omitempty"`
+	ExpiresTime *int64                `json:"expires_time,omitempty"`
+	Attachments iden3comm.Attachments `json:"attachments,omitempty"`
 }
 
 // ProblemReportMessageBody is struct the represents body for problem report
