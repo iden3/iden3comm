@@ -340,7 +340,7 @@ func (p *JWSPacker) GetSupportedProfiles() []string {
 	return []string{
 		fmt.Sprintf(
 			"%s;env=%s&alg=%s",
-			protocol.Version1,
+			protocol.Iden3CommVersion1,
 			p.MediaType(),
 			strings.Join(p.getSupportedAlgorithms(), ","),
 		),
@@ -354,7 +354,7 @@ func (p *JWSPacker) IsProfileSupported(profile string) bool {
 		return false
 	}
 
-	if parsedProfile.AcceptedVersion != protocol.Version1 {
+	if parsedProfile.AcceptedVersion != protocol.Iden3CommVersion1 {
 		return false
 	}
 

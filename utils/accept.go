@@ -176,7 +176,7 @@ func ParseAcceptProfile(profile string) (protocol.AcceptProfile, error) {
 func isProtocolVersion(value string) bool {
 	// List all possible protocol versions
 	validVersions := []protocol.Version{
-		protocol.Version1,
+		protocol.Iden3CommVersion1,
 	}
 	for _, v := range validVersions {
 		if protocol.Version(value) == v {
