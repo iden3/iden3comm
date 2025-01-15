@@ -1,8 +1,6 @@
 package protocol
 
 import (
-	"math/big"
-
 	"github.com/iden3/iden3comm/v2"
 )
 
