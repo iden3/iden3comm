@@ -15,10 +15,10 @@ type TransparentPaymentInstructionMessage struct {
 	Typ      iden3comm.MediaType                      `json:"typ,omitempty"`
 	Type     iden3comm.ProtocolMessage                `json:"type"`
 	ThreadID string                                   `json:"thid,omitempty"`
-	Body     TransparentPaymentInstructionMessageBody `json:"body,omitempty"`
+	Body     TransparentPaymentInstructionMessageBody `json:"body"`
 
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
+	From string `json:"from"`
+	To   string `json:"to"`
 
 	CreatedTime *int64 `json:"created_time,omitempty"`
 	ExpiresTime *int64 `json:"expires_time,omitempty"`
