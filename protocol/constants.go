@@ -8,16 +8,6 @@ const (
 	Iden3CommVersion1 Version = "iden3comm/v1"
 )
 
-// AuthCircuits is a type of accepted authentication circuits
-type AuthCircuits string
-
-const (
-	// AuthCircuitsAuthV2 is authV2 accepted circuit
-	AuthCircuitsAuthV2 AuthCircuits = "authV2"
-	// AuthCircuitsAuthV3 is authV3 accepted circuit
-	AuthCircuitsAuthV3 AuthCircuits = "authV3"
-)
-
 // JwzAlgorithms is a type of accepted proving algorithms
 type JwzAlgorithms string
 

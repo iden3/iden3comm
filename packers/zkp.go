@@ -313,7 +313,7 @@ func (p *ZKPPacker) getSupportedAlgorithms() []string {
 }
 
 func (p *ZKPPacker) getSupportedCircuitIDs() []string {
-	return []string{string(protocol.AuthCircuitsAuthV2)}
+	return []string{string(circuits.AuthV2CircuitID)}
 }
 
 // DefaultZKPUnpackerOption is a function that sets the default ZKP unpacker options

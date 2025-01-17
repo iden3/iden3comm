@@ -1,6 +1,7 @@
 package protocol
 
 import (
+	"github.com/iden3/go-circuits/v2"
 	"github.com/iden3/iden3comm/v2"
 )
 
@@ -8,7 +9,7 @@ import (
 type AcceptProfile struct {
 	AcceptedVersion           Version
 	Env                       iden3comm.MediaType
-	AcceptCircuits            []AuthCircuits
+	AcceptCircuits            []circuits.CircuitID
 	AcceptJwzAlgorithms       []JwzAlgorithms
 	AcceptJwsAlgorithms       []JwsAlgorithms
 	AcceptAnoncryptAlgorithms []AnoncryptAlgorithms

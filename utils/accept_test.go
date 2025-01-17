@@ -4,6 +4,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/iden3/go-circuits/v2"
 	"github.com/iden3/iden3comm/v2/protocol"
 	"github.com/stretchr/testify/assert"
 )
@@ -56,10 +57,10 @@ func TestBuildAcceptProfile(t *testing.T) {
 				AcceptedVersion:     protocol.Iden3CommVersion1,
 				Env:                 mediaTypeZKPMessage,
 				AcceptJwzAlgorithms: []protocol.JwzAlgorithms{protocol.JwzAlgorithmsGroth16},
-				AcceptCircuits:      []protocol.AuthCircuits{protocol.AuthCircuitsAuthV2, protocol.AuthCircuitsAuthV3},
+				AcceptCircuits:      []circuits.CircuitID{circuits.AuthV2CircuitID},
 			}},
 			expected: expected{
-				accept: []string{"iden3comm/v1;env=application/iden3-zkp-json;circuitId=authV2,authV3;alg=groth16"},
+				accept: []string{"iden3comm/v1;env=application/iden3-zkp-json;circuitId=authV2;alg=groth16"},
 			},
 		},
 		{
@@ -68,7 +69,7 @@ func TestBuildAcceptProfile(t *testing.T) {
 				AcceptedVersion:     protocol.Iden3CommVersion1,
 				Env:                 mediaTypeJWSMessage,
 				AcceptJwsAlgorithms: []protocol.JwsAlgorithms{protocol.JwsAlgorithmsES256K},
-				AcceptCircuits:      []protocol.AuthCircuits{protocol.AuthCircuitsAuthV2, protocol.AuthCircuitsAuthV3},
+				AcceptCircuits:      []circuits.CircuitID{circuits.AuthV2CircuitID},
 			}},
 			expected: expected{
 				err: errors.New("circuits not supported for env 'application/iden3comm-signed-json'"),
@@ -140,13 +141,13 @@ func TestAcceptProfileParser(t *testing.T) {
 		},
 		{
 			desc:   "Valid JWZ accept profile",
-			accept: "iden3comm/v1;env=application/iden3-zkp-json;circuitId=authV2,authV3;alg=groth16",
+			accept: "iden3comm/v1;env=application/iden3-zkp-json;circuitId=authV2;alg=groth16",
 			expected: expected{
 				profile: protocol.AcceptProfile{
 					AcceptedVersion:     protocol.Iden3CommVersion1,
 					Env:                 mediaTypeZKPMessage,
 					AcceptJwzAlgorithms: []protocol.JwzAlgorithms{protocol.JwzAlgorithmsGroth16},
-					AcceptCircuits:      []protocol.AuthCircuits{protocol.AuthCircuitsAuthV2, protocol.AuthCircuitsAuthV3},
+					AcceptCircuits:      []circuits.CircuitID{circuits.AuthV2CircuitID},
 				},
 			},
 		},

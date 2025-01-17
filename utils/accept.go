@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/iden3/go-circuits/v2"
 	"github.com/iden3/iden3comm/v2"
 	"github.com/iden3/iden3comm/v2/protocol"
 )
@@ -27,11 +28,11 @@ func BuildAcceptProfile(profiles []protocol.AcceptProfile) ([]string, error) {
 		}
 
 		if len(profiles[i].AcceptCircuits) > 0 {
-			circuits := []string{}
+			circuitID := []string{}
 			for _, circuit := range profiles[i].AcceptCircuits {
-				circuits = append(circuits, string(circuit))
+				circuitID = append(circuitID, string(circuit))
 			}
-			accept += ";circuitId=" + strings.Join(circuits, ",")
+			accept += ";circuitId=" + strings.Join(circuitID, ",")
 		}
 
 		if len(profiles[i].AcceptAnoncryptAlgorithms) > 0 && profiles[i].Env != mediaTypeEncryptedMessage {
@@ -108,7 +109,7 @@ func ParseAcceptProfile(profile string) (protocol.AcceptProfile, error) {
 		return protocol.AcceptProfile{}, errors.New("circuits not supported for env '" + env + "'")
 	}
 
-	var circuits []protocol.AuthCircuits
+	var acceptCircuits []circuits.CircuitID
 	if circuitsIndex > 0 {
 		circuitsStr := strings.Split(strings.Split(params[circuitsIndex], "=")[1], ",")
 		for _, c := range circuitsStr {
@@ -116,7 +117,7 @@ func ParseAcceptProfile(profile string) (protocol.AcceptProfile, error) {
 			if !isAcceptAuthCircuits(c) {
 				return protocol.AcceptProfile{}, errors.New("circuit '" + c + "' not supported")
 			}
-			circuits = append(circuits, protocol.AuthCircuits(c))
+			acceptCircuits = append(acceptCircuits, circuits.CircuitID(c))
 		}
 	}
 
@@ -166,7 +167,7 @@ func ParseAcceptProfile(profile string) (protocol.AcceptProfile, error) {
 	return protocol.AcceptProfile{
 		AcceptedVersion:           protocol.Version(protocolVersion),
 		Env:                       iden3comm.MediaType(env),
-		AcceptCircuits:            circuits,
+		AcceptCircuits:            acceptCircuits,
 		AcceptJwsAlgorithms:       jwsAlgs,
 		AcceptJwzAlgorithms:       jwzAlgs,
 		AcceptAnoncryptAlgorithms: anoncryptAlgs,
@@ -188,12 +189,11 @@ func isProtocolVersion(value string) bool {
 
 func isAcceptAuthCircuits(value string) bool {
 	// List all possible authentication circuits
-	validCircuits := []protocol.AuthCircuits{
-		protocol.AuthCircuitsAuthV2,
-		protocol.AuthCircuitsAuthV3,
+	validCircuits := []circuits.CircuitID{
+		circuits.AuthV2CircuitID,
 	}
 	for _, v := range validCircuits {
-		if protocol.AuthCircuits(value) == v {
+		if circuits.CircuitID(value) == v {
 			return true
 		}
 	}
