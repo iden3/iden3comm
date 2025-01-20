@@ -17,6 +17,8 @@ import (
 	"github.com/iden3/go-iden3-core/v2/w3c"
 	"github.com/iden3/go-jwz/v2"
 	"github.com/iden3/iden3comm/v2"
+	"github.com/iden3/iden3comm/v2/protocol"
+	"github.com/iden3/iden3comm/v2/utils"
 	"github.com/pkg/errors"
 )
 
@@ -237,6 +239,81 @@ func unmarshalPubSignals(obj circuits.PubSignalsUnmarshaller, pubSignals []strin
 // MediaType for iden3comm that returns MediaTypeZKPMessage
 func (p *ZKPPacker) MediaType() iden3comm.MediaType {
 	return MediaTypeZKPMessage
+}
+
+// GetSupportedProfiles gets packer envelope (supported profiles) with options
+func (p *ZKPPacker) GetSupportedProfiles() []string {
+	return []string{
+		fmt.Sprintf(
+			"%s;env=%s&alg=%s&circuitIds=%s",
+			protocol.Iden3CommVersion1,
+			p.MediaType(),
+			strings.Join(p.getSupportedAlgorithms(), ","),
+			strings.Join(p.getSupportedCircuitIDs(), ","),
+		),
+	}
+}
+
+// IsProfileSupported checks if profile is supported by packer
+func (p *ZKPPacker) IsProfileSupported(profile string) bool {
+	parsedProfile, err := utils.ParseAcceptProfile(profile)
+	if err != nil {
+		return false
+	}
+
+	if parsedProfile.AcceptedVersion != protocol.Iden3CommVersion1 {
+		return false
+	}
+
+	if parsedProfile.Env != p.MediaType() {
+		return false
+	}
+
+	supportedCircuitIDs := p.getSupportedCircuitIDs()
+	circuitIDSupported := len(parsedProfile.AcceptCircuits) == 0
+	if !circuitIDSupported {
+		for _, circuit := range parsedProfile.AcceptCircuits {
+			for _, supportedCircuit := range supportedCircuitIDs {
+				if string(circuit) == supportedCircuit {
+					circuitIDSupported = true
+					break
+				}
+			}
+			if circuitIDSupported {
+				break
+			}
+		}
+	}
+
+	if len(parsedProfile.AcceptAnoncryptAlgorithms) > 0 || len(parsedProfile.AcceptJwsAlgorithms) > 0 {
+		return false
+	}
+
+	supportedAlgorithms := p.getSupportedAlgorithms()
+	algSupported := len(parsedProfile.AcceptJwzAlgorithms) == 0
+	if !algSupported {
+		for _, alg := range parsedProfile.AcceptJwzAlgorithms {
+			for _, supportedAlg := range supportedAlgorithms {
+				if string(alg) == supportedAlg {
+					algSupported = true
+					break
+				}
+			}
+			if algSupported {
+				break
+			}
+		}
+	}
+
+	return circuitIDSupported && algSupported
+}
+
+func (p *ZKPPacker) getSupportedAlgorithms() []string {
+	return []string{string(protocol.JwzAlgorithmsGroth16)}
+}
+
+func (p *ZKPPacker) getSupportedCircuitIDs() []string {
+	return []string{string(circuits.AuthV2CircuitID)}
 }
 
 // DefaultZKPUnpackerOption is a function that sets the default ZKP unpacker options

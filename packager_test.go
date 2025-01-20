@@ -150,6 +150,13 @@ func TestUnpackWithType(t *testing.T) {
 	assert.Equal(t, unpackedMsg.Typ, packers.MediaTypeZKPMessage)
 }
 
+func TestGetSupportedProfiles(t *testing.T) {
+	pm := initPackageManager(t)
+	profiles := pm.GetSupportedProfiles()
+	assert.Contains(t, profiles, "iden3comm/v1;env=application/iden3comm-plain-json")
+	assert.Contains(t, profiles, "iden3comm/v1;env=application/iden3-zkp-json&alg=groth16&circuitIds=authV2")
+}
+
 func createFetchCredentialMessage(typ iden3comm.MediaType, from, to *w3c.DID) ([]byte, error) {
 
 	var msg protocol.CredentialFetchRequestMessage

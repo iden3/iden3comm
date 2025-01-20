@@ -19,6 +19,10 @@ type Packer interface {
 	Unpack(envelope []byte) (*BasicMessage, error)
 	// MediaType returns content type of message
 	MediaType() MediaType
+	// GetSupportedProfiles returns supported accept profiles
+	GetSupportedProfiles() []string
+	// IsProfileSupported checks if profile is supported by packer
+	IsProfileSupported(profile string) bool
 }
 
 // PackerParams mock interface for packer params
@@ -97,6 +101,27 @@ func (r *PackageManager) unpackSafeEnvelope(mediaType MediaType, envelope []byte
 		return nil, err
 	}
 	return msg, nil
+}
+
+// GetSupportedProfiles retrieves all unique supported profiles.
+func (r *PackageManager) GetSupportedProfiles() []string {
+	var acceptProfiles []string
+	for _, p := range r.packers {
+		profiles := p.GetSupportedProfiles()
+		acceptProfiles = append(acceptProfiles, profiles...)
+	}
+	return acceptProfiles
+}
+
+// IsProfileSupported checks if profile is supported by packer manager
+func (r *PackageManager) IsProfileSupported(profile string) bool {
+	for _, p := range r.packers {
+		isSupported := p.IsProfileSupported(profile)
+		if isSupported {
+			return true
+		}
+	}
+	return false
 }
 
 type envelopeStub struct {
