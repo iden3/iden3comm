@@ -28,14 +28,14 @@ type TransparentPaymentInstructionMessage struct {
 
 // TransparentPaymentInstructionMessageBody represents the body of the transparent payment instruction message
 type TransparentPaymentInstructionMessageBody struct {
-	GoalCode    string                  `json:"goal_code"`
-	DID         string                  `json:"did,omitempty"`
-	Credentials []TransparentCredential `json:"credentials"`
-	PaymentData TransparentPaymentData  `json:"paymentData"`
+	GoalCode    string                 `json:"goal_code"`
+	DID         string                 `json:"did,omitempty"`
+	Credentials []CredentialSchemaInfo `json:"credentials"`
+	PaymentData TransparentPaymentData `json:"paymentData"`
 }
 
-// TransparentCredential represents credential information in the transparent payment instruction
-type TransparentCredential struct {
+// CredentialSchemaInfo represents credential information in the transparent payment instruction
+type CredentialSchemaInfo struct {
 	Context string `json:"context"`
 	Type    string `json:"type"`
 }
