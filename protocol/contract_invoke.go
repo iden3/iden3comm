@@ -26,6 +26,8 @@ type ContractInvokeRequestMessage struct {
 
 	CreatedTime *int64 `json:"created_time,omitempty"`
 	ExpiresTime *int64 `json:"expires_time,omitempty"`
+
+	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
 }
 
 // ContractInvokeRequestMessageBody is body for contract invoke request

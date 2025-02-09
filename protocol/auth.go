@@ -29,6 +29,8 @@ type AuthorizationResponseMessage struct {
 
 	CreatedTime *int64 `json:"created_time,omitempty"`
 	ExpiresTime *int64 `json:"expires_time,omitempty"`
+
+	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
 }
 
 // AuthorizationMessageResponseBody is struct the represents authorization response data
@@ -51,6 +53,8 @@ type AuthorizationRequestMessage struct {
 
 	CreatedTime *int64 `json:"created_time,omitempty"`
 	ExpiresTime *int64 `json:"expires_time,omitempty"`
+
+	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
 }
 
 // AuthorizationRequestMessageBody is body for authorization request
