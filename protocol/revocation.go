@@ -14,17 +14,8 @@ const (
 
 // RevocationStatusRequestMessage is struct the represents body for proof generation request
 type RevocationStatusRequestMessage struct {
-	ID       string                             `json:"id"`
-	Typ      iden3comm.MediaType                `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage          `json:"type"`
-	ThreadID string                             `json:"thid,omitempty"`
-	Body     RevocationStatusRequestMessageBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
+	iden3comm.BasicMessage
+	Body RevocationStatusRequestMessageBody `json:"body,omitempty"`
 }
 
 // RevocationStatusRequestMessageBody is struct the represents request for revocation status
@@ -34,18 +25,8 @@ type RevocationStatusRequestMessageBody struct {
 
 // RevocationStatusResponseMessage is struct the represents body for proof generation request
 type RevocationStatusResponseMessage struct {
-	ID       string                    `json:"id"`
-	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thid,omitempty"`
-
+	iden3comm.BasicMessage
 	Body RevocationStatusResponseMessageBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // RevocationStatusResponseMessageBody is struct the represents request for revocation status

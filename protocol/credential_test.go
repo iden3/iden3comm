@@ -7,6 +7,7 @@ import (
 
 	uuid "github.com/google/uuid"
 	"github.com/iden3/go-schema-processor/v2/verifiable"
+	"github.com/iden3/iden3comm/v2"
 	"github.com/iden3/iden3comm/v2/packers"
 	"github.com/iden3/iden3comm/v2/protocol"
 	"github.com/stretchr/testify/require"
@@ -37,10 +38,14 @@ func TestCredentialProposalRequestMessageCreation(t *testing.T) {
 	didDocBytes, err := json.Marshal(didDoc)
 	require.NoError(t, err)
 	proposalRequest := protocol.CredentialsProposalRequestMessage{
-		ID:       id.String(),
-		Typ:      packers.MediaTypePlainMessage,
-		Type:     protocol.CredentialProposalRequestMessageType,
-		ThreadID: thID.String(),
+		BasicMessage: iden3comm.BasicMessage{
+			ID:       id.String(),
+			Typ:      packers.MediaTypePlainMessage,
+			Type:     protocol.CredentialProposalRequestMessageType,
+			ThreadID: thID.String(),
+			From:     didStr,
+			To:       "did:polygonid:polygon:mumbai:2qJ689kpoJxcSzB5sAFJtPsSBSrHF5dq722BHMqURL",
+		},
 		Body: protocol.CredentialsProposalRequestBody{
 			Credentials: []protocol.CredentialInfo{
 				{
@@ -50,8 +55,6 @@ func TestCredentialProposalRequestMessageCreation(t *testing.T) {
 			},
 			DIDDoc: didDocBytes,
 		},
-		From: didStr,
-		To:   "did:polygonid:polygon:mumbai:2qJ689kpoJxcSzB5sAFJtPsSBSrHF5dq722BHMqURL",
 	}
 
 	marshalledReq, err := json.Marshal(proposalRequest)
@@ -72,10 +75,15 @@ func TestCredentialProposalMessageCreation(t *testing.T) {
 	require.NoError(t, err)
 
 	proposalRequest := protocol.CredentialsProposalMessage{
-		ID:       id.String(),
-		Typ:      packers.MediaTypePlainMessage,
-		Type:     protocol.CredentialProposalMessageType,
-		ThreadID: thID.String(),
+		BasicMessage: iden3comm.BasicMessage{
+			ID:       id.String(),
+			Typ:      packers.MediaTypePlainMessage,
+			Type:     protocol.CredentialProposalMessageType,
+			ThreadID: thID.String(),
+			From:     "did:polygonid:polygon:mumbai:2qJ689kpoJxcSzB5sAFJtPsSBSrHF5dq722BHMqURL",
+			To:       didStr,
+		},
+
 		Body: protocol.CredentialsProposalBody{
 			Proposals: []protocol.CredentialProposalInfo{
 				{
@@ -90,8 +98,6 @@ func TestCredentialProposalMessageCreation(t *testing.T) {
 				},
 			},
 		},
-		From: "did:polygonid:polygon:mumbai:2qJ689kpoJxcSzB5sAFJtPsSBSrHF5dq722BHMqURL",
-		To:   didStr,
 	}
 
 	marshalledReq, err := json.Marshal(proposalRequest)
@@ -113,10 +119,15 @@ func TestCredentialOfferMessageCreation(t *testing.T) {
 
 	require.NoError(t, err)
 	proposalRequest := protocol.CredentialsOfferMessage{
-		ID:       id.String(),
-		Typ:      packers.MediaTypePlainMessage,
-		Type:     protocol.CredentialOfferMessageType,
-		ThreadID: thID.String(),
+		BasicMessage: iden3comm.BasicMessage{
+			ID:       id.String(),
+			Typ:      packers.MediaTypePlainMessage,
+			Type:     protocol.CredentialOfferMessageType,
+			ThreadID: thID.String(),
+			From:     didStr,
+			To:       "did:polygonid:polygon:mumbai:2qJ689kpoJxcSzB5sAFJtPsSBSrHF5dq722BHMqURL",
+		},
+
 		Body: protocol.CredentialsOfferMessageBody{
 			URL: "http://test.com",
 			Credentials: []protocol.CredentialOffer{
@@ -132,8 +143,6 @@ func TestCredentialOfferMessageCreation(t *testing.T) {
 				},
 			},
 		},
-		From: didStr,
-		To:   "did:polygonid:polygon:mumbai:2qJ689kpoJxcSzB5sAFJtPsSBSrHF5dq722BHMqURL",
 	}
 
 	marshalledReq, err := json.Marshal(proposalRequest)

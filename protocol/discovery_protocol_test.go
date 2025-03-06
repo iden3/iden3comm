@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	uuid "github.com/google/uuid"
+	"github.com/iden3/iden3comm/v2"
 	"github.com/iden3/iden3comm/v2/packers"
 	"github.com/iden3/iden3comm/v2/protocol"
 	"github.com/stretchr/testify/require"
@@ -20,10 +21,13 @@ func TestDiscoverFeatureQueriesMessageCreation(t *testing.T) {
 	require.NoError(t, err)
 
 	queryMessage := protocol.DiscoverFeatureQueriesMessage{
-		ID:       id.String(),
-		Typ:      packers.MediaTypePlainMessage,
-		Type:     protocol.DiscoverFeatureQueriesMessageType,
-		ThreadID: thID.String(),
+		BasicMessage: iden3comm.BasicMessage{
+			ID:       id.String(),
+			Typ:      packers.MediaTypePlainMessage,
+			Type:     protocol.DiscoverFeatureQueriesMessageType,
+			ThreadID: thID.String(),
+			From:     "did:polygonid:polygon:mumbai:2qK2Rwf2zqzzhqVLqTWXetGUbs1Sc79woomP5cDLBE",
+		},
 		Body: protocol.DiscoverFeatureQueriesMessageBody{
 			Queries: []protocol.DiscoverFeatureQuery{
 				{
@@ -38,7 +42,6 @@ func TestDiscoverFeatureQueriesMessageCreation(t *testing.T) {
 				},
 			},
 		},
-		From: "did:polygonid:polygon:mumbai:2qK2Rwf2zqzzhqVLqTWXetGUbs1Sc79woomP5cDLBE",
 	}
 
 	marshalledReq, err := json.Marshal(queryMessage)
@@ -77,10 +80,14 @@ func TestDiscoverFeatureDisclosuresMessageCreation(t *testing.T) {
 	require.NoError(t, err)
 
 	queryMessage := protocol.DiscoverFeatureDiscloseMessage{
-		ID:       id.String(),
-		Typ:      packers.MediaTypePlainMessage,
-		Type:     protocol.DiscoverFeatureDiscloseMessageType,
-		ThreadID: thID.String(),
+
+		BasicMessage: iden3comm.BasicMessage{
+			ID:       id.String(),
+			Typ:      packers.MediaTypePlainMessage,
+			Type:     protocol.DiscoverFeatureDiscloseMessageType,
+			ThreadID: thID.String(),
+			To:       "did:polygonid:polygon:mumbai:2qK2Rwf2zqzzhqVLqTWXetGUbs1Sc79woomP5cDLBE",
+		},
 		Body: protocol.DiscoverFeatureDiscloseMessageBody{
 			Disclosures: []protocol.DiscoverFeatureDisclosure{
 				{
@@ -117,7 +124,6 @@ func TestDiscoverFeatureDisclosuresMessageCreation(t *testing.T) {
 				},
 			},
 		},
-		To: "did:polygonid:polygon:mumbai:2qK2Rwf2zqzzhqVLqTWXetGUbs1Sc79woomP5cDLBE",
 	}
 
 	marshalledReq, err := json.Marshal(queryMessage)

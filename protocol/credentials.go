@@ -95,18 +95,8 @@ const (
 
 // CredentialIssuanceRequestMessage represent Iden3message for credential request
 type CredentialIssuanceRequestMessage struct {
-	ID       string                    `json:"id"`
-	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thid,omitempty"`
-
+	iden3comm.BasicMessage
 	Body CredentialIssuanceRequestMessageBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // CredentialIssuanceRequestMessageBody represents data for credential issuance request
@@ -118,18 +108,8 @@ type CredentialIssuanceRequestMessageBody struct {
 
 // CredentialsOfferMessage represent Iden3message for credential offer
 type CredentialsOfferMessage struct {
-	ID       string                    `json:"id"`
-	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thid,omitempty"`
-
+	iden3comm.BasicMessage
 	Body CredentialsOfferMessageBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // CredentialsOfferMessageBody is struct the represents offer message
@@ -147,18 +127,8 @@ type CredentialOffer struct {
 
 // CredentialIssuanceMessage represent Iden3message for credential issuance
 type CredentialIssuanceMessage struct {
-	ID       string                    `json:"id"`
-	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thid,omitempty"`
-
+	iden3comm.BasicMessage
 	Body IssuanceMessageBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // IssuanceMessageBody is struct the represents message when credential is issued
@@ -168,17 +138,8 @@ type IssuanceMessageBody struct {
 
 // CredentialFetchRequestMessage represent Iden3message for credential fetch request
 type CredentialFetchRequestMessage struct {
-	ID       string                            `json:"id"`
-	Typ      iden3comm.MediaType               `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage         `json:"type"`
-	ThreadID string                            `json:"thid,omitempty"`
-	Body     CredentialFetchRequestMessageBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
+	iden3comm.BasicMessage
+	Body CredentialFetchRequestMessageBody `json:"body,omitempty"`
 }
 
 // CredentialFetchRequestMessageBody is msg body for fetch request
@@ -195,18 +156,8 @@ type Schema struct {
 
 // CredentialStatusUpdateMessage represents credential status update message
 type CredentialStatusUpdateMessage struct {
-	ID       string                    `json:"id"`
-	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thid,omitempty"`
-
+	iden3comm.BasicMessage
 	Body CredentialStatusUpdateMessageBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // CredentialStatusUpdateMessageBody the structure that represents the body of credential status update message
@@ -217,18 +168,8 @@ type CredentialStatusUpdateMessageBody struct {
 
 // CredentialRefreshMessage represent Iden3message for credential refresh message
 type CredentialRefreshMessage struct {
-	ID       string                    `json:"id"`
-	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thid,omitempty"`
-
+	iden3comm.BasicMessage
 	Body CredentialRefreshMessageBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // CredentialRefreshMessageBody is msg body for refresh message
@@ -239,18 +180,8 @@ type CredentialRefreshMessageBody struct {
 
 // CredentialsOnchainOfferMessage represent Iden3message for credential onchain offer
 type CredentialsOnchainOfferMessage struct {
-	ID       string                    `json:"id"`
-	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thid,omitempty"`
-
+	iden3comm.BasicMessage
 	Body CredentialsOnchainOfferMessageBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // CredentialsOnchainOfferMessageBody is struct the represents onchain offer message
@@ -265,18 +196,8 @@ type CredentialsOnchainOfferMessageBody struct {
 //
 // Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
 type CredentialsProposalRequestMessage struct {
-	ID       string                    `json:"id"`
-	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thid,omitempty"`
-
+	iden3comm.BasicMessage
 	Body CredentialsProposalRequestBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // CredentialsProposalMessage represents Iden3message for credential proposal
@@ -285,18 +206,8 @@ type CredentialsProposalRequestMessage struct {
 //
 // Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
 type CredentialsProposalMessage struct {
-	ID       string                    `json:"id"`
-	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thid,omitempty"`
-
+	iden3comm.BasicMessage
 	Body CredentialsProposalBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // CredentialsProposalRequestBody is msg body for proposal requests
@@ -358,18 +269,8 @@ type CredentialProposalInfo struct {
 //
 // Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
 type CredentialPaymentRequestMessage struct {
-	ID       string                    `json:"id"`
-	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thid,omitempty"`
-
+	iden3comm.BasicMessage
 	Body CredentialPaymentRequestBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // CredentialPaymentRequestBody is msg body for payment requests
@@ -416,18 +317,8 @@ type CredentialPaymentData struct {
 //
 // Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
 type CredentialPaymentMessage struct {
-	ID       string                    `json:"id"`
-	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thid,omitempty"`
-
+	iden3comm.BasicMessage
 	Body CredentialPaymentBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // CredentialPaymentBody is msg body for payment

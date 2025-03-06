@@ -9,18 +9,8 @@ const (
 
 // MessageFetchRequestMessage represent Iden3message for message fetch request.
 type MessageFetchRequestMessage struct {
-	ID       string                    `json:"id"`
-	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thid,omitempty"`
-
+	iden3comm.BasicMessage
 	Body MessageFetchRequestMessageBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // MessageFetchRequestMessageBody is struct the represents body for message fetch request.

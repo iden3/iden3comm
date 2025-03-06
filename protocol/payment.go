@@ -272,18 +272,8 @@ type PaymentRequestInfoCredentials struct {
 
 // PaymentMessage represents Iden3message for payment.
 type PaymentMessage struct {
-	ID       string                    `json:"id"`
-	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thid,omitempty"`
-
+	iden3comm.BasicMessage
 	Body PaymentMessageBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // PaymentMessageBody represents the body of the PaymentMessage.

@@ -3,6 +3,7 @@ package protocol
 
 import (
 	"encoding/json"
+	"reflect"
 
 	"github.com/iden3/go-rapidsnark/types"
 	"github.com/iden3/iden3comm/v2"
@@ -18,17 +19,8 @@ const (
 
 // AuthorizationResponseMessage is struct the represents iden3message authorization response
 type AuthorizationResponseMessage struct {
-	ID       string                           `json:"id"`
-	Typ      iden3comm.MediaType              `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage        `json:"type"`
-	ThreadID string                           `json:"thid,omitempty"`
-	Body     AuthorizationMessageResponseBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
+	iden3comm.BasicMessage
+	Body AuthorizationMessageResponseBody `json:"body,omitempty"`
 }
 
 // AuthorizationMessageResponseBody is struct the represents authorization response data
@@ -40,17 +32,48 @@ type AuthorizationMessageResponseBody struct {
 
 // AuthorizationRequestMessage is struct the represents iden3message authorization request
 type AuthorizationRequestMessage struct {
-	ID       string                          `json:"id"`
-	Typ      iden3comm.MediaType             `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage       `json:"type"`
-	ThreadID string                          `json:"thid,omitempty"`
-	Body     AuthorizationRequestMessageBody `json:"body,omitempty"`
+	iden3comm.BasicMessage
+	Body AuthorizationRequestMessageBody `json:"body,omitempty"`
+}
 
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
+// MarshalJSON is
+func (m AuthorizationRequestMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
 
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
+func commonMarshal(m any) ([]byte, error) {
+	t := reflect.ValueOf(m)
+	v := t.FieldByName("BasicMessage")
+
+	b, err := json.Marshal(v.Interface())
+	if err != nil {
+		return nil, err
+	}
+	var o = map[string]any{}
+	err = json.Unmarshal(b, &o)
+	if err != nil {
+		return nil, err
+	}
+	v = t.FieldByName("Body")
+
+	var body json.RawMessage
+	body, err = json.Marshal(v.Interface())
+	if err != nil {
+		return nil, err
+	}
+	o["body"] = body
+
+	return json.Marshal(o)
+}
+
+// UnmarshalJSON is
+func (m *AuthorizationRequestMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
 }
 
 // AuthorizationRequestMessageBody is body for authorization request

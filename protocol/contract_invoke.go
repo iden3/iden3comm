@@ -15,17 +15,8 @@ const (
 
 // ContractInvokeRequestMessage is struct the represents iden3message contract invoke request
 type ContractInvokeRequestMessage struct {
-	ID       string                           `json:"id"`
-	Typ      iden3comm.MediaType              `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage        `json:"type"`
-	ThreadID string                           `json:"thid,omitempty"`
-	Body     ContractInvokeRequestMessageBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
+	Body ContractInvokeRequestMessageBody `json:"body,omitempty"`
+	iden3comm.BasicMessage
 }
 
 // ContractInvokeRequestMessageBody is body for contract invoke request
@@ -46,17 +37,8 @@ type TransactionData struct {
 
 // ContractInvokeResponseMessage is struct the represents iden3message contract invoke response
 type ContractInvokeResponseMessage struct {
-	ID       string                            `json:"id"`
-	Typ      iden3comm.MediaType               `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage         `json:"type"`
-	ThreadID string                            `json:"thid,omitempty"`
-	Body     ContractInvokeResponseMessageBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
+	Body ContractInvokeResponseMessageBody `json:"body,omitempty"`
+	iden3comm.BasicMessage
 }
 
 // ContractInvokeResponseMessageBody is body for contract invoke response
