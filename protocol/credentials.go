@@ -290,6 +290,20 @@ type CredentialsProposalRequestMessage struct {
 	Body CredentialsProposalRequestBody `json:"body,omitempty"`
 }
 
+func (m CredentialsProposalRequestMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON is
+func (m *CredentialsProposalRequestMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
+}
+
 // CredentialsProposalMessage represents Iden3message for credential proposal
 //
 // # Experimental
