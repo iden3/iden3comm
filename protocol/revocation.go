@@ -1,6 +1,8 @@
 package protocol
 
 import (
+	"encoding/json"
+
 	"github.com/iden3/go-schema-processor/v2/verifiable"
 	"github.com/iden3/iden3comm/v2"
 )
@@ -14,17 +16,8 @@ const (
 
 // RevocationStatusRequestMessage is struct the represents body for proof generation request
 type RevocationStatusRequestMessage struct {
-	ID       string                             `json:"id"`
-	Typ      iden3comm.MediaType                `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage          `json:"type"`
-	ThreadID string                             `json:"thid,omitempty"`
-	Body     RevocationStatusRequestMessageBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
+	iden3comm.BasicMessage
+	Body RevocationStatusRequestMessageBody `json:"body,omitempty"`
 }
 
 // RevocationStatusRequestMessageBody is struct the represents request for revocation status
@@ -32,23 +25,43 @@ type RevocationStatusRequestMessageBody struct {
 	RevocationNonce uint64 `json:"revocation_nonce"`
 }
 
+// MarshalJSON is
+func (m RevocationStatusRequestMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON is
+func (m *RevocationStatusRequestMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
+}
+
 // RevocationStatusResponseMessage is struct the represents body for proof generation request
 type RevocationStatusResponseMessage struct {
-	ID       string                    `json:"id"`
-	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thid,omitempty"`
-
+	iden3comm.BasicMessage
 	Body RevocationStatusResponseMessageBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // RevocationStatusResponseMessageBody is struct the represents request for revocation status
 type RevocationStatusResponseMessageBody struct {
 	verifiable.RevocationStatus
+}
+
+// MarshalJSON is
+func (m RevocationStatusResponseMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON is
+func (m *RevocationStatusResponseMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
 }
