@@ -27,6 +27,21 @@ type ContractInvokeRequestMessageBody struct {
 	Scope           []ZeroKnowledgeProofRequest `json:"scope"`
 }
 
+// MarshalJSON is
+func (m ContractInvokeRequestMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON is
+func (m *ContractInvokeRequestMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
+}
+
 // TransactionData represents structure for on chain verification
 type TransactionData struct {
 	ContractAddress string `json:"contract_address"`
@@ -46,6 +61,21 @@ type ContractInvokeResponseMessageBody struct {
 	TransactionData TransactionData                     `json:"transaction_data"`
 	DIDDoc          json.RawMessage                     `json:"did_doc,omitempty"`
 	Scope           []OnchainZeroKnowledgeProofResponse `json:"scope"`
+}
+
+// MarshalJSON is
+func (m ContractInvokeResponseMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON is
+func (m *ContractInvokeResponseMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
 }
 
 // OnchainZeroKnowledgeProofResponse represents structure of zkp response given for onchain verification

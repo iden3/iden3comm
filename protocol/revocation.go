@@ -1,6 +1,8 @@
 package protocol
 
 import (
+	"encoding/json"
+
 	"github.com/iden3/go-schema-processor/v2/verifiable"
 	"github.com/iden3/iden3comm/v2"
 )
@@ -23,6 +25,21 @@ type RevocationStatusRequestMessageBody struct {
 	RevocationNonce uint64 `json:"revocation_nonce"`
 }
 
+// MarshalJSON is
+func (m RevocationStatusRequestMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON is
+func (m *RevocationStatusRequestMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
+}
+
 // RevocationStatusResponseMessage is struct the represents body for proof generation request
 type RevocationStatusResponseMessage struct {
 	iden3comm.BasicMessage
@@ -32,4 +49,19 @@ type RevocationStatusResponseMessage struct {
 // RevocationStatusResponseMessageBody is struct the represents request for revocation status
 type RevocationStatusResponseMessageBody struct {
 	verifiable.RevocationStatus
+}
+
+// MarshalJSON is
+func (m RevocationStatusResponseMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON is
+func (m *RevocationStatusResponseMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
 }

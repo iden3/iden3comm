@@ -1,6 +1,7 @@
 package protocol
 
 import (
+	"encoding/json"
 	"strings"
 
 	"github.com/iden3/iden3comm/v2"
@@ -61,6 +62,21 @@ type ProblemReportMessageBody struct {
 	Comment    string           `json:"comment,omitempty"`
 	Args       []string         `json:"args,omitempty"`
 	EscalateTo string           `json:"escalate_to,omitempty"`
+}
+
+// MarshalJSON is
+func (m ProblemReportMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON is
+func (m *ProblemReportMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
 }
 
 // ProblemErrorCode is a string  that represents an error code "e.p.xxxx.yyyy.zzzz"

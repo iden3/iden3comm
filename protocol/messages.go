@@ -1,6 +1,10 @@
 package protocol
 
-import "github.com/iden3/iden3comm/v2"
+import (
+	"encoding/json"
+
+	"github.com/iden3/iden3comm/v2"
+)
 
 const (
 	// MessageFetchRequestMessageType defines message fetch request type of the communication protocol.
@@ -8,6 +12,7 @@ const (
 )
 
 // MessageFetchRequestMessage represent Iden3message for message fetch request.
+// Deprecated: Removed from protocol
 type MessageFetchRequestMessage struct {
 	iden3comm.BasicMessage
 	Body MessageFetchRequestMessageBody `json:"body,omitempty"`
@@ -16,4 +21,19 @@ type MessageFetchRequestMessage struct {
 // MessageFetchRequestMessageBody is struct the represents body for message fetch request.
 type MessageFetchRequestMessageBody struct {
 	ID string `json:"id"`
+}
+
+// MarshalJSON is
+func (m MessageFetchRequestMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON is
+func (m *MessageFetchRequestMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
 }

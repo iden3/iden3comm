@@ -3,7 +3,6 @@ package protocol
 
 import (
 	"encoding/json"
-	"reflect"
 
 	"github.com/iden3/go-rapidsnark/types"
 	"github.com/iden3/iden3comm/v2"
@@ -30,6 +29,21 @@ type AuthorizationMessageResponseBody struct {
 	Scope   []ZeroKnowledgeProofResponse `json:"scope"`
 }
 
+// MarshalJSON is
+func (m AuthorizationResponseMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON is
+func (m *AuthorizationResponseMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
+}
+
 // AuthorizationRequestMessage is struct the represents iden3message authorization request
 type AuthorizationRequestMessage struct {
 	iden3comm.BasicMessage
@@ -39,31 +53,6 @@ type AuthorizationRequestMessage struct {
 // MarshalJSON is
 func (m AuthorizationRequestMessage) MarshalJSON() ([]byte, error) {
 	return commonMarshal(m)
-}
-
-func commonMarshal(m any) ([]byte, error) {
-	t := reflect.ValueOf(m)
-	v := t.FieldByName("BasicMessage")
-
-	b, err := json.Marshal(v.Interface())
-	if err != nil {
-		return nil, err
-	}
-	var o = map[string]any{}
-	err = json.Unmarshal(b, &o)
-	if err != nil {
-		return nil, err
-	}
-	v = t.FieldByName("Body")
-
-	var body json.RawMessage
-	body, err = json.Marshal(v.Interface())
-	if err != nil {
-		return nil, err
-	}
-	o["body"] = body
-
-	return json.Marshal(o)
 }
 
 // UnmarshalJSON is

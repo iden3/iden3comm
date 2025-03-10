@@ -1,6 +1,10 @@
 package protocol
 
-import "github.com/iden3/iden3comm/v2"
+import (
+	"encoding/json"
+
+	"github.com/iden3/iden3comm/v2"
+)
 
 // DiscoveryProtocolFeatureType is type for query feature-type.
 type DiscoveryProtocolFeatureType string
@@ -52,4 +56,19 @@ type DiscoverFeatureDiscloseMessageBody struct {
 type DiscoverFeatureDisclosure struct {
 	FeatureType DiscoveryProtocolFeatureType `json:"feature-type"`
 	ID          string                       `json:"id"`
+}
+
+// MarshalJSON is
+func (m DiscoverFeatureDiscloseMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON is
+func (m *DiscoverFeatureDiscloseMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
 }

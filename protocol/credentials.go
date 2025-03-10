@@ -125,6 +125,21 @@ type CredentialOffer struct {
 	Status      string `json:"status,omitempty"`
 }
 
+// MarshalJSON is
+func (m CredentialsOfferMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON is
+func (m *CredentialsOfferMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
+}
+
 // CredentialIssuanceMessage represent Iden3message for credential issuance
 type CredentialIssuanceMessage struct {
 	iden3comm.BasicMessage
@@ -136,6 +151,21 @@ type IssuanceMessageBody struct {
 	Credential verifiable.W3CCredential `json:"credential"`
 }
 
+// MarshalJSON is
+func (m CredentialIssuanceMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON is
+func (m *CredentialIssuanceMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
+}
+
 // CredentialFetchRequestMessage represent Iden3message for credential fetch request
 type CredentialFetchRequestMessage struct {
 	iden3comm.BasicMessage
@@ -145,6 +175,21 @@ type CredentialFetchRequestMessage struct {
 // CredentialFetchRequestMessageBody is msg body for fetch request
 type CredentialFetchRequestMessageBody struct {
 	ID string `json:"id"`
+}
+
+// MarshalJSON is
+func (m CredentialFetchRequestMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON is
+func (m *CredentialFetchRequestMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
 }
 
 // Schema represents location and type where it's stored
@@ -166,6 +211,21 @@ type CredentialStatusUpdateMessageBody struct {
 	Reason string `json:"reason"`
 }
 
+// MarshalJSON is
+func (m CredentialStatusUpdateMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON is
+func (m *CredentialStatusUpdateMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
+}
+
 // CredentialRefreshMessage represent Iden3message for credential refresh message
 type CredentialRefreshMessage struct {
 	iden3comm.BasicMessage
@@ -178,6 +238,21 @@ type CredentialRefreshMessageBody struct {
 	Reason string `json:"reason"`
 }
 
+// MarshalJSON is
+func (m CredentialRefreshMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON is
+func (m *CredentialRefreshMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
+}
+
 // CredentialsOnchainOfferMessage represent Iden3message for credential onchain offer
 type CredentialsOnchainOfferMessage struct {
 	iden3comm.BasicMessage
@@ -188,6 +263,21 @@ type CredentialsOnchainOfferMessage struct {
 type CredentialsOnchainOfferMessageBody struct {
 	Credentials     []CredentialOffer `json:"credentials"`
 	TransactionData TransactionData   `json:"transaction_data"`
+}
+
+// MarshalJSON is
+func (m CredentialsOnchainOfferMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON is
+func (m *CredentialsOnchainOfferMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
 }
 
 // CredentialsProposalRequestMessage represent Iden3message for credential proposal request
@@ -219,6 +309,21 @@ type CredentialsProposalRequestBody struct {
 	Credentials []CredentialInfo `json:"credentials"`
 	Metadata    *Metadata        `json:"metadata,omitempty"`
 	DIDDoc      json.RawMessage  `json:"did_doc,omitempty"`
+}
+
+// MarshalJSON is
+func (m CredentialsProposalMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON is
+func (m *CredentialsProposalMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
 }
 
 // CredentialInfo is a part of credential proposal request bodys
@@ -273,6 +378,21 @@ type CredentialPaymentRequestMessage struct {
 	Body CredentialPaymentRequestBody `json:"body,omitempty"`
 }
 
+// MarshalJSON is
+func (m CredentialPaymentRequestMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON is
+func (m *CredentialPaymentRequestMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
+}
+
 // CredentialPaymentRequestBody is msg body for payment requests
 //
 // # Experimental
@@ -319,6 +439,21 @@ type CredentialPaymentData struct {
 type CredentialPaymentMessage struct {
 	iden3comm.BasicMessage
 	Body CredentialPaymentBody `json:"body,omitempty"`
+}
+
+// MarshalJSON is
+func (m CredentialPaymentMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON is
+func (m *CredentialPaymentMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
 }
 
 // CredentialPaymentBody is msg body for payment
