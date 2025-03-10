@@ -35,6 +35,21 @@ type DiscoverFeatureQueriesMessageBody struct {
 	Queries []DiscoverFeatureQuery `json:"queries"`
 }
 
+// MarshalJSON is
+func (m DiscoverFeatureQueriesMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON is
+func (m *DiscoverFeatureQueriesMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
+}
+
 // DiscoverFeatureQuery represents discover feature query.
 type DiscoverFeatureQuery struct {
 	FeatureType DiscoveryProtocolFeatureType `json:"feature-type"`

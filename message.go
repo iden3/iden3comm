@@ -103,7 +103,7 @@ func (m BasicMessage) MarshalJSON() ([]byte, error) {
 		From        string `json:"from,omitempty"`
 		CreatedTime *int64 `json:"created_time,omitempty"`
 		ExpiresTime *int64 `json:"expires_time,omitempty"`
-		To          string `json:"to"`
+		To          string `json:"to,omitempty"`
 	}
 
 	var didcomm struct {
@@ -116,7 +116,7 @@ func (m BasicMessage) MarshalJSON() ([]byte, error) {
 		From        string   `json:"from,omitempty"`
 		CreatedTime *int64   `json:"created_time,omitempty"`
 		ExpiresTime *int64   `json:"expires_time,omitempty"`
-		To          []string `json:"to"`
+		To          []string `json:"to,omitempty"`
 	}
 
 	if m.DIDCommTo == nil {
