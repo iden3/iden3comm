@@ -23,12 +23,12 @@ type MessageFetchRequestMessageBody struct {
 	ID string `json:"id"`
 }
 
-// MarshalJSON is
+// MarshalJSON marshals protocol request message with typed body and basic structure
 func (m MessageFetchRequestMessage) MarshalJSON() ([]byte, error) {
 	return commonMarshal(m)
 }
 
-// UnmarshalJSON is
+// UnmarshalJSON  unmarshals protocol request message with typed body and basic structure
 func (m *MessageFetchRequestMessage) UnmarshalJSON(bytes []byte) error {
 
 	err := json.Unmarshal(bytes, &m.BasicMessage)

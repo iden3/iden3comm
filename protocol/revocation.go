@@ -25,12 +25,12 @@ type RevocationStatusRequestMessageBody struct {
 	RevocationNonce uint64 `json:"revocation_nonce"`
 }
 
-// MarshalJSON is
+// MarshalJSON marshals protocol request message with typed body and basic structure
 func (m RevocationStatusRequestMessage) MarshalJSON() ([]byte, error) {
 	return commonMarshal(m)
 }
 
-// UnmarshalJSON is
+// UnmarshalJSON  unmarshals protocol request message with typed body and basic structure
 func (m *RevocationStatusRequestMessage) UnmarshalJSON(bytes []byte) error {
 
 	err := json.Unmarshal(bytes, &m.BasicMessage)
@@ -51,12 +51,12 @@ type RevocationStatusResponseMessageBody struct {
 	verifiable.RevocationStatus
 }
 
-// MarshalJSON is
+// MarshalJSON marshals protocol request message with typed body and basic structure
 func (m RevocationStatusResponseMessage) MarshalJSON() ([]byte, error) {
 	return commonMarshal(m)
 }
 
-// UnmarshalJSON is
+// UnmarshalJSON  unmarshals protocol request message with typed body and basic structure
 func (m *RevocationStatusResponseMessage) UnmarshalJSON(bytes []byte) error {
 
 	err := json.Unmarshal(bytes, &m.BasicMessage)

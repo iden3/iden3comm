@@ -29,12 +29,12 @@ type AuthorizationMessageResponseBody struct {
 	Scope   []ZeroKnowledgeProofResponse `json:"scope"`
 }
 
-// MarshalJSON is
+// MarshalJSON marshals protocol request message with typed body and basic structure
 func (m AuthorizationResponseMessage) MarshalJSON() ([]byte, error) {
 	return commonMarshal(m)
 }
 
-// UnmarshalJSON is
+// UnmarshalJSON  unmarshals protocol request message with typed body and basic structure
 func (m *AuthorizationResponseMessage) UnmarshalJSON(bytes []byte) error {
 
 	err := json.Unmarshal(bytes, &m.BasicMessage)
@@ -50,12 +50,12 @@ type AuthorizationRequestMessage struct {
 	Body AuthorizationRequestMessageBody `json:"body,omitempty"`
 }
 
-// MarshalJSON is
+// MarshalJSON marshals protocol request message with typed body and basic structure
 func (m AuthorizationRequestMessage) MarshalJSON() ([]byte, error) {
 	return commonMarshal(m)
 }
 
-// UnmarshalJSON is
+// UnmarshalJSON  unmarshals protocol request message with typed body and basic structure
 func (m *AuthorizationRequestMessage) UnmarshalJSON(bytes []byte) error {
 
 	err := json.Unmarshal(bytes, &m.BasicMessage)

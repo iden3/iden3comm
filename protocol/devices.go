@@ -24,12 +24,12 @@ type DeviceRegistrationRequestMessageBody struct {
 	PushToken string `json:"push_token"`
 }
 
-// MarshalJSON is
+// MarshalJSON marshals protocol request message with typed body and basic structure
 func (m DeviceRegistrationRequestMessage) MarshalJSON() ([]byte, error) {
 	return commonMarshal(m)
 }
 
-// UnmarshalJSON is
+// UnmarshalJSON  unmarshals protocol request message with typed body and basic structure
 func (m *DeviceRegistrationRequestMessage) UnmarshalJSON(bytes []byte) error {
 
 	err := json.Unmarshal(bytes, &m.BasicMessage)

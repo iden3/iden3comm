@@ -35,12 +35,12 @@ type DiscoverFeatureQueriesMessageBody struct {
 	Queries []DiscoverFeatureQuery `json:"queries"`
 }
 
-// MarshalJSON is
+// MarshalJSON marshals protocol request message with typed body and basic structure
 func (m DiscoverFeatureQueriesMessage) MarshalJSON() ([]byte, error) {
 	return commonMarshal(m)
 }
 
-// UnmarshalJSON is
+// UnmarshalJSON  unmarshals protocol request message with typed body and basic structure
 func (m *DiscoverFeatureQueriesMessage) UnmarshalJSON(bytes []byte) error {
 
 	err := json.Unmarshal(bytes, &m.BasicMessage)
@@ -73,12 +73,12 @@ type DiscoverFeatureDisclosure struct {
 	ID          string                       `json:"id"`
 }
 
-// MarshalJSON is
+// MarshalJSON marshals protocol request message with typed body and basic structure
 func (m DiscoverFeatureDiscloseMessage) MarshalJSON() ([]byte, error) {
 	return commonMarshal(m)
 }
 
-// UnmarshalJSON is
+// UnmarshalJSON  unmarshals protocol request message with typed body and basic structure
 func (m *DiscoverFeatureDiscloseMessage) UnmarshalJSON(bytes []byte) error {
 
 	err := json.Unmarshal(bytes, &m.BasicMessage)

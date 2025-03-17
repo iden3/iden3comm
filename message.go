@@ -30,7 +30,7 @@ type stringOrArray struct {
 	toArr []string
 }
 
-// UnmarshalJSON is
+// UnmarshalJSON  unmarshals protocol request message with typed body and basic structure
 func (s *stringOrArray) UnmarshalJSON(bytes []byte) error {
 	var a any
 	err := json.Unmarshal(bytes, &a)
@@ -90,7 +90,7 @@ func (m *BasicMessage) UnmarshalJSON(bytes []byte) error {
 	return nil
 }
 
-// MarshalJSON - marshaler
+// MarshalJSON - marshals basic protocol message with to field as an array or single string value
 func (m BasicMessage) MarshalJSON() ([]byte, error) {
 
 	var iden3comm struct {
