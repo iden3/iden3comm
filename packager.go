@@ -40,7 +40,17 @@ func NewPackageManager() *PackageManager {
 	return &PackageManager{packers: make(map[MediaType]Packer)}
 }
 
-// RegisterPackers adds new packers to packageManager
+// Clone returns a copy of PackageManager with the same packers
+// It should be safe to modify the returned PackageManager without affecting the original one
+func (r *PackageManager) Clone() *PackageManager {
+	newPackageManager := NewPackageManager()
+	for k, v := range r.packers {
+		newPackageManager.packers[k] = v
+	}
+	return newPackageManager
+}
+
+// RegisterPackers adds new packers to packageManager. It fails if packer with the same media type already exists.
 func (r *PackageManager) RegisterPackers(packers ...Packer) error {
 	for _, p := range packers {
 		_, ok := r.packers[p.MediaType()]
@@ -49,6 +59,15 @@ func (r *PackageManager) RegisterPackers(packers ...Packer) error {
 		}
 		r.packers[p.MediaType()] = p
 	}
+	return nil
+}
+
+// UpdatePacker updates packer with the same media type. It fails if packer with the same media type doesn't exist.
+func (r *PackageManager) UpdatePacker(p Packer) error {
+	if _, ok := r.packers[p.MediaType()]; !ok {
+		return errors.Errorf("packer for media type %s doesn't exist", p.MediaType())
+	}
+	r.packers[p.MediaType()] = p
 	return nil
 }
 
