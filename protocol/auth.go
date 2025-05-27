@@ -67,12 +67,12 @@ type AuthorizationRequestMessageBody struct {
 
 // ZeroKnowledgeProofRequest represents structure of zkp request object
 type ZeroKnowledgeProofRequest struct {
-	ID         uint32                 `json:"id"` // unique request id
+	ID         uint32
 	CircuitID  string                 `json:"circuitId"`
 	Params     map[string]interface{} `json:"params,omitempty"`
 	Optional   *bool                  `json:"optional,omitempty"`
 	Query      map[string]interface{} `json:"query"`
-	ExtendedID *big.Int               `json:"-"`
+	ExtendedID *big.Int
 }
 
 // MarshalJSON - marshals the protocol zero-knowledge proof request depending on ID or ExtendedID value
@@ -134,8 +134,8 @@ func (r *ZeroKnowledgeProofRequest) UnmarshalJSON(bytes []byte) error {
 
 // ZeroKnowledgeProofResponse represents structure of zkp response
 type ZeroKnowledgeProofResponse struct {
-	ID                     uint32          `json:"id"` // unique id to present unique proof request
-	ExtendedID             *big.Int        `json:"-"`
+	ID                     uint32
+	ExtendedID             *big.Int
 	CircuitID              string          `json:"circuitId"`
 	VerifiablePresentation json.RawMessage `json:"vp,omitempty"`
 	types.ZKProof
@@ -201,20 +201,16 @@ type numberish struct {
 
 // UnmarshalJSON  unmarshals protocol request message with typed body and basic structure
 func (n *numberish) UnmarshalJSON(bytes []byte) error {
-	var raw json.RawMessage
-	if err := json.Unmarshal(bytes, &raw); err != nil {
-		return err
-	}
 
 	var num uint32
-	if err := json.Unmarshal(raw, &num); err == nil {
+	if err := json.Unmarshal(bytes, &num); err == nil {
 		n.uint32value = num
 		n.bigIntValue = nil
 		return nil
 	}
 
 	var s string
-	if err := json.Unmarshal(raw, &s); err == nil {
+	if err := json.Unmarshal(bytes, &s); err == nil {
 		bi := new(big.Int)
 		if _, ok := bi.SetString(s, 10); ok {
 			n.bigIntValue = bi
