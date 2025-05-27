@@ -86,7 +86,7 @@ func (r ZeroKnowledgeProofRequest) MarshalJSON() ([]byte, error) {
 		Query     map[string]interface{} `json:"query"`
 	}
 	if r.ExtendedID != nil && r.ID != 0 {
-		return nil, errors.New("only one field for ZeroKnowledgeProofRequest must be initiated, ExtendedID or ID ")
+		return nil, errors.New("only one field for ZeroKnowledgeProofRequest must be initiated, ExtendedID or ID")
 	}
 	if r.ExtendedID != nil {
 		zkRequest.ID.bigIntValue = r.ExtendedID

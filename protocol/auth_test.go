@@ -51,7 +51,8 @@ func TestAuthRequestCreationRegular(t *testing.T) {
 	require.JSONEq(t, `{"id":"f0885dd0-e60e-11ee-b3e8-de17148ce1ce","typ":"application/iden3comm-plain-json","type":"https://iden3-communication.io/authorization/1.0/request","thid":"f08860d2-e60e-11ee-b3e8-de17148ce1ce","body":{"callbackUrl":"https://callback.url","reason":"some reason","message":"some msg","scope":[{"id":1,"circuitId":"c-1","query":{"type":"test"}}]},"from":"did:polygonid:polygon:mumbai:2qK2Rwf2zqzzhqVLqTWXetGUbs1Sc79woomP5cDLBE","to":"did:polygonid:polygon:mumbai:2qJ689kpoJxcSzB5sAFJtPsSBSrHF5dq722BHMqURL"}`, string(marshalledReq))
 
 	var reqAfterUnmarshall protocol.AuthorizationRequestMessage
-	json.Unmarshal(marshalledReq, &reqAfterUnmarshall)
+	err = json.Unmarshal(marshalledReq, &reqAfterUnmarshall)
+	require.NoError(t, err)
 
 	require.Len(t, authorizationRequestMessage.Body.Scope, 1)
 	require.Equal(t, authorizationRequestMessage.Body.Scope[0].ID, reqAfterUnmarshall.Body.Scope[0].ID)
@@ -96,7 +97,8 @@ func TestAuthRequestCreationExtendedID(t *testing.T) {
 	require.JSONEq(t, `{"id":"f0885dd0-e60e-11ee-b3e8-de17148ce1ce","typ":"application/iden3comm-plain-json","type":"https://iden3-communication.io/authorization/1.0/request","thid":"f08860d2-e60e-11ee-b3e8-de17148ce1ce","body":{"callbackUrl":"https://callback.url","reason":"some reason","message":"some msg","scope":[{"id":"134324234","circuitId":"c-1","query":{"type":"test"}}]},"from":"did:polygonid:polygon:mumbai:2qK2Rwf2zqzzhqVLqTWXetGUbs1Sc79woomP5cDLBE","to":"did:polygonid:polygon:mumbai:2qJ689kpoJxcSzB5sAFJtPsSBSrHF5dq722BHMqURL"}`, string(marshalledReq))
 
 	var reqAfterUnmarshall protocol.AuthorizationRequestMessage
-	json.Unmarshal(marshalledReq, &reqAfterUnmarshall)
+	err = json.Unmarshal(marshalledReq, &reqAfterUnmarshall)
+	require.NoError(t, err)
 
 	require.Len(t, authorizationRequestMessage.Body.Scope, 1)
 	require.Equal(t, authorizationRequestMessage.Body.Scope[0].ExtendedID, reqAfterUnmarshall.Body.Scope[0].ExtendedID)
@@ -139,6 +141,6 @@ func TestAuthRequestCreationBothIDAreSetShouldFail(t *testing.T) {
 	}
 
 	_, err = json.Marshal(authRequestMessage)
-	require.ErrorContains(t, err, "only one field for ZeroKnowledgeProofRequest must be initiated, ExtendedID or ID ")
+	require.ErrorContains(t, err, "only one field for ZeroKnowledgeProofRequest must be initiated, ExtendedID or ID")
 
 }
