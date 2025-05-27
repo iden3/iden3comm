@@ -68,10 +68,10 @@ type AuthorizationRequestMessageBody struct {
 // ZeroKnowledgeProofRequest represents structure of zkp request object
 type ZeroKnowledgeProofRequest struct {
 	ID         uint32
-	CircuitID  string                 `json:"circuitId"`
-	Params     map[string]interface{} `json:"params,omitempty"`
-	Optional   *bool                  `json:"optional,omitempty"`
-	Query      map[string]interface{} `json:"query"`
+	CircuitID  string
+	Params     map[string]interface{}
+	Optional   *bool
+	Query      map[string]interface{}
 	ExtendedID *big.Int
 }
 
@@ -136,8 +136,8 @@ func (r *ZeroKnowledgeProofRequest) UnmarshalJSON(bytes []byte) error {
 type ZeroKnowledgeProofResponse struct {
 	ID                     uint32
 	ExtendedID             *big.Int
-	CircuitID              string          `json:"circuitId"`
-	VerifiablePresentation json.RawMessage `json:"vp,omitempty"`
+	CircuitID              string
+	VerifiablePresentation json.RawMessage
 	types.ZKProof
 }
 

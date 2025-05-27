@@ -62,4 +62,9 @@ func TestContractInvokeResponseMessageCreation(t *testing.T) {
 	require.NoError(t, err)
 	require.JSONEq(t, `{"id":"f0885dd0-e60e-11ee-b3e8-de17148ce1ce","typ":"application/iden3comm-plain-json","type":"https://iden3-communication.io/proofs/1.0/contract-invoke-response","thid":"f08860d2-e60e-11ee-b3e8-de17148ce1ce","body":{"transaction_data":{"contract_address":"0x1234","method_id":"0x132456","chain_id":1,"network":"polygon-amoy"},"scope":[{"id":1,"circuitId":"234234","proof":{"pi_a":["1","2"],"pi_b":[["1","2"],["3,4"]],"pi_c":["4","2"],"protocol":"groth16"},"pub_signals":["1","23"],"txHash":"0x2345"}]},"from":"did:polygonid:polygon:mumbai:2qK2Rwf2zqzzhqVLqTWXetGUbs1Sc79woomP5cDLBE","to":"did:polygonid:polygon:mumbai:2qJ689kpoJxcSzB5sAFJtPsSBSrHF5dq722BHMqURL"}`, string(marshalledReq))
 
+	var unmarshalledReq protocol.ContractInvokeResponseMessage
+	err = json.Unmarshal(marshalledReq, &unmarshalledReq)
+
+	require.Len(t, unmarshalledReq.Body.Scope, 1)
+	require.Equal(t, unmarshalledReq.Body.Scope[0].ID, invokeResponse.Body.Scope[0].ID)
 }
