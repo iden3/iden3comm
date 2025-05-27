@@ -64,6 +64,7 @@ func TestContractInvokeResponseMessageCreation(t *testing.T) {
 
 	var unmarshalledReq protocol.ContractInvokeResponseMessage
 	err = json.Unmarshal(marshalledReq, &unmarshalledReq)
+	require.NoError(t, err)
 
 	require.Len(t, unmarshalledReq.Body.Scope, 1)
 	require.Equal(t, unmarshalledReq.Body.Scope[0].ID, invokeResponse.Body.Scope[0].ID)
