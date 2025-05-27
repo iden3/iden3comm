@@ -71,3 +71,21 @@ type OnchainZeroKnowledgeProofResponse struct {
 	ZeroKnowledgeProofResponse
 	TxHash string `json:"txHash"`
 }
+
+// MarshalJSON marshals protocol request message with typed body and basic structure
+func (r OnchainZeroKnowledgeProofResponse) MarshalJSON() ([]byte, error) {
+
+	b, err := json.Marshal(r.ZeroKnowledgeProofResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	var o = map[string]any{}
+	err = json.Unmarshal(b, &o)
+	if err != nil {
+		return nil, err
+	}
+	o["txHash"] = r.TxHash
+
+	return json.Marshal(o)
+}
