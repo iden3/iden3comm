@@ -25,6 +25,8 @@ type RevocationStatusRequestMessage struct {
 
 	CreatedTime *int64 `json:"created_time,omitempty"`
 	ExpiresTime *int64 `json:"expires_time,omitempty"`
+
+	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
 }
 
 // RevocationStatusRequestMessageBody is struct the represents request for revocation status
@@ -46,6 +48,8 @@ type RevocationStatusResponseMessage struct {
 
 	CreatedTime *int64 `json:"created_time,omitempty"`
 	ExpiresTime *int64 `json:"expires_time,omitempty"`
+
+	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
 }
 
 // RevocationStatusResponseMessageBody is struct the represents request for revocation status
