@@ -225,6 +225,115 @@ func TestPaymentRequestMessagePaymentTypeUnmarshall(t *testing.T) {
 }
 `
 
+	const paymentRequestTypeIden3PaymentRailsSolanaRequestV1 = `
+	{
+		"id": "ac2a0e7a-b357-43ff-9069-e4e63f87565f",
+		"thid": "ac2a0e7a-b357-43ff-9069-e4e63f87565f",
+		"from": "did:iden3:polygon:amoy:x6x5sor7zpyZX9yNpm8h1rPBDSN9idaEhDj1Qm8Q9",
+		"to": "did:iden3:polygon:amoy:x7Z95VkUuyo6mqraJw2VGwCfqTzdqhM1RVjRHzcpK",
+		"typ": "application/iden3comm-plain-json",
+		"type": "https://iden3-communication.io/credentials/0.1/payment-request",
+		"body": {
+		  "agent": "https://agent-url.com",
+		  "payments": [
+			{
+			  "data": [
+				{
+				  "type": "Iden3PaymentRailsSolanaRequestV1",
+				  "@context": [
+					"https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsSolanaRequestV1"
+				  ],
+				  "recipient": "HcCoHQFPjU2brBFW1hAZvEtZx7nSrYCBJVq4vKsjo6jf",
+				  "amount": "44000000",
+				  "expirationDate": "2025-08-06T14:40:25.200Z",
+				  "nonce": "31299",
+				  "metadata": "0x",
+				  "proof": [
+					{
+					  "type": "SolanaEd25519NativeV1",
+					  "proofPurpose": "assertionMethod",
+					  "proofValue": "18e5002b6d6072fbb61a905f09d56986616c3ac23b688fcdd782a59bfb7bffbf87530c3d817a21cbcf40028f31f841cea04b78f37d8be42092be1194be297c06",
+					  "signedMessage": "15000000536f6c616e61456432353531394e6174697665563167000000000000000000000000000000000000000000000000000000000000000000000000000000f6bfa8be7a807b67676ec92933b0e2613f857c538af2830275455c4bca62346e00639f02000000005969936800000000437a000000000000020000003078",
+					  "created": "2025-08-06T13:40:25.228Z",
+					  "pubKey": "CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
+					  "domain": {
+						"version": "SolanaEd25519NativeV1",
+						"chainId": "103",
+						"verifyingContract": "AKNPPwWHYx5ejCs9RsrJ8PLdsdLAhHeMrk8qi6bHizH7"
+					  }
+					}
+				  ]
+				}
+			  ],
+			  "credentials": [
+				{
+				  "type": "AML",
+				  "context": "http://test.com"
+				}
+			  ],
+			  "description": "Iden3PaymentRailsRequestSolanaV1 payment-request integration test"
+			}
+		  ]
+		},
+		"created_time": 1754487625
+	  }
+`
+
+	const paymentRequestTypeIden3PaymentRailsSolanaSPLRequestV1 = `
+	{
+		"id": "c9f4c198-0d7b-49f1-a3b7-1bfd30e9713f",
+		"thid": "c9f4c198-0d7b-49f1-a3b7-1bfd30e9713f",
+		"from": "did:iden3:polygon:amoy:x6x5sor7zpyZX9yNpm8h1rPBDSN9idaEhDj1Qm8Q9",
+		"to": "did:iden3:polygon:amoy:x7Z95VkUuyo6mqraJw2VGwCfqTzdqhM1RVjRHzcpK",
+		"typ": "application/iden3comm-plain-json",
+		"type": "https://iden3-communication.io/credentials/0.1/payment-request",
+		"body": {
+		  "agent": "https://agent-url.com",
+		  "payments": [
+			{
+			  "data": [
+				{
+				  "type": "Iden3PaymentRailsSolanaSPLRequestV1",
+				  "@context": [
+					"https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsSolanaSPLRequestV1"
+				  ],
+				  "recipient": "HcCoHQFPjU2brBFW1hAZvEtZx7nSrYCBJVq4vKsjo6jf",
+				  "amount": "500000000",
+				  "expirationDate": "2025-08-06T14:42:34.266Z",
+				  "nonce": "100032325",
+				  "metadata": "0x",
+				  "proof": [
+					{
+					  "type": "SolanaEd25519SPLV1",
+					  "proofPurpose": "assertionMethod",
+					  "proofValue": "5868080feb707758a2058a9438d74b832ff7ff19d7660b2460cea4025fa6a39e6190baef632af047dcbd566e5d4140bea48f9a29a459b721951140cbe0b5db05",
+					  "signedMessage": "12000000536f6c616e614564323535313953504c56316700000000000000000000000000000000000000000000000000000000000000000000000000000031e2a5e23b1aa4d45934d63577cc7239e6f636c38e1e167c8634ddffecd2ae4df6bfa8be7a807b67676ec92933b0e2613f857c538af2830275455c4bca62346e0065cd1d00000000da69936800000000455ff60500000000020000003078",
+					  "created": "2025-08-06T13:42:34.295Z",
+					  "pubKey": "CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
+					  "domain": {
+						"version": "SolanaEd25519SPLV1",
+						"chainId": "103",
+						"verifyingContract": "AKNPPwWHYx5ejCs9RsrJ8PLdsdLAhHeMrk8qi6bHizH7"
+					  }
+					}
+				  ],
+				  "tokenAddress": "4MjRhSkDaXmgdAL9d9UM7kmgJrWYGJH66oocUN2f3VUp"
+				}
+			  ],
+			  "credentials": [
+				{
+				  "type": "AML",
+				  "context": "http://test.com"
+				}
+			  ],
+			  "description": "Iden3PaymentRailsRequestSolanaSPLV1 payment-request integration test"
+			}
+		  ]
+		},
+		"created_time": 1754487754
+	  }
+`
+
 	for _, tc := range []struct {
 		desc            string
 		payload         []byte
@@ -244,6 +353,16 @@ func TestPaymentRequestMessagePaymentTypeUnmarshall(t *testing.T) {
 			desc:            "PaymentRequestMessage of type Iden3PaymentRailsERC20RequestV1",
 			payload:         []byte(paymentRequestTypeIden3PaymentRailsERC20RequestV1),
 			expectedPayload: []byte(paymentRequestTypeIden3PaymentRailsERC20RequestV1),
+		},
+		{
+			desc:            "PaymentRequestMessage of type Iden3PaymentRailsSolanaRequestV1",
+			payload:         []byte(paymentRequestTypeIden3PaymentRailsSolanaRequestV1),
+			expectedPayload: []byte(paymentRequestTypeIden3PaymentRailsSolanaRequestV1),
+		},
+		{
+			desc:            "PaymentRequestMessage of type Iden3PaymentRailsSolanaSPLRequestV1",
+			payload:         []byte(paymentRequestTypeIden3PaymentRailsSolanaSPLRequestV1),
+			expectedPayload: []byte(paymentRequestTypeIden3PaymentRailsSolanaSPLRequestV1),
 		},
 	} {
 
@@ -315,6 +434,128 @@ func TestEthereumEip712Signature2021Col(t *testing.T) {
 			desc:            "eip712Signature2021 unmarshalling from an element & marshaling to a list",
 			payload:         []byte(eip712Signature2021Single),
 			expectedPayload: []byte(eip712Signature2021InList),
+		},
+	} {
+		t.Run(tc.desc, func(t *testing.T) {
+			var msg protocol.PaymentProof
+			require.NoError(t, json.Unmarshal(tc.payload, &msg))
+			payload, err := json.Marshal(msg)
+			require.NoError(t, err)
+			assert.JSONEq(t, string(tc.expectedPayload), string(payload))
+		})
+	}
+
+}
+
+func TestSolanaEd25519NativeV1Col(t *testing.T) {
+	const solanaEd25519NativeV1InList = `
+				[
+					{
+						"type": "SolanaEd25519NativeV1",
+						"proofPurpose": "assertionMethod",
+						"proofValue": "18e5002b6d6072fbb61a905f09d56986616c3ac23b688fcdd782a59bfb7bffbf87530c3d817a21cbcf40028f31f841cea04b78f37d8be42092be1194be297c06",
+						"signedMessage": "15000000536f6c616e61456432353531394e6174697665563167000000000000000000000000000000000000000000000000000000000000000000000000000000f6bfa8be7a807b67676ec92933b0e2613f857c538af2830275455c4bca62346e00639f02000000005969936800000000437a000000000000020000003078",
+						"created": "2025-08-06T13:40:25.228Z",
+						"pubKey": "CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
+						"domain": {
+						  "version": "SolanaEd25519NativeV1",
+						  "chainId": "103",
+						  "verifyingContract": "AKNPPwWHYx5ejCs9RsrJ8PLdsdLAhHeMrk8qi6bHizH7"
+						}
+					}
+				]
+`
+
+	const solanaEd25519NativeV1Single = `
+	{
+		"type": "SolanaEd25519NativeV1",
+		"proofPurpose": "assertionMethod",
+		"proofValue": "18e5002b6d6072fbb61a905f09d56986616c3ac23b688fcdd782a59bfb7bffbf87530c3d817a21cbcf40028f31f841cea04b78f37d8be42092be1194be297c06",
+		"signedMessage": "15000000536f6c616e61456432353531394e6174697665563167000000000000000000000000000000000000000000000000000000000000000000000000000000f6bfa8be7a807b67676ec92933b0e2613f857c538af2830275455c4bca62346e00639f02000000005969936800000000437a000000000000020000003078",
+		"created": "2025-08-06T13:40:25.228Z",
+		"pubKey": "CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
+		"domain": {
+		  "version": "SolanaEd25519NativeV1",
+		  "chainId": "103",
+		  "verifyingContract": "AKNPPwWHYx5ejCs9RsrJ8PLdsdLAhHeMrk8qi6bHizH7"
+		}
+	}
+`
+	for _, tc := range []struct {
+		desc            string
+		payload         []byte
+		expectedPayload []byte
+	}{
+		{
+			desc:            "SolanaEd25519NativeV1 unmarshalling from a list but marshaling to a list",
+			payload:         []byte(solanaEd25519NativeV1InList),
+			expectedPayload: []byte(solanaEd25519NativeV1InList),
+		},
+		{
+			desc:            "SolanaEd25519NativeV1 unmarshalling from an element & marshaling to a list",
+			payload:         []byte(solanaEd25519NativeV1Single),
+			expectedPayload: []byte(solanaEd25519NativeV1InList),
+		},
+	} {
+		t.Run(tc.desc, func(t *testing.T) {
+			var msg protocol.PaymentProof
+			require.NoError(t, json.Unmarshal(tc.payload, &msg))
+			payload, err := json.Marshal(msg)
+			require.NoError(t, err)
+			assert.JSONEq(t, string(tc.expectedPayload), string(payload))
+		})
+	}
+
+}
+
+func TestSolanaEd25519SPLV1Col(t *testing.T) {
+	const solanaEd25519SPLV1InList = `
+				[
+					{
+						"type": "SolanaEd25519SPLV1",
+						"proofPurpose": "assertionMethod",
+						"proofValue": "5868080feb707758a2058a9438d74b832ff7ff19d7660b2460cea4025fa6a39e6190baef632af047dcbd566e5d4140bea48f9a29a459b721951140cbe0b5db05",
+						"signedMessage": "12000000536f6c616e614564323535313953504c56316700000000000000000000000000000000000000000000000000000000000000000000000000000031e2a5e23b1aa4d45934d63577cc7239e6f636c38e1e167c8634ddffecd2ae4df6bfa8be7a807b67676ec92933b0e2613f857c538af2830275455c4bca62346e0065cd1d00000000da69936800000000455ff60500000000020000003078",
+						"created": "2025-08-06T13:42:34.295Z",
+						"pubKey": "CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
+						"domain": {
+						  "version": "SolanaEd25519SPLV1",
+						  "chainId": "103",
+						  "verifyingContract": "AKNPPwWHYx5ejCs9RsrJ8PLdsdLAhHeMrk8qi6bHizH7"
+						}
+					  }
+				]
+`
+
+	const solanaEd25519SPLV1Single = `
+	{
+		"type": "SolanaEd25519SPLV1",
+		"proofPurpose": "assertionMethod",
+		"proofValue": "5868080feb707758a2058a9438d74b832ff7ff19d7660b2460cea4025fa6a39e6190baef632af047dcbd566e5d4140bea48f9a29a459b721951140cbe0b5db05",
+		"signedMessage": "12000000536f6c616e614564323535313953504c56316700000000000000000000000000000000000000000000000000000000000000000000000000000031e2a5e23b1aa4d45934d63577cc7239e6f636c38e1e167c8634ddffecd2ae4df6bfa8be7a807b67676ec92933b0e2613f857c538af2830275455c4bca62346e0065cd1d00000000da69936800000000455ff60500000000020000003078",
+		"created": "2025-08-06T13:42:34.295Z",
+		"pubKey": "CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
+		"domain": {
+		  "version": "SolanaEd25519SPLV1",
+		  "chainId": "103",
+		  "verifyingContract": "AKNPPwWHYx5ejCs9RsrJ8PLdsdLAhHeMrk8qi6bHizH7"
+		}
+	}
+`
+	for _, tc := range []struct {
+		desc            string
+		payload         []byte
+		expectedPayload []byte
+	}{
+		{
+			desc:            "SolanaEd25519SPLV1 unmarshalling from a list but marshaling to a list",
+			payload:         []byte(solanaEd25519SPLV1InList),
+			expectedPayload: []byte(solanaEd25519SPLV1InList),
+		},
+		{
+			desc:            "SolanaEd25519SPLV1 unmarshalling from an element & marshaling to a list",
+			payload:         []byte(solanaEd25519SPLV1Single),
+			expectedPayload: []byte(solanaEd25519SPLV1InList),
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
@@ -550,6 +791,33 @@ func TestPaymentRequestInfoDataUnmarshalMarshall(t *testing.T) {
 						}
 					  }
 					]
+				  },
+				  {
+					"type": "Iden3PaymentRailsSolanaSPLRequestV1",
+					"@context": [
+					  "https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsSolanaSPLRequestV1"
+					],
+					"recipient": "HcCoHQFPjU2brBFW1hAZvEtZx7nSrYCBJVq4vKsjo6jf",
+					"amount": "500000000",
+					"expirationDate": "2025-08-06T14:42:34.266Z",
+					"nonce": "100032325",
+					"metadata": "0x",
+					"proof": [
+					  {
+						"type": "SolanaEd25519SPLV1",
+						"proofPurpose": "assertionMethod",
+						"proofValue": "5868080feb707758a2058a9438d74b832ff7ff19d7660b2460cea4025fa6a39e6190baef632af047dcbd566e5d4140bea48f9a29a459b721951140cbe0b5db05",
+						"signedMessage": "12000000536f6c616e614564323535313953504c56316700000000000000000000000000000000000000000000000000000000000000000000000000000031e2a5e23b1aa4d45934d63577cc7239e6f636c38e1e167c8634ddffecd2ae4df6bfa8be7a807b67676ec92933b0e2613f857c538af2830275455c4bca62346e0065cd1d00000000da69936800000000455ff60500000000020000003078",
+						"created": "2025-08-06T13:42:34.295Z",
+						"pubKey": "CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
+						"domain": {
+						  "version": "SolanaEd25519SPLV1",
+						  "chainId": "103",
+						  "verifyingContract": "AKNPPwWHYx5ejCs9RsrJ8PLdsdLAhHeMrk8qi6bHizH7"
+						}
+					  }
+					],
+					"tokenAddress": "4MjRhSkDaXmgdAL9d9UM7kmgJrWYGJH66oocUN2f3VUp"
 				  }
 				]
 			`
@@ -658,6 +926,34 @@ func TestPaymentRequestInfoData_Construction(t *testing.T) {
 	"expirationDate": "2024-10-28T16:02:36.816Z",
 	"nonce": "3008",
 	"metadata": "0x"
+  },
+  {
+	"type": "Iden3PaymentRailsSolanaSPLRequestV1",
+	"@context": [
+	  "https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsSolanaSPLRequestV1",
+	  "https://w3id.org/security/suites/eip712sig-2021/v1"
+	],
+	"recipient": "HcCoHQFPjU2brBFW1hAZvEtZx7nSrYCBJVq4vKsjo6jf",
+	"amount": "500000000",
+	"expirationDate": "2025-08-06T14:42:34.266Z",
+	"nonce": "100032325",
+	"metadata": "0x",
+	"proof": [
+	  {
+		"type": "SolanaEd25519SPLV1",
+		"proofPurpose": "assertionMethod",
+		"proofValue": "5868080feb707758a2058a9438d74b832ff7ff19d7660b2460cea4025fa6a39e6190baef632af047dcbd566e5d4140bea48f9a29a459b721951140cbe0b5db05",
+		"signedMessage": "12000000536f6c616e614564323535313953504c56316700000000000000000000000000000000000000000000000000000000000000000000000000000031e2a5e23b1aa4d45934d63577cc7239e6f636c38e1e167c8634ddffecd2ae4df6bfa8be7a807b67676ec92933b0e2613f857c538af2830275455c4bca62346e0065cd1d00000000da69936800000000455ff60500000000020000003078",
+		"created": "2025-08-06T13:42:34.295Z",
+		"pubKey": "CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
+		"domain": {
+		  "version": "SolanaEd25519SPLV1",
+		  "chainId": "103",
+		  "verifyingContract": "AKNPPwWHYx5ejCs9RsrJ8PLdsdLAhHeMrk8qi6bHizH7"
+		}
+	  }
+	],
+	"tokenAddress": "4MjRhSkDaXmgdAL9d9UM7kmgJrWYGJH66oocUN2f3VUp"
   }
 ]
 `
@@ -725,6 +1021,34 @@ func TestPaymentRequestInfoData_Construction(t *testing.T) {
 			Metadata:     "0x",
 			TokenAddress: "0x2FE40749812FAC39a0F380649eF59E01bccf3a1A",
 			Features:     []protocol.PaymentFeatures{"EIP-2612"},
+		},
+		protocol.Iden3PaymentRailsSolanaSPLRequestV1{
+			Nonce: "100032325",
+			Type:  protocol.Iden3PaymentRailsSolanaSPLRequestV1Type,
+			Context: protocol.NewPaymentContextString(
+				"https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsSolanaSPLRequestV1",
+				"https://w3id.org/security/suites/eip712sig-2021/v1",
+			),
+			Recipient:      "HcCoHQFPjU2brBFW1hAZvEtZx7nSrYCBJVq4vKsjo6jf",
+			Amount:         "500000000",
+			ExpirationDate: "2025-08-06T14:42:34.266Z",
+			Metadata:       "0x",
+			TokenAddress:   "4MjRhSkDaXmgdAL9d9UM7kmgJrWYGJH66oocUN2f3VUp",
+			Proof: protocol.PaymentProof{
+				protocol.SolanaEd25519SPLV1{
+					Type:          protocol.SolanaEd25519SPLV1Type,
+					ProofPurpose:  "assertionMethod",
+					ProofValue:    "5868080feb707758a2058a9438d74b832ff7ff19d7660b2460cea4025fa6a39e6190baef632af047dcbd566e5d4140bea48f9a29a459b721951140cbe0b5db05",
+					SignedMessage: "12000000536f6c616e614564323535313953504c56316700000000000000000000000000000000000000000000000000000000000000000000000000000031e2a5e23b1aa4d45934d63577cc7239e6f636c38e1e167c8634ddffecd2ae4df6bfa8be7a807b67676ec92933b0e2613f857c538af2830275455c4bca62346e0065cd1d00000000da69936800000000455ff60500000000020000003078",
+					Created:       "2025-08-06T13:42:34.295Z",
+					PubKey:        "CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
+					Domain: protocol.SolanaEd25519Domain{
+						Version:           string(protocol.SolanaEd25519SPLV1Type),
+						ChainID:           "103",
+						VerifyingContract: "AKNPPwWHYx5ejCs9RsrJ8PLdsdLAhHeMrk8qi6bHizH7",
+					},
+				},
+			},
 		},
 	}
 	payload, err := json.Marshal(data)
@@ -849,6 +1173,57 @@ func TestPaymentMarshalUnmarshal(t *testing.T) {
 }
 `
 
+	const paymentSolana = `
+	{
+		"id": "881549e2-6630-470c-8a55-06d434b3ed38",
+		"thid": "881549e2-6630-470c-8a55-06d434b3ed38",
+		"from": "did:iden3:polygon:amoy:x7Z95VkUuyo6mqraJw2VGwCfqTzdqhM1RVjRHzcpK",
+		"to": "did:iden3:polygon:amoy:x6x5sor7zpyZX9yNpm8h1rPBDSN9idaEhDj1Qm8Q9",
+		"typ": "application/iden3comm-plain-json",
+		"type": "https://iden3-communication.io/credentials/0.1/payment",
+		"body": {
+		  "payments": [
+			{
+			  "nonce": "6",
+			  "type": "Iden3PaymentRailsSolanaV1",
+			  "@context": "https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsSolanaV1",
+			  "paymentData": {
+				"txId": "3fVGavvAduvdLruYEq3QKEtCkKQ5smWVyELXen4qw15YHDEM8XZc9wmW6mtzXkmGC8rD8d7cDjVapfUSu5VtXzf9",
+				"chainId": "103"
+			  }
+			}
+		  ]
+		},
+		"created_time": 1754572018
+	  }	  
+`
+
+	const paymentSolanaSPL = `
+	{
+		"id": "dd25cf2f-bdfd-48fa-b02d-ca5872f30300",
+		"thid": "dd25cf2f-bdfd-48fa-b02d-ca5872f30300",
+		"from": "did:iden3:polygon:amoy:x7Z95VkUuyo6mqraJw2VGwCfqTzdqhM1RVjRHzcpK",
+		"to": "did:iden3:polygon:amoy:x6x5sor7zpyZX9yNpm8h1rPBDSN9idaEhDj1Qm8Q9",
+		"typ": "application/iden3comm-plain-json",
+		"type": "https://iden3-communication.io/credentials/0.1/payment",
+		"body": {
+		  "payments": [
+			{
+			  "nonce": "10008",
+			  "type": "Iden3PaymentRailsSolanaSPLV1",
+			  "@context": "https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsSolanaSPLV1",
+			  "paymentData": {
+				"txId": "3hefbgPeWZLK1d9C9gY4Dbj5GoYpGY7Khyo6yewQa2wbdAgKMTpKB6HAKyQTxQWeKEANwi3618peYk5cCxBGF2nQ",
+				"chainId": "103",
+				"tokenAddress": "4MjRhSkDaXmgdAL9d9UM7kmgJrWYGJH66oocUN2f3VUp"
+			  }
+			}
+		  ]
+		},
+		"created_time": 1754575183
+	  } 
+  `
+
 	for _, tc := range []struct {
 		desc            string
 		payload         []byte
@@ -868,6 +1243,16 @@ func TestPaymentMarshalUnmarshal(t *testing.T) {
 			desc:            "ERC20 payment",
 			payload:         []byte(paymentERC20),
 			expectedPayload: []byte(paymentERC20),
+		},
+		{
+			desc:            "Solana payment",
+			payload:         []byte(paymentSolana),
+			expectedPayload: []byte(paymentSolana),
+		},
+		{
+			desc:            "Solana SPL payment",
+			payload:         []byte(paymentSolanaSPL),
+			expectedPayload: []byte(paymentSolanaSPL),
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
