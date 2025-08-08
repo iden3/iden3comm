@@ -793,6 +793,32 @@ func TestPaymentRequestInfoDataUnmarshalMarshall(t *testing.T) {
 					]
 				  },
 				  {
+					"type": "Iden3PaymentRailsSolanaRequestV1",
+					"@context": [
+					  "https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsSolanaRequestV1"
+					],
+					"recipient": "HcCoHQFPjU2brBFW1hAZvEtZx7nSrYCBJVq4vKsjo6jf",
+					"amount": "44000000",
+					"expirationDate": "2025-08-06T14:40:25.200Z",
+					"nonce": "31299",
+					"metadata": "0x",
+					"proof": [
+					  {
+						"type": "SolanaEd25519NativeV1",
+						"proofPurpose": "assertionMethod",
+						"proofValue": "18e5002b6d6072fbb61a905f09d56986616c3ac23b688fcdd782a59bfb7bffbf87530c3d817a21cbcf40028f31f841cea04b78f37d8be42092be1194be297c06",
+						"signedMessage": "15000000536f6c616e61456432353531394e6174697665563167000000000000000000000000000000000000000000000000000000000000000000000000000000f6bfa8be7a807b67676ec92933b0e2613f857c538af2830275455c4bca62346e00639f02000000005969936800000000437a000000000000020000003078",
+						"created": "2025-08-06T13:40:25.228Z",
+						"pubKey": "CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
+						"domain": {
+						  "version": "SolanaEd25519NativeV1",
+						  "chainId": "103",
+						  "verifyingContract": "AKNPPwWHYx5ejCs9RsrJ8PLdsdLAhHeMrk8qi6bHizH7"
+						}
+					  }
+					]
+				  },
+				  {
 					"type": "Iden3PaymentRailsSolanaSPLRequestV1",
 					"@context": [
 					  "https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsSolanaSPLRequestV1"
@@ -928,6 +954,33 @@ func TestPaymentRequestInfoData_Construction(t *testing.T) {
 	"metadata": "0x"
   },
   {
+	"type": "Iden3PaymentRailsSolanaRequestV1",
+	"@context": [
+	  "https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsSolanaRequestV1",
+	  "https://w3id.org/security/suites/eip712sig-2021/v1"
+	],
+	"recipient": "HcCoHQFPjU2brBFW1hAZvEtZx7nSrYCBJVq4vKsjo6jf",
+	"amount": "44000000",
+	"expirationDate": "2025-08-06T14:40:25.200Z",
+	"nonce": "31299",
+	"metadata": "0x",
+	"proof": [
+	  {
+		"type": "SolanaEd25519NativeV1",
+		"proofPurpose": "assertionMethod",
+		"proofValue": "18e5002b6d6072fbb61a905f09d56986616c3ac23b688fcdd782a59bfb7bffbf87530c3d817a21cbcf40028f31f841cea04b78f37d8be42092be1194be297c06",
+		"signedMessage": "15000000536f6c616e61456432353531394e6174697665563167000000000000000000000000000000000000000000000000000000000000000000000000000000f6bfa8be7a807b67676ec92933b0e2613f857c538af2830275455c4bca62346e00639f02000000005969936800000000437a000000000000020000003078",
+		"created": "2025-08-06T13:40:25.228Z",
+		"pubKey": "CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
+		"domain": {
+		  "version": "SolanaEd25519NativeV1",
+		  "chainId": "103",
+		  "verifyingContract": "AKNPPwWHYx5ejCs9RsrJ8PLdsdLAhHeMrk8qi6bHizH7"
+		}
+	  }
+	]
+  },
+  {
 	"type": "Iden3PaymentRailsSolanaSPLRequestV1",
 	"@context": [
 	  "https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsSolanaSPLRequestV1",
@@ -1021,6 +1074,33 @@ func TestPaymentRequestInfoData_Construction(t *testing.T) {
 			Metadata:     "0x",
 			TokenAddress: "0x2FE40749812FAC39a0F380649eF59E01bccf3a1A",
 			Features:     []protocol.PaymentFeatures{"EIP-2612"},
+		},
+		protocol.Iden3PaymentRailsSolanaRequestV1{
+			Nonce: "31299",
+			Type:  protocol.Iden3PaymentRailsSolanaRequestV1Type,
+			Context: protocol.NewPaymentContextString(
+				"https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsSolanaRequestV1",
+				"https://w3id.org/security/suites/eip712sig-2021/v1",
+			),
+			Recipient:      "HcCoHQFPjU2brBFW1hAZvEtZx7nSrYCBJVq4vKsjo6jf",
+			Amount:         "44000000",
+			ExpirationDate: "2025-08-06T14:40:25.200Z",
+			Metadata:       "0x",
+			Proof: protocol.PaymentProof{
+				protocol.SolanaEd25519NativeV1{
+					Type:          protocol.SolanaEd25519NativeV1Type,
+					ProofPurpose:  "assertionMethod",
+					ProofValue:    "18e5002b6d6072fbb61a905f09d56986616c3ac23b688fcdd782a59bfb7bffbf87530c3d817a21cbcf40028f31f841cea04b78f37d8be42092be1194be297c06",
+					SignedMessage: "15000000536f6c616e61456432353531394e6174697665563167000000000000000000000000000000000000000000000000000000000000000000000000000000f6bfa8be7a807b67676ec92933b0e2613f857c538af2830275455c4bca62346e00639f02000000005969936800000000437a000000000000020000003078",
+					Created:       "2025-08-06T13:40:25.228Z",
+					PubKey:        "CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
+					Domain: protocol.SolanaEd25519Domain{
+						Version:           string(protocol.SolanaEd25519NativeV1Type),
+						ChainID:           "103",
+						VerifyingContract: "AKNPPwWHYx5ejCs9RsrJ8PLdsdLAhHeMrk8qi6bHizH7",
+					},
+				},
+			},
 		},
 		protocol.Iden3PaymentRailsSolanaSPLRequestV1{
 			Nonce: "100032325",
