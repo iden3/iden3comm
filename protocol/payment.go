@@ -357,13 +357,13 @@ func (e EthereumEip712Signature2021) PaymentProofItem() verifiable.ProofType {
 
 // SolanaEd25519NativeV1 represents represents Ed25519 signature for Solana Payment Instruction.
 type SolanaEd25519NativeV1 struct {
-	Type          verifiable.ProofType `json:"type"`
-	ProofPurpose  string               `json:"proofPurpose"`
-	ProofValue    string               `json:"proofValue"`
-	SignedMessage string               `json:"signedMessage"`
-	Created       string               `json:"created"`
-	PubKey        string               `json:"pubKey"`
-	Domain        SolanaEd25519Domain  `json:"domain"`
+	Type         verifiable.ProofType `json:"type"`
+	ProofPurpose string               `json:"proofPurpose"`
+	ProofValue   string               `json:"proofValue"`
+	Message      string               `json:"message"`
+	Created      string               `json:"created"`
+	PubKey       string               `json:"pubKey"`
+	Domain       SolanaEd25519Domain  `json:"domain"`
 }
 
 // PaymentProofItem implements the PaymentProofItem interface.
