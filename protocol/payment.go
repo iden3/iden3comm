@@ -362,7 +362,7 @@ type SolanaEd25519NativeV1 struct {
 	ProofValue   string               `json:"proofValue"`
 	Message      string               `json:"message"`
 	Created      string               `json:"created"`
-	PubKey       string               `json:"pubKey"`
+	PublicKey    string               `json:"publicKey"`
 	Domain       SolanaEd25519Domain  `json:"domain"`
 }
 
