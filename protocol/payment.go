@@ -309,21 +309,21 @@ func (p *PaymentProof) UnmarshalJSON(data []byte) error {
 			if err := json.Unmarshal(raw, &parsed); err != nil {
 				return fmt.Errorf("failed to unmarshal EthereumEip712Signature2021: %w", err)
 			}
-			proof = &parsed
+			proof = parsed
 
 		case string(SolanaEd25519NativeV1Type):
 			var parsed SolanaEd25519NativeV1
 			if err := json.Unmarshal(raw, &parsed); err != nil {
 				return fmt.Errorf("failed to unmarshal SolanaEd25519NativeV1: %w", err)
 			}
-			proof = &parsed
+			proof = parsed
 
 		case string(SolanaEd25519SPLV1Type):
 			var parsed SolanaEd25519SPLV1
 			if err := json.Unmarshal(raw, &parsed); err != nil {
 				return fmt.Errorf("failed to unmarshal SolanaEd25519SPLV1: %w", err)
 			}
-			proof = &parsed
+			proof = parsed
 
 		default:
 			return fmt.Errorf("unsupported proof type: %s", typePeek.Type)
