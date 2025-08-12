@@ -227,8 +227,8 @@ func TestPaymentRequestMessagePaymentTypeUnmarshall(t *testing.T) {
 
 	const paymentRequestTypeIden3PaymentRailsSolanaRequestV1 = `
 	{
-		"id": "ac2a0e7a-b357-43ff-9069-e4e63f87565f",
-		"thid": "ac2a0e7a-b357-43ff-9069-e4e63f87565f",
+		"id": "84523aa3-1b1b-4cde-9b18-6662d796a020",
+		"thid": "84523aa3-1b1b-4cde-9b18-6662d796a020",
 		"from": "did:iden3:polygon:amoy:x6x5sor7zpyZX9yNpm8h1rPBDSN9idaEhDj1Qm8Q9",
 		"to": "did:iden3:polygon:amoy:x7Z95VkUuyo6mqraJw2VGwCfqTzdqhM1RVjRHzcpK",
 		"typ": "application/iden3comm-plain-json",
@@ -241,25 +241,25 @@ func TestPaymentRequestMessagePaymentTypeUnmarshall(t *testing.T) {
 				{
 				  "type": "Iden3PaymentRailsSolanaRequestV1",
 				  "@context": [
-					"https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsSolanaRequestV1"
+					"https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsSolanaRequestV1",
+					"https://schema.iden3.io/core/jsonld/solanaEd25519.jsonld"
 				  ],
 				  "recipient": "HcCoHQFPjU2brBFW1hAZvEtZx7nSrYCBJVq4vKsjo6jf",
 				  "amount": "44000000",
-				  "expirationDate": "2025-08-06T14:40:25.200Z",
-				  "nonce": "31299",
+				  "expirationDate": "2025-08-12T14:03:26.728Z",
+				  "nonce": "31231231233",
 				  "metadata": "0x",
 				  "proof": [
 					{
-					  "type": "SolanaEd25519NativeV1",
+					  "type": "SolanaEd25519Signature2025",
 					  "proofPurpose": "assertionMethod",
-					  "proofValue": "18e5002b6d6072fbb61a905f09d56986616c3ac23b688fcdd782a59bfb7bffbf87530c3d817a21cbcf40028f31f841cea04b78f37d8be42092be1194be297c06",
-					  "message": "15000000536f6c616e61456432353531394e6174697665563167000000000000000000000000000000000000000000000000000000000000000000000000000000f6bfa8be7a807b67676ec92933b0e2613f857c538af2830275455c4bca62346e00639f02000000005969936800000000437a000000000000020000003078",
-					  "created": "2025-08-06T13:40:25.228Z",
-					  "publicKey": "CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
+					  "proofValue": "024e6579f78669c7d456ea4b286d5c33ee85b2def2ee77a9287e1c79f0b757422df86ae5df5b9d892c9a97484fa9587349cd13ca9c8ff39f8a6e6042ca7e6107",
+					  "created": "2025-08-12T13:03:26.762Z",
+					  "verificationMethod": "did:pkh:solana:103:CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
 					  "domain": {
 						"version": "SolanaEd25519NativeV1",
 						"chainId": "103",
-						"verifyingContract": "AKNPPwWHYx5ejCs9RsrJ8PLdsdLAhHeMrk8qi6bHizH7"
+						"verifyingContract": "Hys6CpX8McHbPBaPKbRYGVdXVxor1M5pSZUDMMwakGmM"
 					  }
 					}
 				  ]
@@ -275,14 +275,14 @@ func TestPaymentRequestMessagePaymentTypeUnmarshall(t *testing.T) {
 			}
 		  ]
 		},
-		"created_time": 1754487625
+		"created_time": 1755003806
 	  }
 `
 
 	const paymentRequestTypeIden3PaymentRailsSolanaSPLRequestV1 = `
 	{
-		"id": "c9f4c198-0d7b-49f1-a3b7-1bfd30e9713f",
-		"thid": "c9f4c198-0d7b-49f1-a3b7-1bfd30e9713f",
+		"id": "70574bc1-2472-4fa0-b7b1-b79a84376fab",
+		"thid": "70574bc1-2472-4fa0-b7b1-b79a84376fab",
 		"from": "did:iden3:polygon:amoy:x6x5sor7zpyZX9yNpm8h1rPBDSN9idaEhDj1Qm8Q9",
 		"to": "did:iden3:polygon:amoy:x7Z95VkUuyo6mqraJw2VGwCfqTzdqhM1RVjRHzcpK",
 		"typ": "application/iden3comm-plain-json",
@@ -295,25 +295,25 @@ func TestPaymentRequestMessagePaymentTypeUnmarshall(t *testing.T) {
 				{
 				  "type": "Iden3PaymentRailsSolanaSPLRequestV1",
 				  "@context": [
-					"https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsSolanaSPLRequestV1"
+					"https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsSolanaSPLRequestV1",
+					"https://schema.iden3.io/core/jsonld/solanaEd25519.jsonld"
 				  ],
 				  "recipient": "HcCoHQFPjU2brBFW1hAZvEtZx7nSrYCBJVq4vKsjo6jf",
 				  "amount": "500000000",
-				  "expirationDate": "2025-08-06T14:42:34.266Z",
-				  "nonce": "100032325",
+				  "expirationDate": "2025-08-12T14:14:54.421Z",
+				  "nonce": "11212312003",
 				  "metadata": "0x",
 				  "proof": [
 					{
-					  "type": "SolanaEd25519SPLV1",
+					  "type": "SolanaEd25519Signature2025",
 					  "proofPurpose": "assertionMethod",
-					  "proofValue": "5868080feb707758a2058a9438d74b832ff7ff19d7660b2460cea4025fa6a39e6190baef632af047dcbd566e5d4140bea48f9a29a459b721951140cbe0b5db05",
-					  "message": "12000000536f6c616e614564323535313953504c56316700000000000000000000000000000000000000000000000000000000000000000000000000000031e2a5e23b1aa4d45934d63577cc7239e6f636c38e1e167c8634ddffecd2ae4df6bfa8be7a807b67676ec92933b0e2613f857c538af2830275455c4bca62346e0065cd1d00000000da69936800000000455ff60500000000020000003078",
-					  "created": "2025-08-06T13:42:34.295Z",
-					  "publicKey": "CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
+					  "proofValue": "378f2941ef5f87b85445b803405620f8e300a05b627e07f51edbf886610cddc4f1dbdbaf6fa1693d975953d1783cbf5dbe0f9e0b5708978eef1fec1e7964a90a",
+					  "created": "2025-08-12T13:14:54.453Z",
+					  "verificationMethod": "did:pkh:solana:103:CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
 					  "domain": {
 						"version": "SolanaEd25519SPLV1",
 						"chainId": "103",
-						"verifyingContract": "AKNPPwWHYx5ejCs9RsrJ8PLdsdLAhHeMrk8qi6bHizH7"
+						"verifyingContract": "Hys6CpX8McHbPBaPKbRYGVdXVxor1M5pSZUDMMwakGmM"
 					  }
 					}
 				  ],
@@ -330,8 +330,8 @@ func TestPaymentRequestMessagePaymentTypeUnmarshall(t *testing.T) {
 			}
 		  ]
 		},
-		"created_time": 1754487754
-	  }
+		"created_time": 1755004494
+	  }	  
 `
 
 	for _, tc := range []struct {
@@ -451,16 +451,15 @@ func TestSolanaEd25519NativeV1Col(t *testing.T) {
 	const solanaEd25519NativeV1InList = `
 				[
 					{
-						"type": "SolanaEd25519NativeV1",
+						"type": "SolanaEd25519Signature2025",
 						"proofPurpose": "assertionMethod",
-						"proofValue": "18e5002b6d6072fbb61a905f09d56986616c3ac23b688fcdd782a59bfb7bffbf87530c3d817a21cbcf40028f31f841cea04b78f37d8be42092be1194be297c06",
-						"message": "15000000536f6c616e61456432353531394e6174697665563167000000000000000000000000000000000000000000000000000000000000000000000000000000f6bfa8be7a807b67676ec92933b0e2613f857c538af2830275455c4bca62346e00639f02000000005969936800000000437a000000000000020000003078",
-						"created": "2025-08-06T13:40:25.228Z",
-						"publicKey": "CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
+						"proofValue": "024e6579f78669c7d456ea4b286d5c33ee85b2def2ee77a9287e1c79f0b757422df86ae5df5b9d892c9a97484fa9587349cd13ca9c8ff39f8a6e6042ca7e6107",
+						"created": "2025-08-12T13:03:26.762Z",
+						"verificationMethod": "did:pkh:solana:103:CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
 						"domain": {
 						  "version": "SolanaEd25519NativeV1",
 						  "chainId": "103",
-						  "verifyingContract": "AKNPPwWHYx5ejCs9RsrJ8PLdsdLAhHeMrk8qi6bHizH7"
+						  "verifyingContract": "Hys6CpX8McHbPBaPKbRYGVdXVxor1M5pSZUDMMwakGmM"
 						}
 					}
 				]
@@ -468,16 +467,15 @@ func TestSolanaEd25519NativeV1Col(t *testing.T) {
 
 	const solanaEd25519NativeV1Single = `
 	{
-		"type": "SolanaEd25519NativeV1",
+		"type": "SolanaEd25519Signature2025",
 		"proofPurpose": "assertionMethod",
-		"proofValue": "18e5002b6d6072fbb61a905f09d56986616c3ac23b688fcdd782a59bfb7bffbf87530c3d817a21cbcf40028f31f841cea04b78f37d8be42092be1194be297c06",
-		"message": "15000000536f6c616e61456432353531394e6174697665563167000000000000000000000000000000000000000000000000000000000000000000000000000000f6bfa8be7a807b67676ec92933b0e2613f857c538af2830275455c4bca62346e00639f02000000005969936800000000437a000000000000020000003078",
-		"created": "2025-08-06T13:40:25.228Z",
-		"publicKey": "CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
+		"proofValue": "024e6579f78669c7d456ea4b286d5c33ee85b2def2ee77a9287e1c79f0b757422df86ae5df5b9d892c9a97484fa9587349cd13ca9c8ff39f8a6e6042ca7e6107",
+		"created": "2025-08-12T13:03:26.762Z",
+		"verificationMethod": "did:pkh:solana:103:CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
 		"domain": {
 		  "version": "SolanaEd25519NativeV1",
 		  "chainId": "103",
-		  "verifyingContract": "AKNPPwWHYx5ejCs9RsrJ8PLdsdLAhHeMrk8qi6bHizH7"
+		  "verifyingContract": "Hys6CpX8McHbPBaPKbRYGVdXVxor1M5pSZUDMMwakGmM"
 		}
 	}
 `
@@ -512,33 +510,31 @@ func TestSolanaEd25519SPLV1Col(t *testing.T) {
 	const solanaEd25519SPLV1InList = `
 				[
 					{
-						"type": "SolanaEd25519SPLV1",
+						"type": "SolanaEd25519Signature2025",
 						"proofPurpose": "assertionMethod",
-						"proofValue": "5868080feb707758a2058a9438d74b832ff7ff19d7660b2460cea4025fa6a39e6190baef632af047dcbd566e5d4140bea48f9a29a459b721951140cbe0b5db05",
-						"message": "12000000536f6c616e614564323535313953504c56316700000000000000000000000000000000000000000000000000000000000000000000000000000031e2a5e23b1aa4d45934d63577cc7239e6f636c38e1e167c8634ddffecd2ae4df6bfa8be7a807b67676ec92933b0e2613f857c538af2830275455c4bca62346e0065cd1d00000000da69936800000000455ff60500000000020000003078",
-						"created": "2025-08-06T13:42:34.295Z",
-						"publicKey": "CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
+						"proofValue": "378f2941ef5f87b85445b803405620f8e300a05b627e07f51edbf886610cddc4f1dbdbaf6fa1693d975953d1783cbf5dbe0f9e0b5708978eef1fec1e7964a90a",
+						"created": "2025-08-12T13:14:54.453Z",
+						"verificationMethod": "did:pkh:solana:103:CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
 						"domain": {
 						  "version": "SolanaEd25519SPLV1",
 						  "chainId": "103",
-						  "verifyingContract": "AKNPPwWHYx5ejCs9RsrJ8PLdsdLAhHeMrk8qi6bHizH7"
+						  "verifyingContract": "Hys6CpX8McHbPBaPKbRYGVdXVxor1M5pSZUDMMwakGmM"
 						}
-					  }
+					}
 				]
 `
 
 	const solanaEd25519SPLV1Single = `
 	{
-		"type": "SolanaEd25519SPLV1",
+		"type": "SolanaEd25519Signature2025",
 		"proofPurpose": "assertionMethod",
-		"proofValue": "5868080feb707758a2058a9438d74b832ff7ff19d7660b2460cea4025fa6a39e6190baef632af047dcbd566e5d4140bea48f9a29a459b721951140cbe0b5db05",
-		"message": "12000000536f6c616e614564323535313953504c56316700000000000000000000000000000000000000000000000000000000000000000000000000000031e2a5e23b1aa4d45934d63577cc7239e6f636c38e1e167c8634ddffecd2ae4df6bfa8be7a807b67676ec92933b0e2613f857c538af2830275455c4bca62346e0065cd1d00000000da69936800000000455ff60500000000020000003078",
-		"created": "2025-08-06T13:42:34.295Z",
-		"publicKey": "CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
+		"proofValue": "378f2941ef5f87b85445b803405620f8e300a05b627e07f51edbf886610cddc4f1dbdbaf6fa1693d975953d1783cbf5dbe0f9e0b5708978eef1fec1e7964a90a",
+		"created": "2025-08-12T13:14:54.453Z",
+		"verificationMethod": "did:pkh:solana:103:CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
 		"domain": {
 		  "version": "SolanaEd25519SPLV1",
 		  "chainId": "103",
-		  "verifyingContract": "AKNPPwWHYx5ejCs9RsrJ8PLdsdLAhHeMrk8qi6bHizH7"
+		  "verifyingContract": "Hys6CpX8McHbPBaPKbRYGVdXVxor1M5pSZUDMMwakGmM"
 		}
 	}
 `
@@ -795,25 +791,25 @@ func TestPaymentRequestInfoDataUnmarshalMarshall(t *testing.T) {
 				  {
 					"type": "Iden3PaymentRailsSolanaRequestV1",
 					"@context": [
-					  "https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsSolanaRequestV1"
+					  "https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsSolanaRequestV1",
+					  "https://schema.iden3.io/core/jsonld/solanaEd25519.jsonld"
 					],
 					"recipient": "HcCoHQFPjU2brBFW1hAZvEtZx7nSrYCBJVq4vKsjo6jf",
 					"amount": "44000000",
-					"expirationDate": "2025-08-06T14:40:25.200Z",
-					"nonce": "31299",
+					"expirationDate": "2025-08-12T14:03:26.728Z",
+					"nonce": "31231231233",
 					"metadata": "0x",
 					"proof": [
 					  {
-						"type": "SolanaEd25519NativeV1",
+						"type": "SolanaEd25519Signature2025",
 						"proofPurpose": "assertionMethod",
-						"proofValue": "18e5002b6d6072fbb61a905f09d56986616c3ac23b688fcdd782a59bfb7bffbf87530c3d817a21cbcf40028f31f841cea04b78f37d8be42092be1194be297c06",
-						"message": "15000000536f6c616e61456432353531394e6174697665563167000000000000000000000000000000000000000000000000000000000000000000000000000000f6bfa8be7a807b67676ec92933b0e2613f857c538af2830275455c4bca62346e00639f02000000005969936800000000437a000000000000020000003078",
-						"created": "2025-08-06T13:40:25.228Z",
-						"publicKey": "CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
+						"proofValue": "024e6579f78669c7d456ea4b286d5c33ee85b2def2ee77a9287e1c79f0b757422df86ae5df5b9d892c9a97484fa9587349cd13ca9c8ff39f8a6e6042ca7e6107",
+						"created": "2025-08-12T13:03:26.762Z",
+						"verificationMethod": "did:pkh:solana:103:CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
 						"domain": {
 						  "version": "SolanaEd25519NativeV1",
 						  "chainId": "103",
-						  "verifyingContract": "AKNPPwWHYx5ejCs9RsrJ8PLdsdLAhHeMrk8qi6bHizH7"
+						  "verifyingContract": "Hys6CpX8McHbPBaPKbRYGVdXVxor1M5pSZUDMMwakGmM"
 						}
 					  }
 					]
@@ -821,25 +817,25 @@ func TestPaymentRequestInfoDataUnmarshalMarshall(t *testing.T) {
 				  {
 					"type": "Iden3PaymentRailsSolanaSPLRequestV1",
 					"@context": [
-					  "https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsSolanaSPLRequestV1"
+					  "https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsSolanaSPLRequestV1",
+					  "https://schema.iden3.io/core/jsonld/solanaEd25519.jsonld"
 					],
 					"recipient": "HcCoHQFPjU2brBFW1hAZvEtZx7nSrYCBJVq4vKsjo6jf",
 					"amount": "500000000",
-					"expirationDate": "2025-08-06T14:42:34.266Z",
-					"nonce": "100032325",
+					"expirationDate": "2025-08-12T14:14:54.421Z",
+					"nonce": "11212312003",
 					"metadata": "0x",
 					"proof": [
 					  {
-						"type": "SolanaEd25519SPLV1",
+						"type": "SolanaEd25519Signature2025",
 						"proofPurpose": "assertionMethod",
-						"proofValue": "5868080feb707758a2058a9438d74b832ff7ff19d7660b2460cea4025fa6a39e6190baef632af047dcbd566e5d4140bea48f9a29a459b721951140cbe0b5db05",
-						"message": "12000000536f6c616e614564323535313953504c56316700000000000000000000000000000000000000000000000000000000000000000000000000000031e2a5e23b1aa4d45934d63577cc7239e6f636c38e1e167c8634ddffecd2ae4df6bfa8be7a807b67676ec92933b0e2613f857c538af2830275455c4bca62346e0065cd1d00000000da69936800000000455ff60500000000020000003078",
-						"created": "2025-08-06T13:42:34.295Z",
-						"publicKey": "CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
+						"proofValue": "378f2941ef5f87b85445b803405620f8e300a05b627e07f51edbf886610cddc4f1dbdbaf6fa1693d975953d1783cbf5dbe0f9e0b5708978eef1fec1e7964a90a",
+						"created": "2025-08-12T13:14:54.453Z",
+						"verificationMethod": "did:pkh:solana:103:CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
 						"domain": {
 						  "version": "SolanaEd25519SPLV1",
 						  "chainId": "103",
-						  "verifyingContract": "AKNPPwWHYx5ejCs9RsrJ8PLdsdLAhHeMrk8qi6bHizH7"
+						  "verifyingContract": "Hys6CpX8McHbPBaPKbRYGVdXVxor1M5pSZUDMMwakGmM"
 						}
 					  }
 					],
@@ -961,21 +957,20 @@ func TestPaymentRequestInfoData_Construction(t *testing.T) {
 	],
 	"recipient": "HcCoHQFPjU2brBFW1hAZvEtZx7nSrYCBJVq4vKsjo6jf",
 	"amount": "44000000",
-	"expirationDate": "2025-08-06T14:40:25.200Z",
-	"nonce": "31299",
+	"expirationDate": "2025-08-12T14:03:26.728Z",
+	"nonce": "31231231233",
 	"metadata": "0x",
 	"proof": [
 	  {
-		"type": "SolanaEd25519NativeV1",
+		"type": "SolanaEd25519Signature2025",
 		"proofPurpose": "assertionMethod",
-		"proofValue": "18e5002b6d6072fbb61a905f09d56986616c3ac23b688fcdd782a59bfb7bffbf87530c3d817a21cbcf40028f31f841cea04b78f37d8be42092be1194be297c06",
-		"message": "15000000536f6c616e61456432353531394e6174697665563167000000000000000000000000000000000000000000000000000000000000000000000000000000f6bfa8be7a807b67676ec92933b0e2613f857c538af2830275455c4bca62346e00639f02000000005969936800000000437a000000000000020000003078",
-		"created": "2025-08-06T13:40:25.228Z",
-		"publicKey": "CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
+		"proofValue": "024e6579f78669c7d456ea4b286d5c33ee85b2def2ee77a9287e1c79f0b757422df86ae5df5b9d892c9a97484fa9587349cd13ca9c8ff39f8a6e6042ca7e6107",
+		"created": "2025-08-12T13:03:26.762Z",
+		"verificationMethod": "did:pkh:solana:103:CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
 		"domain": {
 		  "version": "SolanaEd25519NativeV1",
 		  "chainId": "103",
-		  "verifyingContract": "AKNPPwWHYx5ejCs9RsrJ8PLdsdLAhHeMrk8qi6bHizH7"
+		  "verifyingContract": "Hys6CpX8McHbPBaPKbRYGVdXVxor1M5pSZUDMMwakGmM"
 		}
 	  }
 	]
@@ -988,26 +983,26 @@ func TestPaymentRequestInfoData_Construction(t *testing.T) {
 	],
 	"recipient": "HcCoHQFPjU2brBFW1hAZvEtZx7nSrYCBJVq4vKsjo6jf",
 	"amount": "500000000",
-	"expirationDate": "2025-08-06T14:42:34.266Z",
-	"nonce": "100032325",
+	"expirationDate": "2025-08-12T14:14:54.421Z",
+	"nonce": "11212312003",
 	"metadata": "0x",
 	"proof": [
 	  {
-		"type": "SolanaEd25519SPLV1",
+		"type": "SolanaEd25519Signature2025",
 		"proofPurpose": "assertionMethod",
-		"proofValue": "5868080feb707758a2058a9438d74b832ff7ff19d7660b2460cea4025fa6a39e6190baef632af047dcbd566e5d4140bea48f9a29a459b721951140cbe0b5db05",
-		"message": "12000000536f6c616e614564323535313953504c56316700000000000000000000000000000000000000000000000000000000000000000000000000000031e2a5e23b1aa4d45934d63577cc7239e6f636c38e1e167c8634ddffecd2ae4df6bfa8be7a807b67676ec92933b0e2613f857c538af2830275455c4bca62346e0065cd1d00000000da69936800000000455ff60500000000020000003078",
-		"created": "2025-08-06T13:42:34.295Z",
-		"publicKey": "CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
+		"proofValue": "378f2941ef5f87b85445b803405620f8e300a05b627e07f51edbf886610cddc4f1dbdbaf6fa1693d975953d1783cbf5dbe0f9e0b5708978eef1fec1e7964a90a",
+		"created": "2025-08-12T13:14:54.453Z",
+		"verificationMethod": "did:pkh:solana:103:CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
 		"domain": {
 		  "version": "SolanaEd25519SPLV1",
 		  "chainId": "103",
-		  "verifyingContract": "AKNPPwWHYx5ejCs9RsrJ8PLdsdLAhHeMrk8qi6bHizH7"
+		  "verifyingContract": "Hys6CpX8McHbPBaPKbRYGVdXVxor1M5pSZUDMMwakGmM"
 		}
 	  }
 	],
 	"tokenAddress": "4MjRhSkDaXmgdAL9d9UM7kmgJrWYGJH66oocUN2f3VUp"
   }
+  
 ]
 `
 	data := protocol.PaymentRequestInfoData{
@@ -1076,7 +1071,7 @@ func TestPaymentRequestInfoData_Construction(t *testing.T) {
 			Features:     []protocol.PaymentFeatures{"EIP-2612"},
 		},
 		protocol.Iden3PaymentRailsSolanaRequestV1{
-			Nonce: "31299",
+			Nonce: "31231231233",
 			Type:  protocol.Iden3PaymentRailsSolanaRequestV1Type,
 			Context: protocol.NewPaymentContextString(
 				"https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsSolanaRequestV1",
@@ -1084,26 +1079,25 @@ func TestPaymentRequestInfoData_Construction(t *testing.T) {
 			),
 			Recipient:      "HcCoHQFPjU2brBFW1hAZvEtZx7nSrYCBJVq4vKsjo6jf",
 			Amount:         "44000000",
-			ExpirationDate: "2025-08-06T14:40:25.200Z",
+			ExpirationDate: "2025-08-12T14:03:26.728Z",
 			Metadata:       "0x",
 			Proof: protocol.PaymentProof{
-				protocol.SolanaEd25519NativeV1{
-					Type:         protocol.SolanaEd25519NativeV1Type,
-					ProofPurpose: "assertionMethod",
-					ProofValue:   "18e5002b6d6072fbb61a905f09d56986616c3ac23b688fcdd782a59bfb7bffbf87530c3d817a21cbcf40028f31f841cea04b78f37d8be42092be1194be297c06",
-					Message:      "15000000536f6c616e61456432353531394e6174697665563167000000000000000000000000000000000000000000000000000000000000000000000000000000f6bfa8be7a807b67676ec92933b0e2613f857c538af2830275455c4bca62346e00639f02000000005969936800000000437a000000000000020000003078",
-					Created:      "2025-08-06T13:40:25.228Z",
-					PublicKey:    "CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
+				protocol.SolanaEd25519Signature2025{
+					Type:               protocol.SolanaEd25519Signature2025Type,
+					ProofPurpose:       "assertionMethod",
+					ProofValue:         "024e6579f78669c7d456ea4b286d5c33ee85b2def2ee77a9287e1c79f0b757422df86ae5df5b9d892c9a97484fa9587349cd13ca9c8ff39f8a6e6042ca7e6107",
+					VerificationMethod: "did:pkh:solana:103:CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
+					Created:            "2025-08-12T13:03:26.762Z",
 					Domain: protocol.SolanaEd25519Domain{
-						Version:           string(protocol.SolanaEd25519NativeV1Type),
+						Version:           "SolanaEd25519NativeV1",
 						ChainID:           "103",
-						VerifyingContract: "AKNPPwWHYx5ejCs9RsrJ8PLdsdLAhHeMrk8qi6bHizH7",
+						VerifyingContract: "Hys6CpX8McHbPBaPKbRYGVdXVxor1M5pSZUDMMwakGmM",
 					},
 				},
 			},
 		},
 		protocol.Iden3PaymentRailsSolanaSPLRequestV1{
-			Nonce: "100032325",
+			Nonce: "11212312003",
 			Type:  protocol.Iden3PaymentRailsSolanaSPLRequestV1Type,
 			Context: protocol.NewPaymentContextString(
 				"https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsSolanaSPLRequestV1",
@@ -1111,21 +1105,20 @@ func TestPaymentRequestInfoData_Construction(t *testing.T) {
 			),
 			Recipient:      "HcCoHQFPjU2brBFW1hAZvEtZx7nSrYCBJVq4vKsjo6jf",
 			Amount:         "500000000",
-			ExpirationDate: "2025-08-06T14:42:34.266Z",
+			ExpirationDate: "2025-08-12T14:14:54.421Z",
 			Metadata:       "0x",
 			TokenAddress:   "4MjRhSkDaXmgdAL9d9UM7kmgJrWYGJH66oocUN2f3VUp",
 			Proof: protocol.PaymentProof{
-				protocol.SolanaEd25519SPLV1{
-					Type:         protocol.SolanaEd25519SPLV1Type,
-					ProofPurpose: "assertionMethod",
-					ProofValue:   "5868080feb707758a2058a9438d74b832ff7ff19d7660b2460cea4025fa6a39e6190baef632af047dcbd566e5d4140bea48f9a29a459b721951140cbe0b5db05",
-					Message:      "12000000536f6c616e614564323535313953504c56316700000000000000000000000000000000000000000000000000000000000000000000000000000031e2a5e23b1aa4d45934d63577cc7239e6f636c38e1e167c8634ddffecd2ae4df6bfa8be7a807b67676ec92933b0e2613f857c538af2830275455c4bca62346e0065cd1d00000000da69936800000000455ff60500000000020000003078",
-					Created:      "2025-08-06T13:42:34.295Z",
-					PublicKey:    "CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
+				protocol.SolanaEd25519Signature2025{
+					Type:               protocol.SolanaEd25519Signature2025Type,
+					ProofPurpose:       "assertionMethod",
+					ProofValue:         "378f2941ef5f87b85445b803405620f8e300a05b627e07f51edbf886610cddc4f1dbdbaf6fa1693d975953d1783cbf5dbe0f9e0b5708978eef1fec1e7964a90a",
+					VerificationMethod: "did:pkh:solana:103:CTZbbbcSpZy4pxpFwhQGdf8u3hxPWKRh5ywRHuNzn2Aa",
+					Created:            "2025-08-12T13:14:54.453Z",
 					Domain: protocol.SolanaEd25519Domain{
-						Version:           string(protocol.SolanaEd25519SPLV1Type),
+						Version:           "SolanaEd25519SPLV1",
 						ChainID:           "103",
-						VerifyingContract: "AKNPPwWHYx5ejCs9RsrJ8PLdsdLAhHeMrk8qi6bHizH7",
+						VerifyingContract: "Hys6CpX8McHbPBaPKbRYGVdXVxor1M5pSZUDMMwakGmM",
 					},
 				},
 			},

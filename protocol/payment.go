@@ -48,11 +48,8 @@ const (
 	// Iden3PaymentRailsSolanaSPLV1Type is a Iden3PaymentRailsSolanaSPLV1 payment type
 	Iden3PaymentRailsSolanaSPLV1Type PaymentType = "Iden3PaymentRailsSolanaSPLV1"
 
-	// SolanaEd25519NativeV1Type is the type for SolanaEd25519NativeV1 signature proof.
-	SolanaEd25519NativeV1Type verifiable.ProofType = "SolanaEd25519NativeV1"
-
-	// SolanaEd25519SPLV1Type is the type for SolanaEd25519SPLV1 signature proof.
-	SolanaEd25519SPLV1Type verifiable.ProofType = "SolanaEd25519SPLV1"
+	// SolanaEd25519Signature2025Type is a Solana Ed25519 signature proof type.
+	SolanaEd25519Signature2025Type verifiable.ProofType = "SolanaEd25519Signature2025"
 )
 
 // PaymentType is type for Payment
@@ -311,17 +308,10 @@ func (p *PaymentProof) UnmarshalJSON(data []byte) error {
 			}
 			proof = parsed
 
-		case string(SolanaEd25519NativeV1Type):
-			var parsed SolanaEd25519NativeV1
+		case string(SolanaEd25519Signature2025Type):
+			var parsed SolanaEd25519Signature2025
 			if err := json.Unmarshal(raw, &parsed); err != nil {
-				return fmt.Errorf("failed to unmarshal SolanaEd25519NativeV1: %w", err)
-			}
-			proof = parsed
-
-		case string(SolanaEd25519SPLV1Type):
-			var parsed SolanaEd25519SPLV1
-			if err := json.Unmarshal(raw, &parsed); err != nil {
-				return fmt.Errorf("failed to unmarshal SolanaEd25519SPLV1: %w", err)
+				return fmt.Errorf("failed to unmarshal SolanaEd25519Signature2025: %w", err)
 			}
 			proof = parsed
 
@@ -355,28 +345,19 @@ func (e EthereumEip712Signature2021) PaymentProofItem() verifiable.ProofType {
 	return document.EthereumEip712SignatureProof2021Type
 }
 
-// SolanaEd25519NativeV1 represents represents Ed25519 signature for Solana Payment Instruction.
-type SolanaEd25519NativeV1 struct {
-	Type         verifiable.ProofType `json:"type"`
-	ProofPurpose string               `json:"proofPurpose"`
-	ProofValue   string               `json:"proofValue"`
-	Message      string               `json:"message"`
-	Created      string               `json:"created"`
-	PublicKey    string               `json:"publicKey"`
-	Domain       SolanaEd25519Domain  `json:"domain"`
+// SolanaEd25519Signature2025 represents represents Ed25519 signature for Solana Payment Instruction.
+type SolanaEd25519Signature2025 struct {
+	Type               verifiable.ProofType `json:"type"`
+	ProofPurpose       string               `json:"proofPurpose"`
+	ProofValue         string               `json:"proofValue"`
+	VerificationMethod string               `json:"verificationMethod"`
+	Created            string               `json:"created"`
+	Domain             SolanaEd25519Domain  `json:"domain"`
 }
 
 // PaymentProofItem implements the PaymentProofItem interface.
-func (e SolanaEd25519NativeV1) PaymentProofItem() verifiable.ProofType {
-	return SolanaEd25519NativeV1Type
-}
-
-// SolanaEd25519SPLV1 represents represents Ed25519 signature for Solana SPL Payment Instruction.
-type SolanaEd25519SPLV1 SolanaEd25519NativeV1
-
-// PaymentProofItem implements the PaymentProofItem interface.
-func (e SolanaEd25519SPLV1) PaymentProofItem() verifiable.ProofType {
-	return SolanaEd25519SPLV1Type
+func (e SolanaEd25519Signature2025) PaymentProofItem() verifiable.ProofType {
+	return SolanaEd25519Signature2025Type
 }
 
 // Eip712Data represents the EIP712 data.
