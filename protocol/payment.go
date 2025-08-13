@@ -239,7 +239,6 @@ type Iden3PaymentRailsSolanaRequestV1 struct {
 	ExpirationDate string             `json:"expirationDate"`
 	Proof          PaymentProof       `json:"proof"`
 	Metadata       string             `json:"metadata"`
-	Features       []PaymentFeatures  `json:"features,omitempty"`
 }
 
 // PaymentRequestType implements the PaymentRequestInfoDataItem interface.
