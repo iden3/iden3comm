@@ -88,14 +88,21 @@ type ZKPPackerParams struct {
 // NewZKPPacker creates new zkp packer instance
 func NewZKPPacker(provingParams map[jwz.ProvingMethodAlg]ProvingParams,
 	verification map[jwz.ProvingMethodAlg]VerificationParams) *ZKPPacker {
-	supportedCircuitIDs := make([]circuits.CircuitID, 0, len(provingParams))
+	supportedCircuitIDs := make([]circuits.CircuitID, 0, len(provingParams)+len(verification))
 	for alg := range provingParams {
 		supportedCircuitIDs = append(supportedCircuitIDs, circuits.CircuitID(alg.CircuitID))
 	}
+
+	for alg := range verification {
+		supportedCircuitIDs = append(supportedCircuitIDs, circuits.CircuitID(alg.CircuitID))
+	}
+
+	uniqueCircuitIDs := unique(supportedCircuitIDs)
+
 	return &ZKPPacker{
 		Prover:              provingParams,
 		Verification:        verification,
-		supportedCircuitIDs: supportedCircuitIDs,
+		supportedCircuitIDs: uniqueCircuitIDs,
 	}
 }
 
@@ -398,4 +405,16 @@ func (d *defaultZKPUnpacker) defaultZkpUnpackerVerificationFn(id circuits.Circui
 	}
 
 	return nil
+}
+
+func unique(ids []circuits.CircuitID) []circuits.CircuitID {
+	seen := make(map[circuits.CircuitID]struct{})
+	result := make([]circuits.CircuitID, 0, len(ids))
+	for _, id := range ids {
+		if _, exists := seen[id]; !exists {
+			seen[id] = struct{}{}
+			result = append(result, id)
+		}
+	}
+	return result
 }
