@@ -194,16 +194,18 @@ func (p *ZKPPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 
 func verifySender(token *jwz.Token, msg iden3comm.BasicMessage) error {
 
-	if circuits.CircuitID(token.CircuitID) == circuits.AuthV2CircuitID {
-		return verifyAuthV2Sender(msg.From, token)
+	if circuits.CircuitID(token.CircuitID) == circuits.AuthV2CircuitID ||
+		circuits.CircuitID(token.CircuitID) == circuits.AuthV3CircuitID ||
+		circuits.CircuitID(token.CircuitID) == circuits.AuthV3_8_32CircuitID {
+		return verifyAuthSender(msg.From, token)
 	}
 
 	return errors.Errorf("'%s' unknown circuit ID. can't verify msg sender", token.CircuitID)
 }
 
-func verifyAuthV2Sender(from string, token *jwz.Token) error {
+func verifyAuthSender(from string, token *jwz.Token) error {
 
-	authPubSignals := circuits.AuthV2PubSignals{}
+	authPubSignals := circuits.AuthV3PubSignals{}
 
 	err := unmarshalPubSignals(&authPubSignals, token.ZkProof.PubSignals)
 	if err != nil {
@@ -357,7 +359,7 @@ func DefaultZKPUnpacker(verificationKey []byte, resolvers map[int]eth.Resolver, 
 }
 
 func (d *defaultZKPUnpacker) defaultZkpUnpackerVerificationFn(id circuits.CircuitID, pubsignals []string) error {
-	if id != circuits.AuthV2CircuitID {
+	if id != circuits.AuthV2CircuitID && id != circuits.AuthV3CircuitID && id != circuits.AuthV3_8_32CircuitID {
 		return errors.Errorf("circuit ID '%s' is not supported", id)
 	}
 
