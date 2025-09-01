@@ -57,8 +57,9 @@ func NewVerificationParams(key []byte, verifier VerificationHandlerFunc) Verific
 
 // ZKPPacker is packer that use JWZ
 type ZKPPacker struct {
-	Prover       map[jwz.ProvingMethodAlg]ProvingParams
-	Verification map[jwz.ProvingMethodAlg]VerificationParams
+	Prover              map[jwz.ProvingMethodAlg]ProvingParams
+	Verification        map[jwz.ProvingMethodAlg]VerificationParams
+	supportedCircuitIDs []circuits.CircuitID
 }
 
 // ProvingParams packer parameters for ZKP generation
@@ -87,9 +88,14 @@ type ZKPPackerParams struct {
 // NewZKPPacker creates new zkp packer instance
 func NewZKPPacker(provingParams map[jwz.ProvingMethodAlg]ProvingParams,
 	verification map[jwz.ProvingMethodAlg]VerificationParams) *ZKPPacker {
+	supportedCircuitIDs := make([]circuits.CircuitID, 0, len(provingParams))
+	for alg := range provingParams {
+		supportedCircuitIDs = append(supportedCircuitIDs, circuits.CircuitID(alg.CircuitID))
+	}
 	return &ZKPPacker{
-		Prover:       provingParams,
-		Verification: verification,
+		Prover:              provingParams,
+		Verification:        verification,
+		supportedCircuitIDs: supportedCircuitIDs,
 	}
 }
 
@@ -243,13 +249,18 @@ func (p *ZKPPacker) MediaType() iden3comm.MediaType {
 
 // GetSupportedProfiles gets packer envelope (supported profiles) with options
 func (p *ZKPPacker) GetSupportedProfiles() []string {
+	supportedCircuits := make([]string, len(p.supportedCircuitIDs))
+	for i, id := range p.supportedCircuitIDs {
+		supportedCircuits[i] = string(id)
+	}
+
 	return []string{
 		fmt.Sprintf(
 			"%s;env=%s&alg=%s&circuitIds=%s",
 			protocol.Iden3CommVersion1,
 			p.MediaType(),
 			strings.Join(p.getSupportedAlgorithms(), ","),
-			strings.Join(p.getSupportedCircuitIDs(), ","),
+			strings.Join(supportedCircuits, ","),
 		),
 	}
 }
@@ -269,12 +280,12 @@ func (p *ZKPPacker) IsProfileSupported(profile string) bool {
 		return false
 	}
 
-	supportedCircuitIDs := p.getSupportedCircuitIDs()
+	supportedCircuitIDs := p.supportedCircuitIDs
 	circuitIDSupported := len(parsedProfile.AcceptCircuits) == 0
 	if !circuitIDSupported {
 		for _, circuit := range parsedProfile.AcceptCircuits {
 			for _, supportedCircuit := range supportedCircuitIDs {
-				if string(circuit) == supportedCircuit {
+				if circuit == supportedCircuit {
 					circuitIDSupported = true
 					break
 				}
@@ -310,10 +321,6 @@ func (p *ZKPPacker) IsProfileSupported(profile string) bool {
 
 func (p *ZKPPacker) getSupportedAlgorithms() []string {
 	return []string{string(protocol.JwzAlgorithmsGroth16)}
-}
-
-func (p *ZKPPacker) getSupportedCircuitIDs() []string {
-	return []string{string(circuits.AuthV2CircuitID)}
 }
 
 // DefaultZKPUnpackerOption is a function that sets the default ZKP unpacker options
