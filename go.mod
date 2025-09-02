@@ -6,10 +6,10 @@ require (
 	github.com/dustinxie/ecc v0.0.0-20210511000915-959544187564
 	github.com/google/uuid v1.6.0
 	github.com/iden3/driver-did-iden3 v0.0.12
-	github.com/iden3/go-circuits/v2 v2.4.1
+	github.com/iden3/go-circuits/v2 v2.4.2
 	github.com/iden3/go-iden3-core/v2 v2.3.2
 	github.com/iden3/go-iden3-crypto v0.0.17
-	github.com/iden3/go-jwz/v2 v2.2.1
+	github.com/iden3/go-jwz/v2 v2.2.2
 	github.com/iden3/go-rapidsnark/types v0.0.3
 	github.com/iden3/go-schema-processor/v2 v2.6.2
 	github.com/lestrrat-go/jwx/v2 v2.0.12

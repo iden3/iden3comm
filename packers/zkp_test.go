@@ -103,8 +103,20 @@ func TestPlainMessagePacker_Unpack(t *testing.T) {
 
 }
 
-func TestZKPSupportedProfiles(t *testing.T) {
-	p := ZKPPacker{}
+func TestZKPSupportedProfilesNoCircuits(t *testing.T) {
+	mockedProvingMethod := &mock.ProvingMethodGroth16AuthV2{
+		ProvingMethodAlg: jwz.ProvingMethodAlg{
+			Alg:       "groth16-mock",
+			CircuitID: "authV2",
+		},
+	}
+	mockProvingParamMap := make(map[jwz.ProvingMethodAlg]ProvingParams)
+	mockProvingParamMap[mockedProvingMethod.ProvingMethodAlg] =
+		NewProvingParams(mock.PrepareAuthInputs, []byte{}, []byte{})
+
+	mockVerificationParam := make(map[jwz.ProvingMethodAlg]VerificationParams)
+	mockVerificationParam[mockedProvingMethod.ProvingMethodAlg] = NewVerificationParams([]byte(""), mock.VerifyState)
+	p := NewZKPPacker(mockProvingParamMap, mockVerificationParam)
 	acceptProfiles := p.GetSupportedProfiles()
 	require.Equal(t, []string{"iden3comm/v1;env=application/iden3-zkp-json&alg=groth16&circuitIds=authV2"}, acceptProfiles)
 }
