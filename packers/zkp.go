@@ -382,7 +382,7 @@ func (d *defaultZKPUnpacker) defaultZkpUnpackerVerificationFn(id circuits.Circui
 		return errors.Errorf("error marshaling pubsignals: %v", err)
 	}
 
-	authPubSignals := circuits.AuthV2PubSignals{}
+	authPubSignals := circuits.AuthV3PubSignals{}
 	err = authPubSignals.PubSignalsUnmarshal(bytePubsig)
 	if err != nil {
 		return errors.Errorf("error unmarshaling pubsignals: %v", err)
