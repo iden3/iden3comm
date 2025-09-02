@@ -358,6 +358,20 @@ func DefaultZKPUnpacker(verificationKey []byte, resolvers map[int]eth.Resolver, 
 	return NewZKPPacker(nil, verifications)
 }
 
+// DefaultMultiKeyZKPUnpacker creates a default ZKP unpacker with the provided verification keys and resolvers
+func DefaultMultiKeyZKPUnpacker(verificationKeys map[jwz.ProvingMethodAlg][]byte, resolvers map[int]eth.Resolver, opts ...DefaultZKPUnpackerOption) *ZKPPacker {
+	def := &defaultZKPUnpacker{resolvers, time.Minute * 5}
+	for _, opt := range opts {
+		opt(def)
+	}
+
+	verifications := make(map[jwz.ProvingMethodAlg]VerificationParams)
+	for provingMethodAlg, verificationKey := range verificationKeys {
+		verifications[provingMethodAlg] = NewVerificationParams(verificationKey, def.defaultZkpUnpackerVerificationFn)
+	}
+	return NewZKPPacker(nil, verifications)
+}
+
 func (d *defaultZKPUnpacker) defaultZkpUnpackerVerificationFn(id circuits.CircuitID, pubsignals []string) error {
 	if id != circuits.AuthV2CircuitID && id != circuits.AuthV3CircuitID && id != circuits.AuthV3_8_32CircuitID {
 		return errors.Errorf("circuit ID '%s' is not supported", id)
