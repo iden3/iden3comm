@@ -94,7 +94,7 @@ func TestPackagerAnonryptPacker(t *testing.T) {
 	key, err := mock.ResolveKeyID(mock.MockRecipientKeyID)
 	require.NoError(t, err)
 	envelope, err := pm.Pack(packers.MediaTypeEncryptedMessage, marshalledMsg,
-		packers.AnoncryptPackerParams{RecipientKey: &key})
+		packers.AnoncryptPackerParams{RecipientKey: key})
 	assert.NoError(t, err)
 
 	unpackedMsg, unpackerType, err := pm.Unpack(envelope)
@@ -192,4 +192,35 @@ func initPackageManager(t *testing.T) *iden3comm.PackageManager {
 	require.NoError(t, err)
 
 	return pm
+}
+
+func TestAuthcryptPacker(t *testing.T) {
+	authPacker := packers.NewAuthcryptPacker(mock.PubResolverAuthCrypt, mock.PrivResolverAuthCrypt)
+	pm := iden3comm.NewPackageManager()
+	err := pm.RegisterPackers(authPacker)
+	require.NoError(t, err)
+
+	identifier := "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29"
+	senderDID, err := w3c.ParseDID(identifier)
+	require.NoError(t, err)
+
+	targetIdentifier := "did:iden3:polygon:mumbai:wzWeGdtjvKtUP1oTxQP5t5iZGDX3HNfEU5xR8MZAt"
+	targetID, err := w3c.ParseDID(targetIdentifier)
+	require.NoError(t, err)
+
+	marshalledMsg, err := createFetchCredentialMessage(packers.MediaTypeAuthEncryptedMessage, senderDID, targetID)
+	require.NoError(t, err)
+
+	envelope, err := pm.Pack(packers.MediaTypeAuthEncryptedMessage, marshalledMsg,
+		packers.AuthcryptPackerParams{SenderKeyID: mock.SenderKeyIdAuthCrypt, RecipientKeyID: mock.RecipientKeyIdAuthCrypt})
+	require.NoError(t, err)
+
+	unpackedMsg, unpackerType, err := pm.Unpack(envelope)
+	require.NoError(t, err)
+	require.Equal(t, unpackedMsg.Typ, unpackerType)
+
+	actualMSGBytes, err := json.Marshal(unpackedMsg)
+	require.NoError(t, err)
+
+	require.JSONEq(t, string(marshalledMsg), string(actualMSGBytes))
 }

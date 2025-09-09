@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/go-jose/go-jose/v4"
 	"github.com/iden3/iden3comm/v2/mock"
+	"github.com/lestrrat-go/jwx/v3/jwa"
+	"github.com/lestrrat-go/jwx/v3/jwe"
 	"github.com/stretchr/testify/require"
 )
 
@@ -20,18 +21,21 @@ func TestAnoncryptPacker_Pack(t *testing.T) {
 
 	anonPacker := AnoncryptPacker{}
 	ciphertext, err := anonPacker.Pack(msgBytes, AnoncryptPackerParams{
-		RecipientKey: &key,
+		RecipientKey: key,
 	})
 	require.NoError(t, err)
 	require.NotEqual(t, 0, len(ciphertext))
 
-	// decrypt in user side.
-	jwe, err := jose.ParseEncrypted(
-		string(ciphertext), []jose.KeyAlgorithm{jose.ECDH_ES_A256KW}, []jose.ContentEncryption{jose.A256CBC_HS512})
+	jweMessage, err := jwe.Parse(ciphertext)
 	require.NoError(t, err)
-	require.EqualValues(t, jwe.Header.ExtraHeaders[jose.HeaderType], MediaTypeEncryptedMessage)
 
-	iden3BytesMsg, err := jwe.Decrypt(privKey)
+	var actualTypeKey string
+	err = jweMessage.ProtectedHeaders().Get(jwe.TypeKey, &actualTypeKey)
+	require.NoError(t, err)
+	require.Equal(t, string(MediaTypeEncryptedMessage), actualTypeKey)
+
+	iden3BytesMsg, err := jwe.Decrypt([]byte(ciphertext),
+		jwe.WithKey(jwa.ECDH_ES_A256KW(), privKey))
 	require.NoError(t, err)
 	require.Equal(t, msgBytes, iden3BytesMsg)
 }

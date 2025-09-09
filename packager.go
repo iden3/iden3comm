@@ -88,7 +88,7 @@ func (r *PackageManager) UnpackWithType(mediaType MediaType, envelope []byte) (*
 func (r *PackageManager) unpackSafeEnvelope(mediaType MediaType, envelope []byte) (*BasicMessage, error) {
 	p, ok := r.packers[mediaType]
 	if !ok {
-		return nil, errors.Errorf("packer for media type %s doesn't exist", mediaType)
+		return nil, errors.Errorf("packer for media type '%s' doesn't exist", mediaType)
 	}
 
 	// safeEnvelope can be rather base64 encoded or valid json

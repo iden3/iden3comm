@@ -13,14 +13,25 @@ import (
 	"github.com/iden3/iden3comm/v2"
 	"github.com/iden3/iden3comm/v2/packers/providers/bjj"
 	"github.com/iden3/iden3comm/v2/packers/providers/es256k"
-	"github.com/lestrrat-go/jwx/v2/jwa"
-	"github.com/lestrrat-go/jwx/v2/jwk"
-	"github.com/lestrrat-go/jwx/v2/jws"
+	"github.com/lestrrat-go/jwx/v3/jwa"
+	"github.com/lestrrat-go/jwx/v3/jwk"
+	"github.com/lestrrat-go/jwx/v3/jws"
 	"github.com/mr-tron/base58"
 	"github.com/pkg/errors"
 )
 
 type verificationType string
+
+var (
+	ES256K_R_ALG = jwa.NewSignatureAlgorithm("ES256K-R")
+)
+
+func init() {
+	jwa.RegisterEllipticCurveAlgorithm(jwa.NewEllipticCurveAlgorithm("secp256k1"))
+	jwa.RegisterEllipticCurveAlgorithm(bjj.Curve)
+
+	jwa.RegisterSignatureAlgorithm(ES256K_R_ALG)
+}
 
 // List of supported verification types
 const (
@@ -31,12 +42,12 @@ const (
 )
 
 var supportedAlgorithms = map[jwa.SignatureAlgorithm]map[verificationType]struct{}{
-	jwa.ES256K: {
+	jwa.ES256K(): {
 		JSONWebKey2020:                    {},
 		EcdsaSecp256k1VerificationKey2019: {},
 		EcdsaSecp256k1RecoveryMethod2020:  {},
 	},
-	"ES256K-R": {
+	ES256K_R_ALG: {
 		JSONWebKey2020:                    {},
 		EcdsaSecp256k1VerificationKey2019: {},
 		EcdsaSecp256k1RecoveryMethod2020:  {},
@@ -115,7 +126,7 @@ func NewSigningParams() SigningParams {
 
 // Verify checks if signing params are valid
 func (s *SigningParams) Verify() error {
-	if s.Alg == "" {
+	if s.Alg.String() == "" {
 		return errors.New("alg is required for signing params")
 	}
 	return nil
@@ -183,13 +194,15 @@ func (p *JWSPacker) Pack(
 		return nil, errors.Errorf("can't set typ: %v", err)
 	}
 
+	sigKeyAlg, err := jwa.KeyAlgorithmFrom(signingParams.Alg)
+	if err != nil {
+		return nil, errors.Errorf("can't get key algorithm from alg '%s': %v",
+			signingParams.Alg, err)
+	}
+
 	token, err := jws.Sign(
 		payload,
-		jws.WithKey(
-			jwa.KeyAlgorithmFrom(signingParams.Alg),
-			signer,
-			jws.WithProtectedHeaders(hdrs),
-		),
+		jws.WithKey(sigKeyAlg, signer, jws.WithProtectedHeaders(hdrs)),
 	)
 	if err != nil {
 		return nil, errors.Errorf("can't sign: %v", err)
@@ -211,9 +224,12 @@ func (p *JWSPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 	if len(sigs) != 1 {
 		return nil, errors.New("invalid number of signatures")
 	}
-	kid := sigs[0].ProtectedHeaders().KeyID()
-	alg := sigs[0].ProtectedHeaders().Algorithm()
-	if alg == "" {
+	kid, ok := sigs[0].ProtectedHeaders().KeyID()
+	if !ok || kid == "" {
+		return nil, errors.New("kid header is required")
+	}
+	alg, ok := sigs[0].ProtectedHeaders().Algorithm()
+	if !ok || alg.String() == "" {
 		return nil, errors.New("alg header is required")
 	}
 
@@ -306,10 +322,10 @@ func recoverEthereumAddress(token *jws.Message, vm verifiable.CommonVerification
 	signedData := base64TokenParts[0] + "." + base64TokenParts[1]
 	hash := sha256.Sum256([]byte(signedData))
 	sig := token.Signatures()[0].Signature()
-	if len(sig) == 64 && alg == "ES256K-R" {
+	if len(sig) == 64 && alg.String() == ES256K_R_ALG.String() {
 		sig = append(sig, []byte{1}...)
 	}
-	if len(sig) == 64 && alg == "ES256K" {
+	if len(sig) == 64 && alg.String() == jwa.ES256K().String() {
 		sig = append(sig, []byte{0}...)
 	}
 	recoveredKey, err := ecc.RecoverEthereum(hash[:], sig)
@@ -396,27 +412,28 @@ func findVerificationMethodByID(
 func extractVerificationKey(alg jwa.SignatureAlgorithm,
 	vm verifiable.CommonVerificationMethod) (jws.VerifyOption, error) {
 
+	keyAlg, err := jwa.KeyAlgorithmFrom(alg)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
 	switch {
 	case len(vm.PublicKeyJwk) > 0:
-		return processJWK(string(alg), vm)
+		return processJWK(keyAlg, vm)
 	case vm.PublicKeyHex != "":
 		encodedKey, err := hex.DecodeString(vm.PublicKeyHex)
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
-		return jws.WithKey(
-			jwa.KeyAlgorithmFrom(alg),
-			es256k.NewECDSA(encodedKey),
-		), nil
+
+		return jws.WithKey(keyAlg, es256k.NewECDSA(encodedKey)), nil
 	case vm.PublicKeyBase58 != "":
 		encodedKey, err := base58.Decode(vm.PublicKeyBase58)
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
-		return jws.WithKey(
-			jwa.KeyAlgorithmFrom(alg),
-			es256k.NewECDSA(encodedKey),
-		), nil
+
+		return jws.WithKey(keyAlg, es256k.NewECDSA(encodedKey)), nil
 	}
 
 	return nil, errors.New("can't find public key")
@@ -434,8 +451,7 @@ func checkAlgorithmSupport(alg jwa.SignatureAlgorithm, vm verifiable.CommonVerif
 	return nil
 }
 
-func processJWK(alg string, vm verifiable.CommonVerificationMethod) (jws.VerifyOption, error) {
-	vm.PublicKeyJwk["alg"] = alg
+func processJWK(keyAlg jwa.KeyAlgorithm, vm verifiable.CommonVerificationMethod) (jws.VerifyOption, error) {
 	bytesJWK, err := json.Marshal(vm.PublicKeyJwk)
 	if err != nil {
 		return nil, errors.Errorf("failed to marshal jwk: %v", err)
@@ -446,14 +462,14 @@ func processJWK(alg string, vm verifiable.CommonVerificationMethod) (jws.VerifyO
 	}
 
 	var withKey jws.VerifyOption
-	switch jwkKey.Algorithm() {
-	case bjj.Alg:
+	switch keyAlg.String() {
+	case bjj.Alg.String():
 		bjjKey, err := bjj.ParseKey(jwkKey)
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
-		withKey = jws.WithKey(jwkKey.Algorithm(), bjjKey)
-	case jwa.ES256K:
+		withKey = jws.WithKey(keyAlg, bjjKey)
+	case jwa.ES256K().String():
 		// to ensure the support of es256k while parsing jwk key,
 		// it is advisable to manually generate the key for es256k
 		// rather than relying on build tags.
@@ -461,9 +477,9 @@ func processJWK(alg string, vm verifiable.CommonVerificationMethod) (jws.VerifyO
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
-		withKey = jws.WithKey(jwkKey.Algorithm(), ecdsaKey)
+		withKey = jws.WithKey(keyAlg, ecdsaKey)
 	default:
-		return nil, errors.Errorf("unsupported algorithm: %s", jwkKey.Algorithm())
+		return nil, errors.Errorf("unsupported algorithm: %s", keyAlg.String())
 	}
 
 	return withKey, nil

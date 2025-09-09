@@ -10,7 +10,7 @@ import (
 	"github.com/iden3/go-schema-processor/v2/verifiable"
 	"github.com/iden3/iden3comm/v2/packers/providers/bjj"
 	"github.com/iden3/iden3comm/v2/packers/providers/es256k"
-	"github.com/lestrrat-go/jwx/v2/jwa"
+	"github.com/lestrrat-go/jwx/v3/jwa"
 	"github.com/stretchr/testify/require"
 )
 
@@ -39,7 +39,7 @@ func TestPKHKey(t *testing.T) {
 	token, err := p.Pack(
 		msgBytes,
 		SigningParams{
-			Alg: jwa.ES256K,
+			Alg: jwa.ES256K(),
 		})
 	require.NoError(t, err)
 

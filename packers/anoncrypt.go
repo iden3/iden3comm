@@ -3,9 +3,12 @@ package packers
 
 import (
 	"encoding/json"
+	"fmt"
 
-	"github.com/go-jose/go-jose/v4"
 	"github.com/iden3/iden3comm/v2"
+	"github.com/lestrrat-go/jwx/v3/jwa"
+	"github.com/lestrrat-go/jwx/v3/jwe"
+	"github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/pkg/errors"
 )
 
@@ -19,7 +22,7 @@ type AnoncryptPacker struct {
 
 // AnoncryptPackerParams is params for anoncrypt packer
 type AnoncryptPackerParams struct {
-	RecipientKey *jose.JSONWebKey
+	RecipientKey jwk.Key
 	iden3comm.PackerParams
 }
 
@@ -44,42 +47,50 @@ func (p *AnoncryptPacker) Pack(payload []byte, params iden3comm.PackerParams) ([
 		return nil, errors.New("can't cast params to anoncrypt packer params")
 	}
 
-	encryptor, err := jose.NewEncrypter(jose.A256CBC_HS512, jose.Recipient{
-		Algorithm: jose.ECDH_ES_A256KW,
-		Key:       packerParams.RecipientKey,
-		KeyID:     packerParams.RecipientKey.KeyID,
-	}, new(jose.EncrypterOptions).WithType(jose.ContentType(MediaTypeEncryptedMessage)))
-	if err != nil {
-		return nil, err
+	kid, ok := packerParams.RecipientKey.KeyID()
+	if !ok || kid == "" {
+		return nil, errors.New("missing key id in recipient key")
 	}
-	jwe, err := encryptor.Encrypt(payload)
-	if err != nil {
-		return nil, err
-	}
-	jweString, err := jwe.CompactSerialize()
-	if err != nil {
-		return nil, err
-	}
-	return []byte(jweString), nil
 
+	headers := jwe.NewHeaders()
+	headers.Set(jwe.AlgorithmKey, jwa.ECDH_ES_A256KW().String())
+	headers.Set(jwe.ContentEncryptionKey, jwa.A256CBC_HS512().String())
+	headers.Set(jwe.KeyIDKey, kid)
+	headers.Set(jwe.TypeKey, string(p.MediaType()))
+
+	jweString, err := jwe.Encrypt(payload,
+		jwe.WithCompact(),
+		jwe.WithKey(jwa.ECDH_ES_A256KW(), packerParams.RecipientKey),
+		jwe.WithContentEncryption(jwa.A256CBC_HS512()),
+		jwe.WithProtectedHeaders(headers),
+	)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to encrypt message")
+	}
+
+	return []byte(jweString), nil
 }
 
 // Unpack returns unpacked message from transport envelope
 func (p *AnoncryptPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
+	jweMessage, err := jwe.Parse(envelope)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse jwe toekn: %w", err)
+	}
+	recipientKeyID, ok := jweMessage.ProtectedHeaders().KeyID()
+	if !ok || recipientKeyID == "" {
+		return nil, errors.New("missing key id in jwe header")
+	}
+	decryptionKey, err := p.kr.Resolve(recipientKeyID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve recipient key: %w", err)
+	}
 
-	jwe, err := jose.ParseEncrypted(
-		string(envelope), []jose.KeyAlgorithm{jose.ECDH_ES_A256KW}, []jose.ContentEncryption{jose.A256CBC_HS512})
+	payload, err := jwe.Decrypt(envelope, jwe.WithKey(jwa.ECDH_ES_A256KW(), decryptionKey))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to decrypt jwe token: %w", err)
 	}
-	decryptionKey, err := p.kr.Resolve(jwe.Header.KeyID)
-	if err != nil {
-		return nil, err
-	}
-	payload, err := jwe.Decrypt(decryptionKey)
-	if err != nil {
-		return nil, err
-	}
+
 	var msg iden3comm.BasicMessage
 	err = json.Unmarshal(payload, &msg)
 	if err != nil {

@@ -4,18 +4,23 @@
 package mock
 
 import (
+	"crypto/ecdh"
 	"crypto/ecdsa"
 	"crypto/elliptic"
+	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"math/big"
 
-	"github.com/go-jose/go-jose/v4"
 	"github.com/iden3/go-circuits/v2"
 	"github.com/iden3/go-iden3-core/v2/w3c"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-jwz/v2"
 	"github.com/iden3/go-rapidsnark/types"
+	joseprimitives "github.com/iden3/jose-primitives"
+	"github.com/lestrrat-go/jwx/v3/jwk"
 )
 
 // ProvingMethodGroth16AuthV2 proving method to avoid using of proving key and wasm files
@@ -91,15 +96,15 @@ func VerifyState(_ circuits.CircuitID, _ []string) error {
 const MockRecipientKeyID = "123456789"
 
 // ResolveKeyID returns mocked public key for any key ID
-func ResolveKeyID(keyID string) (jose.JSONWebKey, error) {
+func ResolveKeyID(keyID string) (jwk.Key, error) {
 	recipientPrivKey, _ := ResolveEncPrivateKey(keyID)
-	recipientPubKey := jose.JSONWebKey{
-		Key:       &recipientPrivKey.(*ecdsa.PrivateKey).PublicKey,
-		KeyID:     keyID,
-		Algorithm: "PS256",
-		Use:       "enc",
+	k, _ := recipientPrivKey.(*ecdsa.PrivateKey)
+	importedKey, err := jwk.Import(k.PublicKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to import recipient public key: %w", err)
 	}
-	return recipientPubKey, nil
+	importedKey.Set(jwk.KeyIDKey, keyID)
+	return importedKey, nil
 }
 
 // ResolveEncPrivateKey returns mocked private key
@@ -114,3 +119,33 @@ func ResolveEncPrivateKey(keyID string) (interface{}, error) {
 	recipientPrivKey.PublicKey.X, recipientPrivKey.PublicKey.Y = recipientPrivKey.PublicKey.Curve.ScalarBaseMult(seed.Bytes())
 	return recipientPrivKey, nil
 }
+
+const (
+	SenderKeyIdAuthCrypt    = "sender-key-id"
+	RecipientKeyIdAuthCrypt = "recipient-key-id"
+)
+
+var (
+	senderKey, _    = ecdh.P384().GenerateKey(rand.Reader)
+	recipientKey, _ = ecdh.P384().GenerateKey(rand.Reader)
+
+	PubResolverAuthCrypt = func(kid string) (interface{}, error) {
+		if kid == SenderKeyIdAuthCrypt {
+			return joseprimitives.Import(senderKey.PublicKey())
+		}
+		if kid == RecipientKeyIdAuthCrypt {
+			return joseprimitives.Import(recipientKey.PublicKey())
+		}
+		return nil, errors.New("key not found")
+	}
+
+	PrivResolverAuthCrypt = func(kid string) (interface{}, error) {
+		if kid == SenderKeyIdAuthCrypt {
+			return senderKey, nil
+		}
+		if kid == RecipientKeyIdAuthCrypt {
+			return recipientKey, nil
+		}
+		return nil, errors.New("key not found")
+	}
+)
