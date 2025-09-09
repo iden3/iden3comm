@@ -6,8 +6,8 @@ import (
 	"errors"
 	"fmt"
 
-	bjj "github.com/iden3/go-iden3-crypto/babyjub"
-	"github.com/iden3/go-iden3-crypto/poseidon"
+	todoupdatePoseidon "github.com/iden3/go-iden3-crypto/poseidon"
+	bjj "github.com/iden3/go-iden3-crypto/v2/babyjub"
 	"github.com/lestrrat-go/jwx/v3/jwa"
 )
 
@@ -32,7 +32,11 @@ func (p *Provider) Sign(payload []byte, opts interface{}) ([]byte, error) {
 		return nil, errors.New("bjj signer opts support only signer interface")
 	}
 
-	digest, err := poseidon.HashBytes(payload)
+	// TODO(illia-korotia): new version of go-iden3-crypto
+	// does not support the Sponge hash function due to security issue
+	// digest, err := poseidon.Hash(
+	// []*big.Int{big.NewInt(0).SetBytes(payload)})
+	digest, err := todoupdatePoseidon.HashBytes(payload)
 	if err != nil {
 		return nil, fmt.Errorf("failed get poseidon hash for payload: %v", err)
 	}
@@ -62,7 +66,11 @@ func (p *Provider) Verify(payload, signature []byte, opts interface{}) error {
 		return errors.New("public key is not on curve")
 	}
 
-	digest, err := poseidon.HashBytes(payload)
+	// TODO(illia-korotia): new version of go-iden3-crypto
+	// does not support the Sponge hash function due to security issue
+	// digest, err := poseidon.Hash(
+	// []*big.Int{big.NewInt(0).SetBytes(payload)})
+	digest, err := todoupdatePoseidon.HashBytes(payload)
 	if err != nil {
 		return fmt.Errorf("failed get poseidon hash for payload: %v", err)
 	}
@@ -75,8 +83,8 @@ func (p *Provider) Verify(payload, signature []byte, opts interface{}) error {
 		return fmt.Errorf("can't decompress bjj signature: %v", err)
 	}
 
-	if !bjjPubKey.VerifyPoseidon(digest, poseidonDecSig) {
-		return fmt.Errorf("invalid signature")
+	if err = bjjPubKey.VerifyPoseidon(digest, poseidonDecSig); err != nil {
+		return fmt.Errorf("invalid signature: %w", err)
 	}
 
 	return nil

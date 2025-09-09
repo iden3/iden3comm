@@ -5,20 +5,26 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/iden3/iden3comm/v2"
+	"github.com/iden3/iden3comm/v2/protocol"
+	"github.com/iden3/iden3comm/v2/utils"
 	joseprimitives "github.com/iden3/jose-primitives"
 	"github.com/lestrrat-go/jwx/v3/jwa"
 	"github.com/lestrrat-go/jwx/v3/jwe"
 )
 
 func init() {
-	jwa.RegisterKeyEncryptionAlgorithm(jwa.NewKeyEncryptionAlgorithm("ECDH-1PU+A256KW"))
+	jwa.RegisterKeyEncryptionAlgorithm(
+		jwa.NewKeyEncryptionAlgorithm(
+			string(protocol.AuthcryptECDH1PUA256KW)))
 }
 
 // MediaTypeAuthEncryptedMessage is media type for auth ecnrypted message
 const MediaTypeAuthEncryptedMessage iden3comm.MediaType = "application/iden3comm-auth-encrypted-json"
 
+// AuthcryptPacker is  packer for auth encryption / decryption
 type AuthcryptPacker struct {
 	pubKeyResolver  KeyResolverHandlerFunc
 	privKeyResolver KeyResolverHandlerFunc
@@ -125,27 +131,27 @@ func (p *AuthcryptPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, erro
 		return nil, fmt.Errorf("failed to parse jwe token: %w", err)
 	}
 
-	recipientKeyId, ok := jweToken.ProtectedHeaders().KeyID()
-	if !ok || recipientKeyId == "" {
+	recipientKeyID, ok := jweToken.ProtectedHeaders().KeyID()
+	if !ok || recipientKeyID == "" {
 		return nil, errors.New("recipient key id (kid) is missing in the header")
 	}
-	recipientPrivateKey, err := p.privKeyResolver.Resolve(recipientKeyId)
+	recipientPrivateKey, err := p.privKeyResolver.Resolve(recipientKeyID)
 	if err != nil {
-		return nil, fmt.Errorf("can't resolve recipient key '%s': %w", recipientKeyId, err)
+		return nil, fmt.Errorf("can't resolve recipient key '%s': %w", recipientKeyID, err)
 	}
 	recipientPrivateKeyEcdh, err := getEcdhPrivateKey(recipientPrivateKey)
 	if err != nil {
 		return nil, fmt.Errorf("can't get recipient private key: %w", err)
 	}
 
-	var senderKeyId string
-	err = jweToken.ProtectedHeaders().Get("skid", &senderKeyId)
+	var senderKeyID string
+	err = jweToken.ProtectedHeaders().Get("skid", &senderKeyID)
 	if err != nil {
 		return nil, errors.New("sender key id (skid) is missing in the header")
 	}
-	senderPublicKey, err := p.findPublicKey(senderKeyId)
+	senderPublicKey, err := p.findPublicKey(senderKeyID)
 	if err != nil {
-		return nil, fmt.Errorf("can't find sender public key '%s': %w", senderKeyId, err)
+		return nil, fmt.Errorf("can't find sender public key '%s': %w", senderKeyID, err)
 	}
 
 	originMessage, err := joseprimitives.Decrypt(recipientPrivateKeyEcdh, senderPublicKey, string(envelope))
@@ -165,4 +171,57 @@ func (p *AuthcryptPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, erro
 // MediaType for iden3comm
 func (p *AuthcryptPacker) MediaType() iden3comm.MediaType {
 	return MediaTypeAuthEncryptedMessage
+}
+
+// GetSupportedProfiles returns supported profiles by packer
+func (p *AuthcryptPacker) GetSupportedProfiles() []string {
+	return []string{
+		fmt.Sprintf(
+			"%s;env=%s&alg=%s",
+			protocol.Iden3CommVersion1,
+			p.MediaType(),
+			strings.Join(p.getSupportedAlgorithms(), ","),
+		),
+	}
+}
+
+// IsProfileSupported checks if profile is supported by packer
+func (p *AuthcryptPacker) IsProfileSupported(profile string) bool {
+	parsedProfile, err := utils.ParseAcceptProfile(profile)
+	if err != nil {
+		return false
+	}
+
+	if parsedProfile.AcceptedVersion != protocol.Iden3CommVersion1 {
+		return false
+	}
+
+	if parsedProfile.Env != p.MediaType() {
+		return false
+	}
+
+	if len(parsedProfile.AcceptCircuits) > 0 ||
+		len(parsedProfile.AcceptAnoncryptAlgorithms) > 0 ||
+		len(parsedProfile.AcceptJwzAlgorithms) > 0 ||
+		len(parsedProfile.AcceptJwsAlgorithms) > 0 {
+		return false
+	}
+
+	if len(parsedProfile.AcceptAuthcryptAlgorithms) == 0 {
+		return true
+	}
+
+	supportedAlgorithms := p.getSupportedAlgorithms()
+	for _, alg := range parsedProfile.AcceptAuthcryptAlgorithms {
+		for _, supportedAlg := range supportedAlgorithms {
+			if string(alg) == supportedAlg {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (p *AuthcryptPacker) getSupportedAlgorithms() []string {
+	return []string{string(protocol.AuthcryptECDH1PUA256KW)}
 }

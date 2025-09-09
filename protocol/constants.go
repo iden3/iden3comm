@@ -34,3 +34,11 @@ const (
 	// AnoncryptECDHESA256KW is a ECDH-ES+A256KW accepted Anoncrypt algorithm
 	AnoncryptECDHESA256KW AnoncryptAlgorithms = "ECDH-ES+A256KW"
 )
+
+// AuthcryptAlgorithms is a type of accepted authcrypt algorithms
+type AuthcryptAlgorithms string
+
+const (
+	// AuthcryptECDH1PUA256KW is a ECDH-1PU+A256KW accepted Authcrypt algorithm
+	AuthcryptECDH1PUA256KW AuthcryptAlgorithms = "ECDH-1PU+A256KW"
+)

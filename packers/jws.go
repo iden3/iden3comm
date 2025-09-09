@@ -26,14 +26,15 @@ import (
 type verificationType string
 
 var (
-	ES256K_R_ALG = jwa.NewSignatureAlgorithm("ES256K-R")
+	// ES256KRALG Algorithm for ECDSA using secp256k1 curve and recovery id
+	ES256KRALG = jwa.NewSignatureAlgorithm("ES256K-R")
 )
 
 func init() {
 	jwa.RegisterEllipticCurveAlgorithm(jwa.NewEllipticCurveAlgorithm("secp256k1"))
 	jwa.RegisterEllipticCurveAlgorithm(bjj.Curve)
 
-	jwa.RegisterSignatureAlgorithm(ES256K_R_ALG)
+	jwa.RegisterSignatureAlgorithm(ES256KRALG)
 }
 
 // List of supported verification types
@@ -50,7 +51,7 @@ var supportedAlgorithms = map[jwa.SignatureAlgorithm]map[verificationType]struct
 		EcdsaSecp256k1VerificationKey2019: {},
 		EcdsaSecp256k1RecoveryMethod2020:  {},
 	},
-	ES256K_R_ALG: {
+	ES256KRALG: {
 		JSONWebKey2020:                    {},
 		EcdsaSecp256k1VerificationKey2019: {},
 		EcdsaSecp256k1RecoveryMethod2020:  {},
@@ -103,20 +104,26 @@ func init() {
 
 func registerBJJProvider() {
 	bp := &bjj.Provider{}
-	jws.RegisterSigner(
+	err := jws.RegisterSigner(
 		bp.Algorithm(),
 		jws.SignerFactoryFn(
 			func() (jws.Signer, error) {
 				return bp, nil
 			},
 		))
-	jws.RegisterVerifier(
+	if err != nil {
+		panic(fmt.Sprintf("failed to register BJJ signer: %v", err))
+	}
+	err = jws.RegisterVerifier(
 		bp.Algorithm(),
 		jws.VerifierFactoryFn(
 			func() (jws.Verifier, error) {
 				return bp, nil
 			}),
 	)
+	if err != nil {
+		panic(fmt.Sprintf("failed to register BJJ verifier: %v", err))
+	}
 }
 
 // ErrorVerificationMethodNotFound is return where no verification method found for specified kid
@@ -325,7 +332,7 @@ func recoverEthereumAddress(token *jws.Message, vm verifiable.CommonVerification
 	signedData := base64TokenParts[0] + "." + base64TokenParts[1]
 	hash := sha256.Sum256([]byte(signedData))
 	sig := token.Signatures()[0].Signature()
-	if len(sig) == 64 && alg.String() == ES256K_R_ALG.String() {
+	if len(sig) == 64 && alg.String() == ES256KRALG.String() {
 		sig = append(sig, []byte{1}...)
 	}
 	if len(sig) == 64 && alg.String() == jwa.ES256K().String() {
@@ -378,7 +385,10 @@ func (p *JWSPacker) IsProfileSupported(profile string) bool {
 		return false
 	}
 
-	if len(parsedProfile.AcceptCircuits) > 0 || len(parsedProfile.AcceptAnoncryptAlgorithms) > 0 || len(parsedProfile.AcceptJwzAlgorithms) > 0 {
+	if len(parsedProfile.AcceptCircuits) > 0 ||
+		len(parsedProfile.AcceptAnoncryptAlgorithms) > 0 ||
+		len(parsedProfile.AcceptJwzAlgorithms) > 0 ||
+		len(parsedProfile.AcceptAuthcryptAlgorithms) > 0 {
 		return false
 	}
 

@@ -56,12 +56,20 @@ func (p *AnoncryptPacker) Pack(payload []byte, params iden3comm.PackerParams) ([
 	}
 
 	headers := jwe.NewHeaders()
-	headers.Set(jwe.AlgorithmKey, jwa.ECDH_ES_A256KW().String())
-	headers.Set(jwe.ContentEncryptionKey, jwa.A256CBC_HS512().String())
-	headers.Set(jwe.KeyIDKey, kid)
-	headers.Set(jwe.TypeKey, string(p.MediaType()))
+	if err := headers.Set(jwe.AlgorithmKey, jwa.ECDH_ES_A256KW()); err != nil {
+		return nil, errors.Wrap(err, "failed to set alg header")
+	}
+	if err := headers.Set(jwe.ContentEncryptionKey, jwa.A256CBC_HS512()); err != nil {
+		return nil, errors.Wrap(err, "failed to set enc header")
+	}
+	if err := headers.Set(jwe.KeyIDKey, kid); err != nil {
+		return nil, errors.Wrap(err, "failed to set kid header")
+	}
+	if err := headers.Set(jwe.TypeKey, string(p.MediaType())); err != nil {
+		return nil, errors.Wrap(err, "failed to set typ header")
+	}
 
-	jweString, err := jwe.Encrypt(payload,
+	ret, err := jwe.Encrypt(payload,
 		jwe.WithCompact(),
 		jwe.WithKey(jwa.ECDH_ES_A256KW(), packerParams.RecipientKey),
 		jwe.WithContentEncryption(jwa.A256CBC_HS512()),
@@ -71,7 +79,7 @@ func (p *AnoncryptPacker) Pack(payload []byte, params iden3comm.PackerParams) ([
 		return nil, errors.Wrap(err, "failed to encrypt message")
 	}
 
-	return []byte(jweString), nil
+	return ret, nil
 }
 
 // Unpack returns unpacked message from transport envelope
@@ -134,7 +142,10 @@ func (p *AnoncryptPacker) IsProfileSupported(profile string) bool {
 		return false
 	}
 
-	if len(parsedProfile.AcceptCircuits) > 0 || len(parsedProfile.AcceptJwzAlgorithms) > 0 || len(parsedProfile.AcceptJwsAlgorithms) > 0 {
+	if len(parsedProfile.AcceptCircuits) > 0 ||
+		len(parsedProfile.AcceptJwzAlgorithms) > 0 ||
+		len(parsedProfile.AcceptJwsAlgorithms) > 0 ||
+		len(parsedProfile.AcceptAuthcryptAlgorithms) > 0 {
 		return false
 	}
 
@@ -155,5 +166,5 @@ func (p *AnoncryptPacker) IsProfileSupported(profile string) bool {
 }
 
 func (p *AnoncryptPacker) getSupportedAlgorithms() []string {
-	return []string{string(jwa.ECDH_ES_A256KW().String())}
+	return []string{jwa.ECDH_ES_A256KW().String()}
 }

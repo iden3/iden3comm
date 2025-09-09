@@ -13,4 +13,5 @@ type AcceptProfile struct {
 	AcceptJwzAlgorithms       []JwzAlgorithms
 	AcceptJwsAlgorithms       []JwsAlgorithms
 	AcceptAnoncryptAlgorithms []AnoncryptAlgorithms
+	AcceptAuthcryptAlgorithms []AuthcryptAlgorithms
 }

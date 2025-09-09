@@ -305,7 +305,9 @@ func (p *ZKPPacker) IsProfileSupported(profile string) bool {
 		}
 	}
 
-	if len(parsedProfile.AcceptAnoncryptAlgorithms) > 0 || len(parsedProfile.AcceptJwsAlgorithms) > 0 {
+	if len(parsedProfile.AcceptAnoncryptAlgorithms) > 0 ||
+		len(parsedProfile.AcceptJwsAlgorithms) > 0 ||
+		len(parsedProfile.AcceptAuthcryptAlgorithms) > 0 {
 		return false
 	}
 

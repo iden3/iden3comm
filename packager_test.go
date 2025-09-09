@@ -73,7 +73,6 @@ func TestPackagerZKPPacker(t *testing.T) {
 }
 
 func TestPackagerAnonryptPacker(t *testing.T) {
-
 	pm := iden3comm.NewPackageManager()
 	pm.RegisterPackers(packers.NewAnoncryptPacker(mock.ResolveEncPrivateKey), &packers.PlainMessagePacker{})
 	// nolint :
@@ -81,30 +80,30 @@ func TestPackagerAnonryptPacker(t *testing.T) {
 	identifier := "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29"
 
 	senderDID, err := w3c.ParseDID(identifier)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	targetIdentifier := "did:iden3:polygon:mumbai:wzWeGdtjvKtUP1oTxQP5t5iZGDX3HNfEU5xR8MZAt"
 
 	targetID, err := w3c.ParseDID(targetIdentifier)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	marshalledMsg, err := createFetchCredentialMessage(packers.MediaTypeEncryptedMessage, senderDID, targetID)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	key, err := mock.ResolveKeyID(mock.MockRecipientKeyID)
 	require.NoError(t, err)
 	envelope, err := pm.Pack(packers.MediaTypeEncryptedMessage, marshalledMsg,
 		packers.AnoncryptPackerParams{RecipientKey: key})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	unpackedMsg, unpackerType, err := pm.Unpack(envelope)
-	assert.NoError(t, err)
-	assert.Equal(t, unpackedMsg.Typ, unpackerType)
+	require.NoError(t, err)
+	require.Equal(t, unpackedMsg.Typ, unpackerType)
 
 	actualMSGBytes, err := json.Marshal(unpackedMsg)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	assert.JSONEq(t, string(marshalledMsg), string(actualMSGBytes))
+	require.JSONEq(t, string(marshalledMsg), string(actualMSGBytes))
 
 }
 
