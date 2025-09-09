@@ -5,14 +5,17 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/dustinxie/ecc"
-	"github.com/iden3/go-iden3-crypto/keccak256"
+	"github.com/iden3/go-iden3-crypto/v2/keccak256"
 	"github.com/iden3/go-schema-processor/v2/verifiable"
 	"github.com/iden3/iden3comm/v2"
 	"github.com/iden3/iden3comm/v2/packers/providers/bjj"
 	"github.com/iden3/iden3comm/v2/packers/providers/es256k"
+	"github.com/iden3/iden3comm/v2/protocol"
+	"github.com/iden3/iden3comm/v2/utils"
 	"github.com/lestrrat-go/jwx/v3/jwa"
 	"github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/lestrrat-go/jwx/v3/jws"
@@ -346,6 +349,56 @@ func recoverEthereumAddress(token *jws.Message, vm verifiable.CommonVerification
 // MediaType for iden3comm that returns MediaTypeSignedMessage
 func (p *JWSPacker) MediaType() iden3comm.MediaType {
 	return MediaTypeSignedMessage
+}
+
+// GetSupportedProfiles gets packer envelope (supported profiles) with options
+func (p *JWSPacker) GetSupportedProfiles() []string {
+	return []string{
+		fmt.Sprintf(
+			"%s;env=%s&alg=%s",
+			protocol.Iden3CommVersion1,
+			p.MediaType(),
+			strings.Join(p.getSupportedAlgorithms(), ","),
+		),
+	}
+}
+
+// IsProfileSupported checks if profile is supported by packer
+func (p *JWSPacker) IsProfileSupported(profile string) bool {
+	parsedProfile, err := utils.ParseAcceptProfile(profile)
+	if err != nil {
+		return false
+	}
+
+	if parsedProfile.AcceptedVersion != protocol.Iden3CommVersion1 {
+		return false
+	}
+
+	if parsedProfile.Env != p.MediaType() {
+		return false
+	}
+
+	if len(parsedProfile.AcceptCircuits) > 0 || len(parsedProfile.AcceptAnoncryptAlgorithms) > 0 || len(parsedProfile.AcceptJwzAlgorithms) > 0 {
+		return false
+	}
+
+	if len(parsedProfile.AcceptJwsAlgorithms) == 0 {
+		return true
+	}
+
+	supportedAlgorithms := p.getSupportedAlgorithms()
+	for _, alg := range parsedProfile.AcceptJwsAlgorithms {
+		for _, supportedAlg := range supportedAlgorithms {
+			if string(alg) == supportedAlg {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (p *JWSPacker) getSupportedAlgorithms() []string {
+	return []string{string(protocol.JwsAlgorithmsES256K), string(protocol.JwsAlgorithmsES256KR)}
 }
 
 // resolveVerificationMethods looks for all verification methods in the DID document.
