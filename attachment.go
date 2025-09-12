@@ -4,7 +4,7 @@ package iden3comm
 type Attachment struct {
 	ID          string     `json:"id"`
 	Description string     `json:"description,omitempty"`
-	MediaType   MediaType  `json:"media_type"`
+	MediaType   MediaType  `json:"media_type,omitempty"`
 	Data        AttachData `json:"data"`
 }
 
