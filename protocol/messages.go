@@ -21,6 +21,8 @@ type MessageFetchRequestMessage struct {
 
 	CreatedTime *int64 `json:"created_time,omitempty"`
 	ExpiresTime *int64 `json:"expires_time,omitempty"`
+
+	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
 }
 
 // MessageFetchRequestMessageBody is struct the represents body for message fetch request.

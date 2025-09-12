@@ -107,6 +107,8 @@ type CredentialIssuanceRequestMessage struct {
 
 	CreatedTime *int64 `json:"created_time,omitempty"`
 	ExpiresTime *int64 `json:"expires_time,omitempty"`
+
+	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
 }
 
 // CredentialIssuanceRequestMessageBody represents data for credential issuance request
@@ -130,6 +132,8 @@ type CredentialsOfferMessage struct {
 
 	CreatedTime *int64 `json:"created_time,omitempty"`
 	ExpiresTime *int64 `json:"expires_time,omitempty"`
+
+	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
 }
 
 // CredentialsOfferMessageBody is struct the represents offer message
@@ -159,6 +163,8 @@ type CredentialIssuanceMessage struct {
 
 	CreatedTime *int64 `json:"created_time,omitempty"`
 	ExpiresTime *int64 `json:"expires_time,omitempty"`
+
+	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
 }
 
 // IssuanceMessageBody is struct the represents message when credential is issued
@@ -179,6 +185,8 @@ type CredentialFetchRequestMessage struct {
 
 	CreatedTime *int64 `json:"created_time,omitempty"`
 	ExpiresTime *int64 `json:"expires_time,omitempty"`
+
+	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
 }
 
 // CredentialFetchRequestMessageBody is msg body for fetch request
@@ -207,6 +215,8 @@ type CredentialStatusUpdateMessage struct {
 
 	CreatedTime *int64 `json:"created_time,omitempty"`
 	ExpiresTime *int64 `json:"expires_time,omitempty"`
+
+	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
 }
 
 // CredentialStatusUpdateMessageBody the structure that represents the body of credential status update message
@@ -229,6 +239,8 @@ type CredentialRefreshMessage struct {
 
 	CreatedTime *int64 `json:"created_time,omitempty"`
 	ExpiresTime *int64 `json:"expires_time,omitempty"`
+
+	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
 }
 
 // CredentialRefreshMessageBody is msg body for refresh message
@@ -251,6 +263,8 @@ type CredentialsOnchainOfferMessage struct {
 
 	CreatedTime *int64 `json:"created_time,omitempty"`
 	ExpiresTime *int64 `json:"expires_time,omitempty"`
+
+	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
 }
 
 // CredentialsOnchainOfferMessageBody is struct the represents onchain offer message
@@ -277,6 +291,8 @@ type CredentialsProposalRequestMessage struct {
 
 	CreatedTime *int64 `json:"created_time,omitempty"`
 	ExpiresTime *int64 `json:"expires_time,omitempty"`
+
+	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
 }
 
 // CredentialsProposalMessage represents Iden3message for credential proposal
@@ -297,6 +313,8 @@ type CredentialsProposalMessage struct {
 
 	CreatedTime *int64 `json:"created_time,omitempty"`
 	ExpiresTime *int64 `json:"expires_time,omitempty"`
+
+	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
 }
 
 // CredentialsProposalRequestBody is msg body for proposal requests
@@ -370,6 +388,8 @@ type CredentialPaymentRequestMessage struct {
 
 	CreatedTime *int64 `json:"created_time,omitempty"`
 	ExpiresTime *int64 `json:"expires_time,omitempty"`
+
+	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
 }
 
 // CredentialPaymentRequestBody is msg body for payment requests
@@ -428,6 +448,8 @@ type CredentialPaymentMessage struct {
 
 	CreatedTime *int64 `json:"created_time,omitempty"`
 	ExpiresTime *int64 `json:"expires_time,omitempty"`
+
+	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
 }
 
 // CredentialPaymentBody is msg body for payment

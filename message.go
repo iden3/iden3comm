@@ -18,6 +18,8 @@ type BasicMessage struct {
 
 	CreatedTime *int64 `json:"created_time,omitempty"`
 	ExpiresTime *int64 `json:"expires_time,omitempty"`
+
+	Attachments []Attachment `json:"attachments,omitempty"`
 }
 
 // ProtocolMessage is IDEN3Comm message
