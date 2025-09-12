@@ -75,6 +75,14 @@ type ZeroKnowledgeProofRequest struct {
 	ExtendedID *big.Int
 }
 
+// GetID - returns ID in big.Int format depending on ID or ExtendedID value
+func (r ZeroKnowledgeProofRequest) GetID() *big.Int {
+	if r.ExtendedID != nil {
+		return r.ExtendedID
+	}
+	return new(big.Int).SetUint64(uint64(r.ID))
+}
+
 // MarshalJSON - marshals the protocol zero-knowledge proof request depending on ID or ExtendedID value
 func (r ZeroKnowledgeProofRequest) MarshalJSON() ([]byte, error) {
 
@@ -139,6 +147,14 @@ type ZeroKnowledgeProofResponse struct {
 	CircuitID              string
 	VerifiablePresentation json.RawMessage
 	types.ZKProof
+}
+
+// GetID - returns ID in big.Int format depending on ID or ExtendedID value
+func (r ZeroKnowledgeProofResponse) GetID() *big.Int {
+	if r.ExtendedID != nil {
+		return r.ExtendedID
+	}
+	return new(big.Int).SetUint64(uint64(r.ID))
 }
 
 // MarshalJSON - marshals the protocol zero-knowledge proof response depending on ID or ExtendedID value
