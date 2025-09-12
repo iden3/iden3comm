@@ -12,6 +12,7 @@ import (
 	"github.com/iden3/iden3comm/v2/mock"
 	"github.com/iden3/iden3comm/v2/protocol"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestZKPPacker_Pack(t *testing.T) {
@@ -100,4 +101,22 @@ func TestPlainMessagePacker_Unpack(t *testing.T) {
 	assert.Equal(t, protocol.AuthorizationResponseMessageType, authResponse.Type)
 	assert.Len(t, authResponse.Body.Scope, 0)
 
+}
+
+func TestZKPSupportedProfilesNoCircuits(t *testing.T) {
+	mockedProvingMethod := &mock.ProvingMethodGroth16AuthV2{
+		ProvingMethodAlg: jwz.ProvingMethodAlg{
+			Alg:       "groth16-mock",
+			CircuitID: "authV2",
+		},
+	}
+	mockProvingParamMap := make(map[jwz.ProvingMethodAlg]ProvingParams)
+	mockProvingParamMap[mockedProvingMethod.ProvingMethodAlg] =
+		NewProvingParams(mock.PrepareAuthInputs, []byte{}, []byte{})
+
+	mockVerificationParam := make(map[jwz.ProvingMethodAlg]VerificationParams)
+	mockVerificationParam[mockedProvingMethod.ProvingMethodAlg] = NewVerificationParams([]byte(""), mock.VerifyState)
+	p := NewZKPPacker(mockProvingParamMap, mockVerificationParam)
+	acceptProfiles := p.GetSupportedProfiles()
+	require.Equal(t, []string{"iden3comm/v1;env=application/iden3-zkp-json&alg=groth16&circuitIds=authV2"}, acceptProfiles)
 }

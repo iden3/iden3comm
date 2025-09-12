@@ -85,6 +85,12 @@ const (
 	//
 	// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
 	CredentialPaymentMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/0.1/payment"
+
+	// DiscoverFeatureQueriesMessageType is type for discover-features queries message
+	DiscoverFeatureQueriesMessageType iden3comm.ProtocolMessage = iden3comm.DidCommProtocol + "discover-features/2.0/queries"
+
+	// DiscoverFeatureDiscloseMessageType is type for discover-features disclose message
+	DiscoverFeatureDiscloseMessageType iden3comm.ProtocolMessage = iden3comm.DidCommProtocol + "discover-features/2.0/disclose"
 )
 
 // CredentialIssuanceRequestMessage represent Iden3message for credential request

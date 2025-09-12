@@ -17,6 +17,8 @@ import (
 	"github.com/iden3/go-iden3-core/v2/w3c"
 	"github.com/iden3/go-jwz/v2"
 	"github.com/iden3/iden3comm/v2"
+	"github.com/iden3/iden3comm/v2/protocol"
+	"github.com/iden3/iden3comm/v2/utils"
 	"github.com/pkg/errors"
 )
 
@@ -55,8 +57,9 @@ func NewVerificationParams(key []byte, verifier VerificationHandlerFunc) Verific
 
 // ZKPPacker is packer that use JWZ
 type ZKPPacker struct {
-	Prover       map[jwz.ProvingMethodAlg]ProvingParams
-	Verification map[jwz.ProvingMethodAlg]VerificationParams
+	Prover              map[jwz.ProvingMethodAlg]ProvingParams
+	Verification        map[jwz.ProvingMethodAlg]VerificationParams
+	supportedCircuitIDs []circuits.CircuitID
 }
 
 // ProvingParams packer parameters for ZKP generation
@@ -85,9 +88,21 @@ type ZKPPackerParams struct {
 // NewZKPPacker creates new zkp packer instance
 func NewZKPPacker(provingParams map[jwz.ProvingMethodAlg]ProvingParams,
 	verification map[jwz.ProvingMethodAlg]VerificationParams) *ZKPPacker {
+	supportedCircuitIDs := make([]circuits.CircuitID, 0, len(provingParams)+len(verification))
+	for alg := range provingParams {
+		supportedCircuitIDs = append(supportedCircuitIDs, circuits.CircuitID(alg.CircuitID))
+	}
+
+	for alg := range verification {
+		supportedCircuitIDs = append(supportedCircuitIDs, circuits.CircuitID(alg.CircuitID))
+	}
+
+	uniqueCircuitIDs := unique(supportedCircuitIDs)
+
 	return &ZKPPacker{
-		Prover:       provingParams,
-		Verification: verification,
+		Prover:              provingParams,
+		Verification:        verification,
+		supportedCircuitIDs: uniqueCircuitIDs,
 	}
 }
 
@@ -179,16 +194,18 @@ func (p *ZKPPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 
 func verifySender(token *jwz.Token, msg iden3comm.BasicMessage) error {
 
-	if circuits.CircuitID(token.CircuitID) == circuits.AuthV2CircuitID {
-		return verifyAuthV2Sender(msg.From, token)
+	if circuits.CircuitID(token.CircuitID) == circuits.AuthV2CircuitID ||
+		circuits.CircuitID(token.CircuitID) == circuits.AuthV3CircuitID ||
+		circuits.CircuitID(token.CircuitID) == circuits.AuthV3_8_32CircuitID {
+		return verifyAuthSender(msg.From, token)
 	}
 
 	return errors.Errorf("'%s' unknown circuit ID. can't verify msg sender", token.CircuitID)
 }
 
-func verifyAuthV2Sender(from string, token *jwz.Token) error {
+func verifyAuthSender(from string, token *jwz.Token) error {
 
-	authPubSignals := circuits.AuthV2PubSignals{}
+	authPubSignals := circuits.AuthV3PubSignals{}
 
 	err := unmarshalPubSignals(&authPubSignals, token.ZkProof.PubSignals)
 	if err != nil {
@@ -239,6 +256,82 @@ func (p *ZKPPacker) MediaType() iden3comm.MediaType {
 	return MediaTypeZKPMessage
 }
 
+// GetSupportedProfiles gets packer envelope (supported profiles) with options
+func (p *ZKPPacker) GetSupportedProfiles() []string {
+	supportedCircuits := make([]string, len(p.supportedCircuitIDs))
+	for i, id := range p.supportedCircuitIDs {
+		supportedCircuits[i] = string(id)
+	}
+
+	return []string{
+		fmt.Sprintf(
+			"%s;env=%s&alg=%s&circuitIds=%s",
+			protocol.Iden3CommVersion1,
+			p.MediaType(),
+			strings.Join(p.getSupportedAlgorithms(), ","),
+			strings.Join(supportedCircuits, ","),
+		),
+	}
+}
+
+// IsProfileSupported checks if profile is supported by packer
+func (p *ZKPPacker) IsProfileSupported(profile string) bool {
+	parsedProfile, err := utils.ParseAcceptProfile(profile)
+	if err != nil {
+		return false
+	}
+
+	if parsedProfile.AcceptedVersion != protocol.Iden3CommVersion1 {
+		return false
+	}
+
+	if parsedProfile.Env != p.MediaType() {
+		return false
+	}
+
+	supportedCircuitIDs := p.supportedCircuitIDs
+	circuitIDSupported := len(parsedProfile.AcceptCircuits) == 0
+	if !circuitIDSupported {
+		for _, circuit := range parsedProfile.AcceptCircuits {
+			for _, supportedCircuit := range supportedCircuitIDs {
+				if circuit == supportedCircuit {
+					circuitIDSupported = true
+					break
+				}
+			}
+			if circuitIDSupported {
+				break
+			}
+		}
+	}
+
+	if len(parsedProfile.AcceptAnoncryptAlgorithms) > 0 || len(parsedProfile.AcceptJwsAlgorithms) > 0 {
+		return false
+	}
+
+	supportedAlgorithms := p.getSupportedAlgorithms()
+	algSupported := len(parsedProfile.AcceptJwzAlgorithms) == 0
+	if !algSupported {
+		for _, alg := range parsedProfile.AcceptJwzAlgorithms {
+			for _, supportedAlg := range supportedAlgorithms {
+				if string(alg) == supportedAlg {
+					algSupported = true
+					break
+				}
+			}
+			if algSupported {
+				break
+			}
+		}
+	}
+
+	return circuitIDSupported && algSupported
+}
+
+func (p *ZKPPacker) getSupportedAlgorithms() []string {
+	return []string{string(protocol.JwzAlgorithmsGroth16)}
+}
+
 // DefaultZKPUnpackerOption is a function that sets the default ZKP unpacker options
 type DefaultZKPUnpackerOption func(*defaultZKPUnpacker)
 
@@ -265,8 +358,22 @@ func DefaultZKPUnpacker(verificationKey []byte, resolvers map[int]eth.Resolver, 
 	return NewZKPPacker(nil, verifications)
 }
 
+// DefaultMultiKeyZKPUnpacker creates a default ZKP unpacker with the provided verification keys and resolvers
+func DefaultMultiKeyZKPUnpacker(verificationKeys map[jwz.ProvingMethodAlg][]byte, resolvers map[int]eth.Resolver, opts ...DefaultZKPUnpackerOption) *ZKPPacker {
+	def := &defaultZKPUnpacker{resolvers, time.Minute * 5}
+	for _, opt := range opts {
+		opt(def)
+	}
+
+	verifications := make(map[jwz.ProvingMethodAlg]VerificationParams)
+	for provingMethodAlg, verificationKey := range verificationKeys {
+		verifications[provingMethodAlg] = NewVerificationParams(verificationKey, def.defaultZkpUnpackerVerificationFn)
+	}
+	return NewZKPPacker(nil, verifications)
+}
+
 func (d *defaultZKPUnpacker) defaultZkpUnpackerVerificationFn(id circuits.CircuitID, pubsignals []string) error {
-	if id != circuits.AuthV2CircuitID {
+	if id != circuits.AuthV2CircuitID && id != circuits.AuthV3CircuitID && id != circuits.AuthV3_8_32CircuitID {
 		return errors.Errorf("circuit ID '%s' is not supported", id)
 	}
 
@@ -275,7 +382,7 @@ func (d *defaultZKPUnpacker) defaultZkpUnpackerVerificationFn(id circuits.Circui
 		return errors.Errorf("error marshaling pubsignals: %v", err)
 	}
 
-	authPubSignals := circuits.AuthV2PubSignals{}
+	authPubSignals := circuits.AuthV3PubSignals{}
 	err = authPubSignals.PubSignalsUnmarshal(bytePubsig)
 	if err != nil {
 		return errors.Errorf("error unmarshaling pubsignals: %v", err)
@@ -314,4 +421,16 @@ func (d *defaultZKPUnpacker) defaultZkpUnpackerVerificationFn(id circuits.Circui
 	}
 
 	return nil
+}
+
+func unique(ids []circuits.CircuitID) []circuits.CircuitID {
+	seen := make(map[circuits.CircuitID]struct{})
+	result := make([]circuits.CircuitID, 0, len(ids))
+	for _, id := range ids {
+		if _, exists := seen[id]; !exists {
+			seen[id] = struct{}{}
+			result = append(result, id)
+		}
+	}
+	return result
 }
