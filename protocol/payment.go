@@ -403,10 +403,12 @@ type PaymentMessageBody struct {
 // Payment is a union type for field Payments in PaymentMessageBody.
 // Only one of the fields can be set at a time.
 type Payment struct {
-	dataType PaymentType
-	crypto   *Iden3PaymentCryptoV1
-	rails    *Iden3PaymentRailsV1
-	railsERC *Iden3PaymentRailsERC20V1
+	dataType       PaymentType
+	crypto         *Iden3PaymentCryptoV1
+	rails          *Iden3PaymentRailsV1
+	railsERC       *Iden3PaymentRailsERC20V1
+	railsSolana    *Iden3PaymentRailsSolanaV1
+	railsSolanaSPL *Iden3PaymentRailsSolanaSPLV1
 }
 
 // NewPaymentCrypto creates a new Payment with Iden3PaymentCryptoV1 data.
