@@ -71,6 +71,8 @@ func (m *BasicMessage) UnmarshalJSON(bytes []byte) error {
 		To          stringOrArray `json:"to"`
 		CreatedTime *int64        `json:"created_time,omitempty"`
 		ExpiresTime *int64        `json:"expires_time,omitempty"`
+
+		Attachments []Attachment `json:"attachments,omitempty"`
 	}
 
 	err := json.Unmarshal(bytes, &h)
@@ -88,6 +90,7 @@ func (m *BasicMessage) UnmarshalJSON(bytes []byte) error {
 	m.Type = h.Type
 	m.To = h.To.to
 	m.DIDCommTo = h.To.toArr
+	m.Attachments = h.Attachments
 
 	return nil
 }
@@ -106,6 +109,8 @@ func (m BasicMessage) MarshalJSON() ([]byte, error) {
 		CreatedTime *int64 `json:"created_time,omitempty"`
 		ExpiresTime *int64 `json:"expires_time,omitempty"`
 		To          string `json:"to,omitempty"`
+
+		Attachments []Attachment `json:"attachments,omitempty"`
 	}
 
 	var didcomm struct {
@@ -119,6 +124,8 @@ func (m BasicMessage) MarshalJSON() ([]byte, error) {
 		CreatedTime *int64   `json:"created_time,omitempty"`
 		ExpiresTime *int64   `json:"expires_time,omitempty"`
 		To          []string `json:"to,omitempty"`
+
+		Attachments []Attachment `json:"attachments,omitempty"`
 	}
 
 	if m.DIDCommTo == nil {
@@ -131,6 +138,7 @@ func (m BasicMessage) MarshalJSON() ([]byte, error) {
 		iden3comm.Typ = m.Typ
 		iden3comm.Type = m.Type
 		iden3comm.To = m.To
+		iden3comm.Attachments = m.Attachments
 		return json.Marshal(iden3comm)
 	}
 	didcomm.ID = m.ID
@@ -143,7 +151,7 @@ func (m BasicMessage) MarshalJSON() ([]byte, error) {
 	didcomm.Type = m.Type
 
 	didcomm.To = m.DIDCommTo
-	// TODO: check consistency with m.To
+	didcomm.Attachments = m.Attachments
 
 	return json.Marshal(didcomm)
 }
