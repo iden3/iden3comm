@@ -191,6 +191,8 @@ func isAcceptAuthCircuits(value string) bool {
 	// List all possible authentication circuits
 	validCircuits := []circuits.CircuitID{
 		circuits.AuthV2CircuitID,
+		circuits.AuthV3CircuitID,
+		circuits.AuthV3_8_32CircuitID,
 	}
 	for _, v := range validCircuits {
 		if circuits.CircuitID(value) == v {

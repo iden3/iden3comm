@@ -75,14 +75,6 @@ type ZeroKnowledgeProofRequest struct {
 	ExtendedID *big.Int
 }
 
-// GetID - returns ID in big.Int format depending on ID or ExtendedID value
-func (r ZeroKnowledgeProofRequest) GetID() *big.Int {
-	if r.ExtendedID != nil {
-		return r.ExtendedID
-	}
-	return new(big.Int).SetUint64(uint64(r.ID))
-}
-
 // MarshalJSON - marshals the protocol zero-knowledge proof request depending on ID or ExtendedID value
 func (r ZeroKnowledgeProofRequest) MarshalJSON() ([]byte, error) {
 
@@ -108,6 +100,14 @@ func (r ZeroKnowledgeProofRequest) MarshalJSON() ([]byte, error) {
 	zkRequest.Query = r.Query
 
 	return json.Marshal(zkRequest)
+}
+
+// GetID - returns ID in big.Int format depending on ID or ExtendedID value
+func (r ZeroKnowledgeProofRequest) GetID() *big.Int {
+	if r.ExtendedID != nil {
+		return r.ExtendedID
+	}
+	return new(big.Int).SetUint64(uint64(r.ID))
 }
 
 // UnmarshalJSON unmarhaler
@@ -149,14 +149,6 @@ type ZeroKnowledgeProofResponse struct {
 	types.ZKProof
 }
 
-// GetID - returns ID in big.Int format depending on ID or ExtendedID value
-func (r ZeroKnowledgeProofResponse) GetID() *big.Int {
-	if r.ExtendedID != nil {
-		return r.ExtendedID
-	}
-	return new(big.Int).SetUint64(uint64(r.ID))
-}
-
 // MarshalJSON - marshals the protocol zero-knowledge proof response depending on ID or ExtendedID value
 func (r ZeroKnowledgeProofResponse) MarshalJSON() ([]byte, error) {
 
@@ -180,6 +172,14 @@ func (r ZeroKnowledgeProofResponse) MarshalJSON() ([]byte, error) {
 	zkResponse.ZKProof = r.ZKProof
 
 	return json.Marshal(zkResponse)
+}
+
+// GetID - returns ID in big.Int format depending on ID or ExtendedID value
+func (r ZeroKnowledgeProofResponse) GetID() *big.Int {
+	if r.ExtendedID != nil {
+		return r.ExtendedID
+	}
+	return new(big.Int).SetUint64(uint64(r.ID))
 }
 
 // UnmarshalJSON unmarhaler

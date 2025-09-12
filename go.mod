@@ -5,11 +5,11 @@ go 1.19
 require (
 	github.com/dustinxie/ecc v0.0.0-20210511000915-959544187564
 	github.com/google/uuid v1.6.0
-	github.com/iden3/driver-did-iden3 v0.0.9
-	github.com/iden3/go-circuits/v2 v2.4.1
+	github.com/iden3/driver-did-iden3 v0.0.12
+	github.com/iden3/go-circuits/v2 v2.4.2
 	github.com/iden3/go-iden3-core/v2 v2.3.2
 	github.com/iden3/go-iden3-crypto v0.0.17
-	github.com/iden3/go-jwz/v2 v2.2.1
+	github.com/iden3/go-jwz/v2 v2.2.2
 	github.com/iden3/go-rapidsnark/types v0.0.3
 	github.com/iden3/go-schema-processor/v2 v2.6.2
 	github.com/lestrrat-go/jwx/v2 v2.0.12
@@ -34,14 +34,14 @@ require (
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/holiman/uint256 v1.2.3 // indirect
-	github.com/iden3/contracts-abi/onchain-credential-status-resolver/go/abi v0.0.0-20230911113809-c58b7e7a69b0 // indirect
-	github.com/iden3/contracts-abi/state/go/abi v1.0.1 // indirect
+	github.com/iden3/contracts-abi/onchain-credential-status-resolver/go/abi v1.0.2 // indirect
+	github.com/iden3/contracts-abi/state/go/abi v1.1.0 // indirect
 	github.com/iden3/go-merkletree-sql/v2 v2.0.6 // indirect
 	github.com/iden3/go-rapidsnark/prover v0.0.10 // indirect
 	github.com/iden3/go-rapidsnark/verifier v0.0.5 // indirect
 	github.com/iden3/go-rapidsnark/witness/v2 v2.0.0 // indirect
 	github.com/iden3/go-rapidsnark/witness/wazero v0.0.0-20230524142950-0986cf057d4e // indirect
-	github.com/iden3/merkletree-proof v0.3.0 // indirect
+	github.com/iden3/merkletree-proof v1.0.1 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.1 // indirect
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
 	github.com/lestrrat-go/httprc v1.0.4 // indirect
