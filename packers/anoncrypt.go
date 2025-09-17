@@ -26,7 +26,7 @@ var (
 	supportedCekAlgorithms          = []string{defaultCEA.String(), jwa.A256CBC_HS512().String()}
 )
 
-// MediaTypeEncryptedMessage is media type for ecnrypted message
+// MediaTypeEncryptedMessage is media type for encrypted message
 const MediaTypeEncryptedMessage iden3comm.MediaType = "application/iden3comm-encrypted-json"
 
 // AnoncryptPacker is  packer for anon encryption / decryption
