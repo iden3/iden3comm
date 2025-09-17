@@ -298,6 +298,7 @@ func loadDIDDoc(fileName string) (*verifiable.DIDDocument, error) {
 	if err != nil {
 		return nil, err
 	}
+	//nolint:errcheck // ignore close error
 	defer file.Close()
 
 	// decode json

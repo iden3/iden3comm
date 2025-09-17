@@ -30,6 +30,7 @@ var (
 	ES256KRALG = jwa.NewSignatureAlgorithm("ES256K-R")
 )
 
+//nolint:gochecknoinits // init is needed to register custom algorithm
 func init() {
 	jwa.RegisterEllipticCurveAlgorithm(jwa.NewEllipticCurveAlgorithm("secp256k1"))
 	jwa.RegisterEllipticCurveAlgorithm(bjj.Curve)

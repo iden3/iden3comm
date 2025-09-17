@@ -21,7 +21,14 @@ linters:
     - unconvert
     - unparam
     - unused
+    - gochecknoinits
+    - errcheck
   settings:
+    govet:
+      enable:
+        - shadow
+    revive:
+      confidence: 0.1
     goconst:
       min-len: 2
       min-occurrences: 2
@@ -50,15 +57,15 @@ linters:
           - gosec
         path: _test\.go
     paths:
-      - third_party$
-      - builtin$
-      - examples$
       - mock/proving\.go$  # skip mock files
       - mock/keys\.go$    # skip mock files
 formatters:
-  exclusions:
-    generated: lax
-    paths:
-      - third_party$
-      - builtin$
-      - examples$
+  enable:
+    - gci
+    - gofmt
+    - goimports
+  settings:
+    gci:
+      sections:
+        - standard
+        - default

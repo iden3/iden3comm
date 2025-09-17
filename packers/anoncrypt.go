@@ -236,7 +236,7 @@ func (p *AnoncryptPacker) resolveRecipientKeyFromDIDDoc(diddoc *verifiable.DIDDo
 func (p *AnoncryptPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 	jweMessage, err := jwe.Parse(envelope)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse jwe toekn: %w", err)
+		return nil, fmt.Errorf("failed to parse jwe token: %w", err)
 	}
 
 	for _, r := range jweMessage.Recipients() {

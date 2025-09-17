@@ -15,13 +15,14 @@ import (
 	"github.com/lestrrat-go/jwx/v3/jwe"
 )
 
+//nolint:gochecknoinits // init is needed to register custom algorithm
 func init() {
 	jwa.RegisterKeyEncryptionAlgorithm(
 		jwa.NewKeyEncryptionAlgorithm(
 			string(protocol.AuthcryptECDH1PUA256KW)))
 }
 
-// MediaTypeAuthEncryptedMessage is media type for auth ecnrypted message
+// MediaTypeAuthEncryptedMessage is media type for auth encrypted message
 const MediaTypeAuthEncryptedMessage iden3comm.MediaType = "application/iden3comm-auth-encrypted-json"
 
 // AuthcryptPacker is  packer for auth encryption / decryption

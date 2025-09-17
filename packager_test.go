@@ -80,7 +80,8 @@ func TestPackagerZKPPacker(t *testing.T) {
 
 func TestPackagerAnonryptPacker(t *testing.T) {
 	pm := iden3comm.NewPackageManager()
-	pm.RegisterPackers(packers.NewAnoncryptPacker(mock.ResolveEncPrivateKey, nil), &packers.PlainMessagePacker{})
+	err := pm.RegisterPackers(packers.NewAnoncryptPacker(mock.ResolveEncPrivateKey, nil), &packers.PlainMessagePacker{})
+	require.NoError(t, err)
 
 	identifier := "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29"
 
