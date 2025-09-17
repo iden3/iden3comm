@@ -54,6 +54,7 @@ linters:
       - builtin$
       - examples$
       - mock/proving\.go$  # skip mock files
+      - mock/keys\.go$    # skip mock files
 formatters:
   exclusions:
     generated: lax

@@ -165,7 +165,7 @@ func (r *PackageManager) GetMediaType(envelope []byte) (MediaType, error) {
 		if err != nil {
 			return "", fmt.Errorf("parse envelope: %w", err)
 		}
-		base64Header, err = base64.StdEncoding.DecodeString(env.Protected)
+		base64Header, err = base64.RawURLEncoding.DecodeString(env.Protected)
 		if err != nil {
 			return "", fmt.Errorf("parse envelope: %w", err)
 		}

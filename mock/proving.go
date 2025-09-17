@@ -20,6 +20,7 @@ import (
 	"github.com/iden3/go-jwz/v2"
 	"github.com/iden3/go-rapidsnark/types"
 	joseprimitives "github.com/iden3/jose-primitives"
+	"github.com/lestrrat-go/jwx/v3/jwa"
 	"github.com/lestrrat-go/jwx/v3/jwk"
 )
 
@@ -107,6 +108,7 @@ func ResolveKeyID(keyID string) (jwk.Key, error) {
 		return nil, fmt.Errorf("failed to import recipient public key: %w", err)
 	}
 	importedKey.Set(jwk.KeyIDKey, keyID)
+	importedKey.Set(jwk.AlgorithmKey, jwa.ECDH_ES_A256KW().String())
 	return importedKey, nil
 }
 

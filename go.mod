@@ -2,6 +2,11 @@ module github.com/iden3/iden3comm/v2
 
 go 1.24.2
 
+replace (
+	github.com/iden3/driver-did-iden3 => /Users/illia/go/src/github.com/iden3/driver-did-iden3
+	github.com/iden3/go-schema-processor/v2 => /Users/illia/go/src/github.com/iden3/go-schema-processor
+)
+
 require (
 	github.com/dustinxie/ecc v0.0.0-20210511000915-959544187564
 	github.com/google/uuid v1.6.0

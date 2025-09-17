@@ -110,8 +110,6 @@ github.com/iden3/contracts-abi/onchain-credential-status-resolver/go/abi v1.0.2 
 github.com/iden3/contracts-abi/onchain-credential-status-resolver/go/abi v1.0.2/go.mod h1:8fkd2xyUG/V7ovpvZRyD2LyK2zZ4ALbgf5vJGyhzKdg=
 github.com/iden3/contracts-abi/state/go/abi v1.1.0 h1:5JC3Q5UU3Ir7H+0vgSvvR79EPoUnQUhdgF5zPRBaZhE=
 github.com/iden3/contracts-abi/state/go/abi v1.1.0/go.mod h1:TxgIrXCvxms3sbOdsy8kTvffUCIpEEifNy0fSXdkU4w=
-github.com/iden3/driver-did-iden3 v0.0.13 h1:XSbuSWSkPIJnw9EXUI5t1gJ/qG7Ycr4qyzMc8zkMdZs=
-github.com/iden3/driver-did-iden3 v0.0.13/go.mod h1:KC3I8DZKV2HBAcUSKTE9UU3EqoKbHmqnXzwJ8goep40=
 github.com/iden3/go-circuits/v2 v2.4.2 h1:n4AaL7kIrmeTUGZdn2e1UL9wmzqcO1glkiZGUQXmagQ=
 github.com/iden3/go-circuits/v2 v2.4.2/go.mod h1:LnbASvfhsDajwOYSdPmbQ585KuzwHF/AUS7pICol5ss=
 github.com/iden3/go-iden3-core/v2 v2.3.2 h1:kZq/TiSUmBKO/mvPUucfFE45ugTW+hXXlGT+Jf6CQTg=
@@ -134,8 +132,6 @@ github.com/iden3/go-rapidsnark/witness/v2 v2.0.0 h1:mkY6VDfwKVJc83QGKmwVXY2LYepi
 github.com/iden3/go-rapidsnark/witness/v2 v2.0.0/go.mod h1:3JRjqUfW1hgI9hzLDO0v8z/DUkR0ZUehhYLlnIfRxnA=
 github.com/iden3/go-rapidsnark/witness/wazero v0.0.0-20230524142950-0986cf057d4e h1:WeiFCrpj5pLRtSA4Mg03yTrSZhHHqN/k5b6bwxd9/tY=
 github.com/iden3/go-rapidsnark/witness/wazero v0.0.0-20230524142950-0986cf057d4e/go.mod h1:UEBifEzw62T6VzIHJeHuUgeLg2U/J9ttf7hOwQEqnYk=
-github.com/iden3/go-schema-processor/v2 v2.6.2 h1:rVozuQSmsSA/AQ/BZhJYxDDdKfvza14pzYox29/X0PU=
-github.com/iden3/go-schema-processor/v2 v2.6.2/go.mod h1:OxNV97oEShKpSIE7KSEqFFktBkPJDLDW/oNbT+ky8KU=
 github.com/iden3/jose-primitives v0.0.5 h1:jj7EAXrKBFmuj8LdHTC47MBMQwtKm0d6Uc9k8HrIZ1c=
 github.com/iden3/jose-primitives v0.0.5/go.mod h1:KhDi+Mt/Z43PK4xLmXPy+C3tFCypRcdj6kM6h0IOx0U=
 github.com/iden3/merkletree-proof v1.0.1 h1:4Srfjm4rsFwjEhhvFDC8/VzK1eYs1jYzEOmwS962s2A=
