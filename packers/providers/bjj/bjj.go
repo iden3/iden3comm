@@ -32,10 +32,6 @@ func (p *Provider) Sign(payload []byte, opts interface{}) ([]byte, error) {
 		return nil, errors.New("bjj signer opts support only signer interface")
 	}
 
-	// TODO(illia-korotia): new version of go-iden3-crypto
-	// does not support the Sponge hash function due to security issue
-	// digest, err := poseidon.Hash(
-	// []*big.Int{big.NewInt(0).SetBytes(payload)})
 	digest, err := todoupdatePoseidon.HashBytes(payload)
 	if err != nil {
 		return nil, fmt.Errorf("failed get poseidon hash for payload: %v", err)
@@ -66,10 +62,6 @@ func (p *Provider) Verify(payload, signature []byte, opts interface{}) error {
 		return errors.New("public key is not on curve")
 	}
 
-	// TODO(illia-korotia): new version of go-iden3-crypto
-	// does not support the Sponge hash function due to security issue
-	// digest, err := poseidon.Hash(
-	// []*big.Int{big.NewInt(0).SetBytes(payload)})
 	digest, err := todoupdatePoseidon.HashBytes(payload)
 	if err != nil {
 		return fmt.Errorf("failed get poseidon hash for payload: %v", err)
