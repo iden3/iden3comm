@@ -119,7 +119,7 @@ func ResolveEncPrivateKey(keyID string) (interface{}, error) {
 	seed.SetString(keyID, 16)
 
 	recipientPrivKey := new(ecdsa.PrivateKey)
-	recipientPrivKey.PublicKey.Curve = elliptic.P256()
+	recipientPrivKey.PublicKey.Curve = elliptic.P384()
 	recipientPrivKey.D = seed
 	recipientPrivKey.PublicKey.X, recipientPrivKey.PublicKey.Y = recipientPrivKey.PublicKey.Curve.ScalarBaseMult(seed.Bytes())
 	return recipientPrivKey, nil

@@ -69,7 +69,7 @@ func (m MockRSA) BuildDidDocWithRSAKey(t *testing.T, did string) *document.DidRe
 }
 
 func NewMockEC(t *testing.T, r io.Reader) MockEC {
-	privKey, err := ecdh.P256().GenerateKey(r)
+	privKey, err := ecdh.P384().GenerateKey(r)
 	require.NoError(t, err)
 	return MockEC{PrivateKey: privKey}
 }
