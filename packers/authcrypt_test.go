@@ -33,8 +33,8 @@ func TestAuthcryptPacker(t *testing.T) {
 func TestAuthcrypt_GetSupportedProfiles(t *testing.T) {
 	packer := &AuthcryptPacker{}
 	expected := packer.GetSupportedProfiles()
-	acrual := []string{
+	actual := []string{
 		"iden3comm/v1;env=application/iden3comm-auth-encrypted-json;alg=ECDH-1PU+A256KW",
 	}
-	require.ElementsMatch(t, acrual, expected)
+	require.ElementsMatch(t, actual, expected)
 }
