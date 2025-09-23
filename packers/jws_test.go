@@ -10,7 +10,7 @@ import (
 	"github.com/iden3/go-schema-processor/v2/verifiable"
 	"github.com/iden3/iden3comm/v2/packers/providers/bjj"
 	"github.com/iden3/iden3comm/v2/packers/providers/es256k"
-	"github.com/lestrrat-go/jwx/v2/jwa"
+	"github.com/lestrrat-go/jwx/v3/jwa"
 	"github.com/stretchr/testify/require"
 )
 
@@ -39,7 +39,7 @@ func TestPKHKey(t *testing.T) {
 	token, err := p.Pack(
 		msgBytes,
 		SigningParams{
-			Alg: jwa.ES256K,
+			Alg: jwa.ES256K(),
 		})
 	require.NoError(t, err)
 
@@ -290,7 +290,7 @@ func TestLookForKid(t *testing.T) {
 func TestJWSSupportedProfiles(t *testing.T) {
 	p := JWSPacker{}
 	acceptProfiles := p.GetSupportedProfiles()
-	require.Equal(t, []string{"iden3comm/v1;env=application/iden3comm-signed-json&alg=ES256K,ES256K-R"}, acceptProfiles)
+	require.Equal(t, []string{"iden3comm/v1;env=application/iden3comm-signed-json;alg=ES256K,ES256K-R"}, acceptProfiles)
 }
 
 func loadDIDDoc(fileName string) (*verifiable.DIDDocument, error) {
@@ -298,6 +298,7 @@ func loadDIDDoc(fileName string) (*verifiable.DIDDocument, error) {
 	if err != nil {
 		return nil, err
 	}
+	//nolint:errcheck // ignore close error
 	defer file.Close()
 
 	// decode json

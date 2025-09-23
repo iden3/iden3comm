@@ -263,15 +263,25 @@ func (p *ZKPPacker) GetSupportedProfiles() []string {
 		supportedCircuits[i] = string(id)
 	}
 
-	return []string{
-		fmt.Sprintf(
-			"%s;env=%s&alg=%s&circuitIds=%s",
+	var s string
+	if len(supportedCircuits) == 0 {
+		s = fmt.Sprintf(
+			"%s;env=%s;alg=%s",
+			protocol.Iden3CommVersion1,
+			p.MediaType(),
+			strings.Join(p.getSupportedAlgorithms(), ","),
+		)
+	} else {
+		s = fmt.Sprintf(
+			"%s;env=%s;alg=%s;circuitIds=%s",
 			protocol.Iden3CommVersion1,
 			p.MediaType(),
 			strings.Join(p.getSupportedAlgorithms(), ","),
 			strings.Join(supportedCircuits, ","),
-		),
+		)
 	}
+
+	return []string{s}
 }
 
 // IsProfileSupported checks if profile is supported by packer
@@ -305,7 +315,9 @@ func (p *ZKPPacker) IsProfileSupported(profile string) bool {
 		}
 	}
 
-	if len(parsedProfile.AcceptAnoncryptAlgorithms) > 0 || len(parsedProfile.AcceptJwsAlgorithms) > 0 {
+	if len(parsedProfile.AcceptAnoncryptAlgorithms) > 0 ||
+		len(parsedProfile.AcceptJwsAlgorithms) > 0 ||
+		len(parsedProfile.AcceptAuthcryptAlgorithms) > 0 {
 		return false
 	}
 

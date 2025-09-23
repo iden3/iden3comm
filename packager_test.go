@@ -1,16 +1,22 @@
 package iden3comm_test
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/iden3/driver-did-iden3/pkg/document"
+	"github.com/iden3/driver-did-iden3/pkg/services"
 	"github.com/iden3/go-iden3-core/v2/w3c"
 	"github.com/iden3/go-jwz/v2"
 	"github.com/iden3/iden3comm/v2"
 	"github.com/iden3/iden3comm/v2/mock"
 	"github.com/iden3/iden3comm/v2/packers"
 	"github.com/iden3/iden3comm/v2/protocol"
+	"github.com/lestrrat-go/jwx/v3/jwa"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -73,39 +79,130 @@ func TestPackagerZKPPacker(t *testing.T) {
 }
 
 func TestPackagerAnonryptPacker(t *testing.T) {
-
 	pm := iden3comm.NewPackageManager()
-	pm.RegisterPackers(packers.NewAnoncryptPacker(mock.ResolveEncPrivateKey), &packers.PlainMessagePacker{})
-	// nolint :
+	err := pm.RegisterPackers(packers.NewAnoncryptPacker(mock.ResolveEncPrivateKey, nil), &packers.PlainMessagePacker{})
+	require.NoError(t, err)
 
 	identifier := "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29"
 
 	senderDID, err := w3c.ParseDID(identifier)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	targetIdentifier := "did:iden3:polygon:mumbai:wzWeGdtjvKtUP1oTxQP5t5iZGDX3HNfEU5xR8MZAt"
 
 	targetID, err := w3c.ParseDID(targetIdentifier)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	marshalledMsg, err := createFetchCredentialMessage(packers.MediaTypeEncryptedMessage, senderDID, targetID)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	key, err := mock.ResolveKeyID(mock.MockRecipientKeyID)
 	require.NoError(t, err)
 	envelope, err := pm.Pack(packers.MediaTypeEncryptedMessage, marshalledMsg,
-		packers.AnoncryptPackerParams{RecipientKey: &key})
-	assert.NoError(t, err)
+		packers.AnoncryptPackerParams{RecipientKey: key})
+	require.NoError(t, err)
 
 	unpackedMsg, unpackerType, err := pm.Unpack(envelope)
-	assert.NoError(t, err)
-	assert.Equal(t, unpackedMsg.Typ, unpackerType)
+	require.NoError(t, err)
+	require.Equal(t, unpackedMsg.Typ, unpackerType)
 
 	actualMSGBytes, err := json.Marshal(unpackedMsg)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	assert.JSONEq(t, string(marshalledMsg), string(actualMSGBytes))
+	require.JSONEq(t, string(marshalledMsg), string(actualMSGBytes))
+}
 
+func TestPackagerAnonryptPacker_Multirecipients(t *testing.T) {
+	aliceRSA := mock.NewMockRSA(t, mock.AliceDigest)
+	bobEC := mock.NewMockEC(t, mock.BobDigest)
+	viktorRSA := mock.NewMockRSA(t, mock.ViktorDigest)
+
+	// sender side
+	mockDidResolverFunc := func(_ context.Context, did string, _ *services.ResolverOpts) (
+		*document.DidResolution, error,
+	) {
+		switch did {
+		case "did:example:alice":
+			return aliceRSA.BuildDidDocWithRSAKey(t, "did:example:alice"), nil
+		case "did:example:bob":
+			return bobEC.BuildDidDocWithECKey(t, "did:example:bob"), nil
+		case "did:example:viktor":
+			return viktorRSA.BuildDidDocWithRSAKey(t, "did:example:viktor"), nil
+		}
+		require.FailNow(t, "unexpected did", did)
+		return nil, nil
+	}
+
+	// recipients sides
+	recipientsKeyResolvers := map[string]packers.KeyResolverHandlerFunc{
+		"did:example:alice": func(keyID string) (interface{}, error) {
+			if keyID == "did:example:alice#key-1" {
+				return aliceRSA.PrivateKey, nil
+			}
+			return nil, errors.New("not found")
+		},
+		"did:example:bob": func(keyID string) (interface{}, error) {
+			if keyID == "did:example:bob#key-1" {
+				return bobEC.PrivateKey, nil
+			}
+
+			return nil, errors.New("not found")
+		},
+		"did:example:viktor": func(keyID string) (interface{}, error) {
+			if keyID == "did:example:viktor#key-1" {
+				return viktorRSA.PrivateKey, nil
+			}
+			return nil, errors.New("not found")
+		},
+	}
+
+	anoncryptPacker := packers.NewAnoncryptPacker(nil, mockDidResolverFunc)
+	pm := iden3comm.NewPackageManager()
+	err := pm.RegisterPackers(anoncryptPacker)
+	require.NoError(t, err)
+
+	senderDID, err := w3c.ParseDID("did:example:alice")
+	require.NoError(t, err)
+	targetID, err := w3c.ParseDID("did:example:viktor")
+	require.NoError(t, err)
+	marshalledMsg, err := createFetchCredentialMessage(packers.MediaTypeEncryptedMessage, senderDID, targetID)
+	require.NoError(t, err)
+
+	recipients := []packers.AnoncryptRecipients{
+		{
+			DID:    "did:example:alice",
+			JWKAlg: jwa.RSA_OAEP_256().String(),
+		},
+		{
+			DID:    "did:example:bob",
+			JWKAlg: jwa.ECDH_ES_A256KW().String(),
+		},
+		{
+			DID:    "did:example:viktor",
+			JWKAlg: jwa.RSA_OAEP_256().String(),
+		},
+	}
+
+	envelope, err := pm.Pack(packers.MediaTypeEncryptedMessage, marshalledMsg,
+		packers.AnoncryptPackerParams{Recipients: recipients})
+	require.NoError(t, err)
+
+	for name, fn := range recipientsKeyResolvers {
+		t.Run(fmt.Sprintf("Decrypt with recipient: %s", name), func(t *testing.T) {
+			anoncryptPacker := packers.NewAnoncryptPacker(fn, nil)
+			pm := iden3comm.NewPackageManager()
+			err := pm.RegisterPackers(anoncryptPacker)
+			require.NoError(t, err)
+
+			unpackedMsg, unpackerType, err := pm.Unpack(envelope)
+			require.NoError(t, err)
+			require.Equal(t, unpackedMsg.Typ, unpackerType)
+
+			actualMSGBytes, err := json.Marshal(unpackedMsg)
+			require.NoError(t, err)
+			require.JSONEq(t, string(marshalledMsg), string(actualMSGBytes))
+		})
+	}
 }
 
 // check that MediaTypeZKPMessage will take only from jwz header, not from body.
@@ -153,8 +250,11 @@ func TestUnpackWithType(t *testing.T) {
 func TestGetSupportedProfiles(t *testing.T) {
 	pm := initPackageManager(t)
 	profiles := pm.GetSupportedProfiles()
-	assert.Contains(t, profiles, "iden3comm/v1;env=application/iden3comm-plain-json")
-	assert.Contains(t, profiles, "iden3comm/v1;env=application/iden3-zkp-json&alg=groth16&circuitIds=authV2")
+	expected := []string{
+		"iden3comm/v1;env=application/iden3comm-plain-json",
+		"iden3comm/v1;env=application/iden3-zkp-json;alg=groth16;circuitIds=authV2",
+	}
+	require.ElementsMatch(t, expected, profiles)
 }
 
 func createFetchCredentialMessage(typ iden3comm.MediaType, from, to *w3c.DID) ([]byte, error) {
@@ -199,4 +299,35 @@ func initPackageManager(t *testing.T) *iden3comm.PackageManager {
 	require.NoError(t, err)
 
 	return pm
+}
+
+func TestAuthcryptPacker(t *testing.T) {
+	authPacker := packers.NewAuthcryptPacker(mock.PubResolverAuthCrypt, mock.PrivResolverAuthCrypt)
+	pm := iden3comm.NewPackageManager()
+	err := pm.RegisterPackers(authPacker)
+	require.NoError(t, err)
+
+	identifier := "did:iden3:polygon:mumbai:x4jcHP4XHTK3vX58AHZPyHE8kYjneyE6FZRfz7K29"
+	senderDID, err := w3c.ParseDID(identifier)
+	require.NoError(t, err)
+
+	targetIdentifier := "did:iden3:polygon:mumbai:wzWeGdtjvKtUP1oTxQP5t5iZGDX3HNfEU5xR8MZAt"
+	targetID, err := w3c.ParseDID(targetIdentifier)
+	require.NoError(t, err)
+
+	marshalledMsg, err := createFetchCredentialMessage(packers.MediaTypeAuthEncryptedMessage, senderDID, targetID)
+	require.NoError(t, err)
+
+	envelope, err := pm.Pack(packers.MediaTypeAuthEncryptedMessage, marshalledMsg,
+		packers.AuthcryptPackerParams{SenderKeyID: mock.SenderKeyIdAuthCrypt, RecipientKeyID: mock.RecipientKeyIdAuthCrypt})
+	require.NoError(t, err)
+
+	unpackedMsg, unpackerType, err := pm.Unpack(envelope)
+	require.NoError(t, err)
+	require.Equal(t, unpackedMsg.Typ, unpackerType)
+
+	actualMSGBytes, err := json.Marshal(unpackedMsg)
+	require.NoError(t, err)
+
+	require.JSONEq(t, string(marshalledMsg), string(actualMSGBytes))
 }

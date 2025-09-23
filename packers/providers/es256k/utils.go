@@ -2,30 +2,32 @@ package es256k
 
 import (
 	"crypto/ecdsa"
+	"fmt"
 	"math/big"
 
 	"github.com/dustinxie/ecc"
-	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/pkg/errors"
 )
 
 // ParseKey parses jwk key to ecdsa public key
 func ParseKey(jwkKey jwk.Key) (*ecdsa.PublicKey, error) {
-	x, ok := jwkKey.Get("x")
-	if !ok {
-		return nil, errors.New("can't find x")
+	var x []byte
+	err := jwkKey.Get("x", &x)
+	if err != nil {
+		return nil, fmt.Errorf("can't find x: %w", err)
 	}
-	y, ok := jwkKey.Get("y")
-	if !ok {
-		return nil, errors.New("can't find y")
+
+	var y []byte
+	err = jwkKey.Get("y", &y)
+	if err != nil {
+		return nil, fmt.Errorf("can't find y: %w", err)
 	}
-	bgx := new(big.Int).SetBytes(x.([]byte))
-	bgy := new(big.Int).SetBytes(y.([]byte))
 
 	pub := ecdsa.PublicKey{
 		Curve: ecc.P256k1(),
-		X:     bgx,
-		Y:     bgy,
+		X:     new(big.Int).SetBytes(x),
+		Y:     new(big.Int).SetBytes(y),
 	}
 
 	if !pub.IsOnCurve(pub.X, pub.Y) {

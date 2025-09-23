@@ -4,27 +4,32 @@ import (
 	"crypto"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"io"
 	"math/big"
 
 	bjj "github.com/iden3/go-iden3-crypto/babyjub"
-	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v3/jwk"
 )
 
 // ParseKey parses jwk key to bjj public key
 func ParseKey(jwkKey jwk.Key) (*bjj.PublicKey, error) {
-	ux, ok := jwkKey.Get("x")
-	if !ok {
-		return nil, errors.New("can't find x")
+	var x []byte
+	err := jwkKey.Get("x", &x)
+	if err != nil {
+		return nil, fmt.Errorf("can't find x: %w", err)
 	}
-	uy, _ := jwkKey.Get("y")
-	if !ok {
-		return nil, errors.New("can't find y")
-	}
-	x := big.NewInt(0).SetBytes(ux.([]byte))
-	y := big.NewInt(0).SetBytes(uy.([]byte))
 
-	bjjPoint := bjj.Point{X: x, Y: y}
+	var y []byte
+	err = jwkKey.Get("y", &y)
+	if err != nil {
+		return nil, fmt.Errorf("can't find y: %w", err)
+	}
+
+	bjjPoint := bjj.Point{
+		X: big.NewInt(0).SetBytes(x),
+		Y: big.NewInt(0).SetBytes(y),
+	}
 	if !bjjPoint.InCurve() {
 		return nil, errors.New("point is not in curve")
 	}
@@ -46,9 +51,9 @@ func (s *GoSigner) Public() crypto.PublicKey {
 // Sign signs the digest with the private key
 func (s *GoSigner) Sign(_ io.Reader, buf []byte, _ crypto.SignerOpts) ([]byte, error) {
 	digest := big.NewInt(0).SetBytes(buf)
-	compressed := s.pk.SignPoseidon(digest).Compress()
+	signature := s.pk.SignPoseidon(digest)
 
-	sig, err := compressed.MarshalText()
+	sig, err := signature.Compress().MarshalText()
 	if err != nil {
 		return nil, err
 	}

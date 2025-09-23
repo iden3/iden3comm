@@ -6,9 +6,8 @@ import (
 
 	"github.com/iden3/driver-did-iden3/pkg/document"
 	"github.com/iden3/go-schema-processor/v2/verifiable"
-	"github.com/pkg/errors"
-
 	"github.com/iden3/iden3comm/v2"
+	"github.com/pkg/errors"
 )
 
 const (

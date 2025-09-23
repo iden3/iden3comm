@@ -8,11 +8,14 @@ import (
 
 	bjj "github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-iden3-crypto/poseidon"
-	"github.com/lestrrat-go/jwx/v2/jwa"
+	"github.com/lestrrat-go/jwx/v3/jwa"
 )
 
 // Alg signature algorithm
-const Alg jwa.SignatureAlgorithm = "BJJ"
+var (
+	Alg   = jwa.NewSignatureAlgorithm("EdDSA-BabyJubJub")
+	Curve = jwa.NewEllipticCurveAlgorithm("BJJ")
+)
 
 // Provider is a signer and verifier for BJJ
 type Provider struct{}
@@ -72,7 +75,8 @@ func (p *Provider) Verify(payload, signature []byte, opts interface{}) error {
 		return fmt.Errorf("can't decompress bjj signature: %v", err)
 	}
 
-	if !bjjPubKey.VerifyPoseidon(digest, poseidonDecSig) {
+	ok := bjjPubKey.VerifyPoseidon(digest, poseidonDecSig)
+	if !ok {
 		return fmt.Errorf("invalid signature")
 	}
 
