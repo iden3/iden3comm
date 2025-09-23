@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/dustinxie/ecc"
-	"github.com/iden3/go-iden3-crypto/v2/keccak256"
+	"github.com/iden3/go-iden3-crypto/keccak256"
 	"github.com/iden3/go-schema-processor/v2/verifiable"
 	"github.com/iden3/iden3comm/v2"
 	"github.com/iden3/iden3comm/v2/packers/providers/bjj"

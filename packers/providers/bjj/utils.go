@@ -8,7 +8,7 @@ import (
 	"io"
 	"math/big"
 
-	bjj "github.com/iden3/go-iden3-crypto/v2/babyjub"
+	bjj "github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/lestrrat-go/jwx/v3/jwk"
 )
 
@@ -51,10 +51,7 @@ func (s *GoSigner) Public() crypto.PublicKey {
 // Sign signs the digest with the private key
 func (s *GoSigner) Sign(_ io.Reader, buf []byte, _ crypto.SignerOpts) ([]byte, error) {
 	digest := big.NewInt(0).SetBytes(buf)
-	signature, err := s.pk.SignPoseidon(digest)
-	if err != nil {
-		return nil, fmt.Errorf("failed to sign digest: %v", err)
-	}
+	signature := s.pk.SignPoseidon(digest)
 
 	sig, err := signature.Compress().MarshalText()
 	if err != nil {

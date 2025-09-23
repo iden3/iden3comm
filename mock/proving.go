@@ -16,7 +16,7 @@ import (
 
 	"github.com/iden3/go-circuits/v2"
 	"github.com/iden3/go-iden3-core/v2/w3c"
-	"github.com/iden3/go-iden3-crypto/v2/babyjub"
+	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-jwz/v2"
 	"github.com/iden3/go-rapidsnark/types"
 	joseprimitives "github.com/iden3/jose-primitives"
@@ -73,13 +73,10 @@ func PrepareAuthInputs(hash []byte, _ *w3c.DID, _ circuits.CircuitID) ([]byte, e
 	if _, err := hex.Decode(k[:], []byte(userMockedPK)); err != nil {
 		return nil, err
 	}
-	sig, err := k.SignPoseidon(challenge)
-	if err != nil {
-		return nil, fmt.Errorf("failed to sign challenge: %v", err)
-	}
-	var i map[string]interface{}
+	sig := k.SignPoseidon(challenge)
 
-	err = json.Unmarshal(mockedInputs, &i)
+	var i map[string]interface{}
+	err := json.Unmarshal(mockedInputs, &i)
 	if err != nil {
 		return nil, err
 	}

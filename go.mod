@@ -9,7 +9,6 @@ require (
 	github.com/iden3/go-circuits/v2 v2.4.2
 	github.com/iden3/go-iden3-core/v2 v2.3.2
 	github.com/iden3/go-iden3-crypto v0.0.17
-	github.com/iden3/go-iden3-crypto/v2 v2.0.0
 	github.com/iden3/go-jwz/v2 v2.2.2
 	github.com/iden3/go-rapidsnark/types v0.0.3
 	github.com/iden3/go-schema-processor/v2 v2.6.3
