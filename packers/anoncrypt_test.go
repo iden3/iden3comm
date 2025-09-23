@@ -227,6 +227,15 @@ func TestAnoncryptPacker_Unpack_JS_Aligen(t *testing.T) {
 	require.JSONEq(t, originMessage, string(decryptedMsgBytes))
 }
 
+func TestAnoncryptPacker_GetSupportedProfiles(t *testing.T) {
+	packer := AnoncryptPacker{}
+	profiles := packer.GetSupportedProfiles()
+	expected := []string{
+		"iden3comm/v1;env=application/iden3comm-encrypted-json;alg=RSA-OAEP-256,ECDH-ES+A256KW",
+	}
+	require.ElementsMatch(t, expected, profiles)
+}
+
 func TestAnoncryptPacker_Pack_JS_Aligen(t *testing.T) {
 	t.Skipf("This test is used to generate a JWE token for testing in JS")
 	const (

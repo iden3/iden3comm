@@ -250,8 +250,11 @@ func TestUnpackWithType(t *testing.T) {
 func TestGetSupportedProfiles(t *testing.T) {
 	pm := initPackageManager(t)
 	profiles := pm.GetSupportedProfiles()
-	assert.Contains(t, profiles, "iden3comm/v1;env=application/iden3comm-plain-json")
-	assert.Contains(t, profiles, "iden3comm/v1;env=application/iden3-zkp-json&alg=groth16&circuitIds=authV2")
+	expected := []string{
+		"iden3comm/v1;env=application/iden3comm-plain-json",
+		"iden3comm/v1;env=application/iden3-zkp-json;alg=groth16;circuitIds=authV2",
+	}
+	require.ElementsMatch(t, expected, profiles)
 }
 
 func createFetchCredentialMessage(typ iden3comm.MediaType, from, to *w3c.DID) ([]byte, error) {

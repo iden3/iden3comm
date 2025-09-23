@@ -290,7 +290,7 @@ func TestLookForKid(t *testing.T) {
 func TestJWSSupportedProfiles(t *testing.T) {
 	p := JWSPacker{}
 	acceptProfiles := p.GetSupportedProfiles()
-	require.Equal(t, []string{"iden3comm/v1;env=application/iden3comm-signed-json&alg=ES256K,ES256K-R"}, acceptProfiles)
+	require.Equal(t, []string{"iden3comm/v1;env=application/iden3comm-signed-json;alg=ES256K,ES256K-R"}, acceptProfiles)
 }
 
 func loadDIDDoc(fileName string) (*verifiable.DIDDocument, error) {

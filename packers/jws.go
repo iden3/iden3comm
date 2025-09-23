@@ -363,7 +363,7 @@ func (p *JWSPacker) MediaType() iden3comm.MediaType {
 func (p *JWSPacker) GetSupportedProfiles() []string {
 	return []string{
 		fmt.Sprintf(
-			"%s;env=%s&alg=%s",
+			"%s;env=%s;alg=%s",
 			protocol.Iden3CommVersion1,
 			p.MediaType(),
 			strings.Join(p.getSupportedAlgorithms(), ","),

@@ -282,7 +282,7 @@ func (p *AnoncryptPacker) MediaType() iden3comm.MediaType {
 func (p *AnoncryptPacker) GetSupportedProfiles() []string {
 	return []string{
 		fmt.Sprintf(
-			"%s;env=%s&alg=%s",
+			"%s;env=%s;alg=%s",
 			protocol.Iden3CommVersion1,
 			p.MediaType(),
 			strings.Join(p.getSupportedKekAlgorithms(), ","),
