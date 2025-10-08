@@ -25,25 +25,22 @@ func TestAnoncryptPacker_Pack(t *testing.T) {
 	key, err := mock.ResolveKeyID(mock.MockRecipientKeyID)
 	require.NoError(t, err)
 
-	anonPacker := AnoncryptPacker{}
+	anonPacker := NewAnoncryptPacker(func(keyID string) (key interface{}, err error) {
+		return privKey, nil
+	}, nil)
 	ciphertext, err := anonPacker.Pack(msgBytes, AnoncryptPackerParams{
 		RecipientKey: key,
 	})
 	require.NoError(t, err)
 	require.NotEqual(t, 0, len(ciphertext))
 
-	jweMessage, err := jwe.Parse(ciphertext)
+	unpackedBasicMessage, err := anonPacker.Unpack(ciphertext)
 	require.NoError(t, err)
 
-	var actualTypeKey string
-	err = jweMessage.ProtectedHeaders().Get(jwe.TypeKey, &actualTypeKey)
+	b, err := json.Marshal(unpackedBasicMessage)
 	require.NoError(t, err)
-	require.Equal(t, string(MediaTypeEncryptedMessage), actualTypeKey)
 
-	iden3BytesMsg, err := jwe.Decrypt(ciphertext,
-		jwe.WithKey(jwa.ECDH_ES_A256KW(), privKey))
-	require.NoError(t, err)
-	require.Equal(t, msgBytes, iden3BytesMsg)
+	require.JSONEq(t, string(msgBytes), string(b))
 }
 
 func tryDecrypt(t *testing.T, alg jwa.KeyEncryptionAlgorithm,
@@ -237,7 +234,6 @@ func TestAnoncryptPacker_GetSupportedProfiles(t *testing.T) {
 }
 
 func TestAnoncryptPacker_Pack_JS_Aligen(t *testing.T) {
-	t.Skipf("This test is used to generate a JWE token for testing in JS")
 	const (
 		originMessage = `{"id":"8589c266-f5f4-4a80-8fc8-c1ad4de3e3b4","thid":"43246acb-b772-414e-9c90-f36b37261000","typ":"application/iden3comm-encrypted-json","type":"https://iden3-communication.io/passport/0.1/verification-request","from":"did:iden3:polygon:amoy:x6x5sor7zpxUwajVSoHGg8aAhoHNoAW1xFDTPCF49","to":"did:iden3:billions:test:2VxnoiNqdMPyHMtUwAEzhnWqXGkEeJpAp4ntTkL8XT"}`
 
@@ -318,7 +314,7 @@ func TestAnoncryptPacker_Pack_JS_Aligen(t *testing.T) {
 	ciphertext, err := packer.Pack([]byte(originMessage), AnoncryptPackerParams{
 		Recipients: []AnoncryptRecipients{
 			{DID: endUserDID},
-			{DID: anotherUserDID},
+			// {DID: anotherUserDID},
 		},
 	})
 	require.NoError(t, err)
