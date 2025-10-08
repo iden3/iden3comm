@@ -3,6 +3,7 @@ package packers
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -164,6 +165,18 @@ func (p *AnoncryptPacker) Pack(payload []byte, params iden3comm.PackerParams) ([
 		return nil, errors.Wrap(err, "failed to encrypt message")
 	}
 
+	if len(recipients) == 1 {
+		j := map[string]interface{}{}
+		if err := json.Unmarshal(ret, &j); err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal jwe message")
+		}
+		delete(j, "header")
+		ret, err = json.Marshal(j)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to marshal jwe message")
+		}
+	}
+
 	return ret, nil
 }
 
@@ -234,6 +247,38 @@ func (p *AnoncryptPacker) resolveRecipientKeyFromDIDDoc(diddoc *verifiable.DIDDo
 
 // Unpack returns unpacked message from transport envelope
 func (p *AnoncryptPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
+	firstChar := strings.TrimSpace(string(envelope))[0]
+	if firstChar == '{' {
+		var j map[string]interface{}
+		if err := json.Unmarshal(envelope, &j); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal jwe token: %w", err)
+		}
+		_, eok := j["encrypted_key"]
+		_, hok := j["header"]
+		_, pok := j["protected"]
+
+		if eok && !hok {
+			if !pok {
+				return nil, errors.New("invalid jwe token: missing protected header")
+			}
+
+			protectedHeaders, err := base64.RawURLEncoding.DecodeString(j["protected"].(string))
+			if err != nil {
+				return nil, fmt.Errorf("failed to decode protected header: %w", err)
+			}
+			protectedHeadersRaw := json.RawMessage{}
+			if err := json.Unmarshal(protectedHeaders, &protectedHeadersRaw); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal protected header: %w", err)
+			}
+			j["header"] = protectedHeadersRaw
+
+			envelope, err = json.Marshal(j)
+			if err != nil {
+				return nil, fmt.Errorf("failed to marshal jwe token: %w", err)
+			}
+		}
+	}
+
 	jweMessage, err := jwe.Parse(envelope)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse jwe token: %w", err)

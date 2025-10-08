@@ -25,8 +25,7 @@ linters:
     - errcheck
   settings:
     govet:
-      enable:
-        - shadow
+      enable-all: true
     revive:
       confidence: 0.1
     goconst:
@@ -44,8 +43,13 @@ linters:
     misspell:
       locale: US
   exclusions:
-    generated: lax
     rules:
+      - linters:
+          - govet
+        text: 'declaration of "err" shadows declaration'
+      - linters:
+          - govet
+        text: 'fieldalignment: struct with'
       - linters:
           - staticcheck
         text: at least one file in a package should have a package comment
