@@ -91,6 +91,9 @@ const (
 
 	// DiscoverFeatureDiscloseMessageType is type for discover-features disclose message
 	DiscoverFeatureDiscloseMessageType iden3comm.ProtocolMessage = iden3comm.DidCommProtocol + "discover-features/2.0/disclose"
+
+	// EncryptedCredentialIssuanceResponseMessageType is type for message with a encrypted credential issuance
+	EncryptedCredentialIssuanceResponseMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/1.0/encrypted-issuance-response"
 )
 
 // CredentialIssuanceRequestMessage represent Iden3message for credential request
