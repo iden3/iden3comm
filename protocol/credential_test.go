@@ -198,11 +198,11 @@ func TestEncryptedCredentialIssuanceMessage(t *testing.T) {
 		To:   "did:polygonid:polygon:mumbai:2qK2Rwf2zqzzhqVLqTWXetGUbs1Sc79woomP5cDLBE",
 	}
 
-	marshalled, err := json.Marshal(encryptedCredential)
+	marshaled, err := json.Marshal(encryptedCredential)
 	require.NoError(t, err)
 
 	var message protocol.EncryptedCredentialIssuanceMessage
-	err = json.Unmarshal(marshalled, &message)
+	err = json.Unmarshal(marshaled, &message)
 	require.NoError(t, err)
 
 	require.Equal(t, encryptedCredential.ID, message.ID)
