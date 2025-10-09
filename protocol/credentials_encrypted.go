@@ -1,5 +1,5 @@
-// BETA: This EncryptedCredentialIssuanceMessage message is in beta and its API may change in future versions.
-// Use at your own risk in production environments.
+// # Experimental
+// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
 
 package protocol
 
@@ -100,6 +100,10 @@ func (e *EncryptedIssuanceMessageBody) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	e.Credential.W3CCredential = str.Credential.W3CCredential
+
+	if len(str.Credential.Payload) == 0 {
+		return errors.New("missing encrypted credential payload")
+	}
 
 	firstToken := str.Credential.Payload[0]
 	switch firstToken {

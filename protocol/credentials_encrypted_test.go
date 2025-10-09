@@ -110,7 +110,7 @@ func TestEncryptedCredentialIssuanceMessage(t *testing.T) {
 
 			switch tt.format {
 			case protocol.EncryptedFormatJWEJSONSerialization:
-				var dst json.RawMessage // is posible to use JWT struct from go-jose and other libraries or map[string]interface{}
+				var dst json.RawMessage // is possible to use JWT struct from go-jose and other libraries or map[string]interface{}
 				err = message.Body.Credential.Payload.Get(&dst)
 				require.NoError(t, err)
 				require.JSONEq(t, tt.expected, string(dst))
