@@ -95,7 +95,7 @@ const (
 	// EncryptedCredentialIssuanceResponseMessageType is type for message with a encrypted credential issuance
 	// # Experimental
 	// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
-	EncryptedCredentialIssuanceResponseMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/1.0/encrypted-issuance-response"
+	EncryptedCredentialIssuanceResponseMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/0.1/encrypted-issuance-response"
 )
 
 // CredentialIssuanceRequestMessage represent Iden3message for credential request
