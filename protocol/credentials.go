@@ -93,6 +93,8 @@ const (
 	DiscoverFeatureDiscloseMessageType iden3comm.ProtocolMessage = iden3comm.DidCommProtocol + "discover-features/2.0/disclose"
 
 	// EncryptedCredentialIssuanceResponseMessageType is type for message with a encrypted credential issuance
+	// # Experimental
+	// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
 	EncryptedCredentialIssuanceResponseMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/1.0/encrypted-issuance-response"
 )
 
@@ -468,4 +470,39 @@ type CredentialPaymentBody struct {
 			TxID string `json:"txId"`
 		} `json:"paymentData"`
 	} `json:"payments"`
+}
+
+// EncryptedCredentialIssuanceMessage represent Iden3message for encrypted credential issuance
+//
+// # Experimental
+//
+// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
+type EncryptedCredentialIssuanceMessage struct {
+	ID       string                    `json:"id"`
+	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
+	Type     iden3comm.ProtocolMessage `json:"type"`
+	ThreadID string                    `json:"thid,omitempty"`
+
+	Body EncryptedIssuanceMessageBody `json:"body,omitempty"`
+
+	From string `json:"from,omitempty"`
+	To   string `json:"to,omitempty"`
+
+	CreatedTime *int64 `json:"created_time,omitempty"`
+	ExpiresTime *int64 `json:"expires_time,omitempty"`
+
+	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
+}
+
+// EncryptedIssuanceMessageBody is struct the represents message when credential is issued and encrypted
+//
+// # Experimental
+//
+// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
+type EncryptedIssuanceMessageBody struct {
+	ID      string                      `json:"id"`
+	Data    interface{}                 `json:"data"`
+	Type    string                      `json:"type"`
+	Context string                      `json:"context"`
+	Proof   verifiable.CredentialProofs `json:"proof,omitempty"`
 }
