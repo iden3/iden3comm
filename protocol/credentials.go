@@ -515,7 +515,7 @@ type EncryptedIssuanceMessageBody struct {
 type JWEJSONEncryption struct {
 	Protected    string                   `json:"protected,omitempty"`
 	Unprotected  string                   `json:"unprotected,omitempty"`
-	Header       map[string]string        `json:"header,omitempty"`
+	Header       map[string]interface{}   `json:"header,omitempty"`
 	Recipients   []map[string]interface{} `json:"recipients,omitempty"`
 	Aad          string                   `json:"aad,omitempty"`
 	EncryptedKey string                   `json:"encrypted_key,omitempty"`
