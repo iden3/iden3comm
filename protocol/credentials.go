@@ -91,6 +91,11 @@ const (
 
 	// DiscoverFeatureDiscloseMessageType is type for discover-features disclose message
 	DiscoverFeatureDiscloseMessageType iden3comm.ProtocolMessage = iden3comm.DidCommProtocol + "discover-features/2.0/disclose"
+
+	// EncryptedCredentialIssuanceResponseMessageType is type for message with a encrypted credential issuance
+	// # Experimental
+	// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
+	EncryptedCredentialIssuanceResponseMessageType iden3comm.ProtocolMessage = iden3comm.Iden3Protocol + "credentials/0.1/encrypted-issuance-response"
 )
 
 // CredentialIssuanceRequestMessage represent Iden3message for credential request
@@ -465,4 +470,56 @@ type CredentialPaymentBody struct {
 			TxID string `json:"txId"`
 		} `json:"paymentData"`
 	} `json:"payments"`
+}
+
+// EncryptedCredentialIssuanceMessage represent Iden3message for encrypted credential issuance
+//
+// # Experimental
+//
+// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
+type EncryptedCredentialIssuanceMessage struct {
+	ID       string                    `json:"id"`
+	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
+	Type     iden3comm.ProtocolMessage `json:"type"`
+	ThreadID string                    `json:"thid,omitempty"`
+
+	Body EncryptedIssuanceMessageBody `json:"body,omitempty"`
+
+	From string `json:"from,omitempty"`
+	To   string `json:"to,omitempty"`
+
+	CreatedTime *int64 `json:"created_time,omitempty"`
+	ExpiresTime *int64 `json:"expires_time,omitempty"`
+
+	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
+}
+
+// EncryptedIssuanceMessageBody is struct the represents message when credential is issued and encrypted
+//
+// # Experimental
+//
+// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
+type EncryptedIssuanceMessageBody struct {
+	ID      string                      `json:"id"`
+	Data    JWEJSONEncryption           `json:"data"`
+	Type    string                      `json:"type"`
+	Context string                      `json:"context"`
+	Proof   verifiable.CredentialProofs `json:"proof,omitempty"`
+}
+
+// JWEJSONEncryption is a structure representing JWE object
+//
+// # Experimental
+//
+// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
+type JWEJSONEncryption struct {
+	Protected    string                   `json:"protected,omitempty"`
+	Unprotected  string                   `json:"unprotected,omitempty"`
+	Header       map[string]interface{}   `json:"header,omitempty"`
+	Recipients   []map[string]interface{} `json:"recipients,omitempty"`
+	Aad          string                   `json:"aad,omitempty"`
+	EncryptedKey string                   `json:"encrypted_key,omitempty"`
+	Iv           string                   `json:"iv,omitempty"`
+	Ciphertext   string                   `json:"ciphertext,omitempty"`
+	Tag          string                   `json:"tag,omitempty"`
 }

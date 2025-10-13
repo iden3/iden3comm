@@ -140,3 +140,82 @@ func TestCredentialOfferMessageCreation(t *testing.T) {
 	require.NoError(t, err)
 	require.JSONEq(t, `{"id":"f0885dd0-e60e-11ee-b3e8-de17148ce1ce","typ":"application/iden3comm-plain-json","type":"https://iden3-communication.io/credentials/1.0/offer","thid":"f08860d2-e60e-11ee-b3e8-de17148ce1ce","body":{"url":"http://test.com","credentials":[{"id":"f0885dd0-e60e-11ee-b3e8-de17148ce1ce","description":"test 1","status":"pending"},{"id":"f08860d2-e60e-11ee-b3e8-de17148ce1ce","description":"test 2"}]},"from":"did:polygonid:polygon:mumbai:2qK2Rwf2zqzzhqVLqTWXetGUbs1Sc79woomP5cDLBE","to":"did:polygonid:polygon:mumbai:2qJ689kpoJxcSzB5sAFJtPsSBSrHF5dq722BHMqURL"}`, string(marshalledReq))
 }
+
+func TestEncryptedCredentialIssuanceMessage(t *testing.T) {
+	data := `{
+          "ciphertext": "G94AlOo9R0Bz1L8ypk_Ls4KyjbxjsU2FK3X-HZifdkC9mcVP3wZ4zc2Lgca4jlLzHG4bG5LSS9spVhiZhZ0FFq6Lyo8PtEVAxvW8QmquvgHJ5kJqYK1Wuiry-_hzIdwJqBwc3SCIkTi15KON-LaBFW20dRS4QN8BFVQw6inbxb7gA3ULqLxU-iy6A2oHRiHTQ5A-8PrPvURtf6kxaP1JZ6ozmMSLfpZY7WezvFCgnokYa4eeIoDYYBduSxMnGdYbSZqq_wN-WujTxc1hVdyOYiz-YaZs6UiemzGl8_5F5i5B4Mx0Pf28kzTUzs3ivZtawtWPI8mxNdIuPRg4ivrz2EooIBba9eAEgMj_JdYFI9RQtf0LlCBlcIzdnsC_BwSZgpM5alqOUgRH7SECMB00oon73qlw0ZxLbqxSScXcStwHaJEcrrKw5ZzsM5IB7etqP4Wz9q95e8V3y79ms7l4m48HqbcXjQ",
+          "encrypted_key": "aF0cMjVh4k2je1Y5neP-JD_Z4gSXkbfcVwq-S4f_4-5vCqY7kJAtQZYeyaLSVweU2inm5hvwYgf9dnn7q4wX_P1tPLAS5jYYSJd5-ev89av2vlGIPQApAshcKGrTM01Zg9Ewl19bCoTXsfU632AC4V3_Qj5-nkl3m7M-_7rVbvj8yeLtJaYDHdDnF7OORZrYnu-vYENArnhHuE4S9MsnByF2TSO_eZ0_aL8DljTvtvjo9G6J8tV5IbuRz6nOokVuRHoPlyq22ONACW7nHh1sGVd7gTeztsT2z9JAi5szdMe23rgbpTu3FbnG7yxAunQ5MnCLJ5OljGK1BDLpdPOrpw",
+          "iv": "ZrFLdKgYqa1LrWIC",
+          "protected": "eyJhbGciOiJSU0EtT0FFUC0yNTYiLCJlbmMiOiJBMjU2R0NNIiwia2lkIjoiZGlkOmlkZW4zOmJpbGxpb25zOnRlc3Q6MlZ4bm9pTnFkTVB5SE10VXdBRXpobldxWEdrRWVKcEFwNG50VGtMOFhUI2tleTEiLCJ0eXAiOiJhcHBsaWNhdGlvbi9pZGVuM2NvbW0tZW5jcnlwdGVkLWpzb24ifQ",
+          "tag": "rbUb5eW4Hgng-AMd-OPxeQ"
+    }`
+	proof := `[
+          {
+            "type": "BJJSignature2021",
+            "issuerData": {
+              "id": "did:iden3:polygon:amoy:xHV7UUYn7tx3KyzcyXTcnLjvAA9tJRVWCVGErQFRV",
+              "state": {
+                "claimsTreeRoot": "dd80f4cbef4290fdb5aa73ae95d9c65ea421b766a9d335ad1204255386851d1c",
+                "value": "1d633c6d18e8101341f67da2d2e4448244d5e75f230080d8ae802781e8220d19"
+              },
+              "authCoreClaim": "cca3371a6cb1b715004407e325bd993c000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f4223360d1687fa64ab33ee8ce4ed1c03cba411d6205e418b844be5cbe7be5041468649e0d60e2294f9f5e866b8670d198c0f3110b2f093317ba368e6264b91d0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+              "mtp": {
+                "existence": true,
+                "siblings": []
+              },
+              "credentialStatus": {
+                "id": "https://simple.rhs.node/node?state=1d633c6d18e8101341f67da2d2e4448244d5e75f230080d8ae802781e8220d19",
+                "revocationNonce": 0,
+                "statusIssuer": {
+                  "id": "https://simple.issuer.node/v2/agent",
+                  "revocationNonce": 0,
+                  "type": "Iden3commRevocationStatusV1.0"
+                },
+                "type": "Iden3ReverseSparseMerkleTreeProof"
+              }
+            },
+            "coreClaim": "7ed2bce3d6fab6efe706a7e76a0881dd2200000000000000000000000000000001b15b112b1036337c49e97a8f9abd452878bebed4a2c2fac91def928b550e00078e912f71bf9d3979a21d140bea8f2d5f620a8cacbf7e5e3b3d0f48ed6beb2d0000000000000000000000000000000000000000000000000000000000000000326d785600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "signature": "25c7962a5a11d906d490cc6cf522d332405326ec82f35ee5538301557a314628b452b4fca9292613cb2f9983c5ea6b0ea5411b793d3796b232abe84875c94001"
+          }
+        ]`
+
+	var p verifiable.CredentialProofs
+	require.NoError(t, json.Unmarshal([]byte(proof), &p))
+
+	var dataObj protocol.JWEJSONEncryption
+	require.NoError(t, json.Unmarshal([]byte(data), &dataObj))
+
+	encryptedCredential := protocol.EncryptedCredentialIssuanceMessage{
+		ID:       uuid.NewString(),
+		Typ:      packers.MediaTypePlainMessage,
+		Type:     protocol.EncryptedCredentialIssuanceResponseMessageType,
+		ThreadID: uuid.NewString(),
+		Body: protocol.EncryptedIssuanceMessageBody{
+			ID:      "urn:uuid:ef65ac39-8941-11f0-8c71-0a58a9feac02",
+			Data:    dataObj,
+			Type:    "KYCAgeCredential",
+			Context: "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld",
+			Proof:   p,
+		},
+		From: "did:iden3:polygon:amoy:xHV7UUYn7tx3KyzcyXTcnLjvAA9tJRVWCVGErQFRV",
+		To:   "did:polygonid:polygon:mumbai:2qK2Rwf2zqzzhqVLqTWXetGUbs1Sc79woomP5cDLBE",
+	}
+
+	marshaled, err := json.Marshal(encryptedCredential)
+	require.NoError(t, err)
+
+	var message protocol.EncryptedCredentialIssuanceMessage
+	err = json.Unmarshal(marshaled, &message)
+	require.NoError(t, err)
+
+	require.Equal(t, encryptedCredential.ID, message.ID)
+	require.Equal(t, encryptedCredential.Typ, message.Typ)
+	require.Equal(t, encryptedCredential.Type, message.Type)
+	require.Equal(t, encryptedCredential.ThreadID, message.ThreadID)
+	require.Equal(t, encryptedCredential.From, message.From)
+	require.Equal(t, encryptedCredential.To, message.To)
+	require.Equal(t, encryptedCredential.Body.ID, message.Body.ID)
+	require.Equal(t, encryptedCredential.Body.Type, message.Body.Type)
+	require.Equal(t, encryptedCredential.Body.Context, message.Body.Context)
+	require.Equal(t, encryptedCredential.Body.Proof, message.Body.Proof)
+}
