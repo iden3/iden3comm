@@ -182,6 +182,9 @@ func TestEncryptedCredentialIssuanceMessage(t *testing.T) {
 	var p verifiable.CredentialProofs
 	require.NoError(t, json.Unmarshal([]byte(proof), &p))
 
+	var dataObj protocol.JWEJSONEncryption
+	require.NoError(t, json.Unmarshal([]byte(data), &dataObj))
+
 	encryptedCredential := protocol.EncryptedCredentialIssuanceMessage{
 		ID:       uuid.NewString(),
 		Typ:      packers.MediaTypePlainMessage,
@@ -189,7 +192,7 @@ func TestEncryptedCredentialIssuanceMessage(t *testing.T) {
 		ThreadID: uuid.NewString(),
 		Body: protocol.EncryptedIssuanceMessageBody{
 			ID:      "urn:uuid:ef65ac39-8941-11f0-8c71-0a58a9feac02",
-			Data:    json.RawMessage(data),
+			Data:    dataObj,
 			Type:    "KYCAgeCredential",
 			Context: "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld",
 			Proof:   p,

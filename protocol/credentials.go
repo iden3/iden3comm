@@ -501,8 +501,25 @@ type EncryptedCredentialIssuanceMessage struct {
 // Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
 type EncryptedIssuanceMessageBody struct {
 	ID      string                      `json:"id"`
-	Data    interface{}                 `json:"data"`
+	Data    JWEJSONEncryption           `json:"data"`
 	Type    string                      `json:"type"`
 	Context string                      `json:"context"`
 	Proof   verifiable.CredentialProofs `json:"proof,omitempty"`
+}
+
+// JWEJSONEncryption is a structure representing JWE object
+//
+// # Experimental
+//
+// Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
+type JWEJSONEncryption struct {
+	Protected    string                   `json:"protected,omitempty"`
+	Unprotected  string                   `json:"unprotected,omitempty"`
+	Header       map[string]string        `json:"header,omitempty"`
+	Recipients   []map[string]interface{} `json:"recipients,omitempty"`
+	Aad          string                   `json:"aad,omitempty"`
+	EncryptedKey string                   `json:"encrypted_key,omitempty"`
+	Iv           string                   `json:"iv,omitempty"`
+	Ciphertext   string                   `json:"ciphertext,omitempty"`
+	Tag          string                   `json:"tag,omitempty"`
 }
