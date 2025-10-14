@@ -69,12 +69,12 @@ func Encrypt(payload []byte, recipients []jwk.Key, opts ...EncryptOption) ([]byt
 		return nil, errors.New("no recipient keys provided")
 	}
 
-	contnetEncryptionAlgorithm := encOpts.contentEncryptionAlgorithm
+	contentEncryptionAlgorithm := encOpts.contentEncryptionAlgorithm
 	if !IsSupportedContentEncryptionAlgorithm(
-		contnetEncryptionAlgorithm,
+		contentEncryptionAlgorithm,
 	) {
 		return nil, errors.Errorf("contentEncryptionAlgorithm '%s' is not supported",
-			contnetEncryptionAlgorithm)
+			contentEncryptionAlgorithm)
 	}
 
 	withKeys := []jwe.EncryptOption{}
@@ -89,11 +89,7 @@ func Encrypt(payload []byte, recipients []jwk.Key, opts ...EncryptOption) ([]byt
 		withKeys = append(withKeys, jwe.WithKey(recAlg, recipient))
 	}
 
-	if len(withKeys) == 0 {
-		return nil, errors.New("no recipient keys provided")
-	}
-
-	cea := jwa.NewContentEncryptionAlgorithm(contnetEncryptionAlgorithm)
+	cea := jwa.NewContentEncryptionAlgorithm(contentEncryptionAlgorithm)
 	headers := jwe.NewHeaders()
 	if err := headers.Set(jwe.ContentEncryptionKey, cea); err != nil {
 		return nil, errors.Wrap(err, "failed to set enc header")

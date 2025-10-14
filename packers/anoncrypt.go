@@ -121,17 +121,23 @@ func (p *AnoncryptPacker) Pack(payload []byte, params iden3comm.PackerParams) ([
 	for _, recipient := range packerParams.Recipients {
 		recipientDidDocument, err := p.didDocumentResolver.Resolve(context.Background(), recipient.DID, nil)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to resolve did document for did %s", recipient.DID)
+			return nil, errors.Wrapf(err,
+				"failed to resolve did document for did %s", recipient.DID)
 		}
-		recipientJWK, err := ResolveRecipientKeyFromDIDDoc(recipientDidDocument.DidDocument, recipient.JWKAlg)
+
+		recipientJWK, err := utils.ResolveRecipientKeyFromDIDDoc(
+			recipientDidDocument.DidDocument,
+			verifiable.WithJWKAlgorithm(recipient.JWKAlg),
+		)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to resolve recipient key from did document for did %s", recipient.DID)
+			return nil, errors.Wrapf(err,
+				"failed to resolve recipient key from did document for did %s", recipient.DID)
 		}
 		recipientsKeys = append(recipientsKeys, recipientJWK)
 	}
 
 	if packerParams.RecipientKey != nil {
-		validDirectKey, err := IsValidDirectKey(packerParams.RecipientKey)
+		validDirectKey, err := utils.IsValidDirectKey(packerParams.RecipientKey)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to validate direct recipient key")
 		}
@@ -154,69 +160,6 @@ func (p *AnoncryptPacker) Pack(payload []byte, params iden3comm.PackerParams) ([
 	}
 
 	return ret, nil
-}
-
-// ResolveRecipientKeyFromDIDDoc resolves recipient key from did document by key alg
-func ResolveRecipientKeyFromDIDDoc(diddoc *verifiable.DIDDocument, keyAlg string) (jwk.Key, error) {
-	if diddoc == nil {
-		return nil, errors.New("did document is nil")
-	}
-
-	vms, err := diddoc.AllVerificationMethods().FilterBy(
-		verifiable.WithJWKAlgorithm(keyAlg),
-	)
-	if err != nil {
-		return nil, errors.Errorf(
-			"failed to filter verification methods for DidDoc '%v': %v",
-			diddoc.ID, err)
-	}
-
-	if len(vms) == 0 {
-		return nil, errors.Errorf(
-			"no verification methods found for key alg '%v' for DidDoc '%v'",
-			keyAlg, diddoc.ID)
-	}
-	vm := vms[0]
-
-	recipientJWKBytes, err := json.Marshal(vm.PublicKeyJwk)
-	if err != nil {
-		return nil, errors.Errorf(
-			"failed to marshal public key to jwk for did %s: %v", diddoc.ID, err)
-	}
-	recipientKey, err := jwk.ParseKey(recipientJWKBytes)
-	if err != nil {
-		return nil, errors.Errorf(
-			"failed to parse public key to jwk for did %s: %v", diddoc.ID, err)
-	}
-	_, ok := recipientKey.Algorithm()
-	if !ok {
-		return nil,
-			errors.Errorf("missing alg in recipient key for did %s", diddoc.ID)
-	}
-
-	// if key id is not presented in recipient key, then set it from vm id
-	// else use existing one
-	kid, ok := recipientKey.KeyID()
-	if !ok || kid == "" {
-		if err := recipientKey.Set(jwk.KeyIDKey, vm.ID); err != nil {
-			return nil, errors.Wrap(err, "failed to set kid in recipient key")
-		} // set kid from vm id
-	}
-
-	return recipientKey, nil
-}
-
-// IsValidDirectKey checks that provided direct recipient key is valid for usage
-func IsValidDirectKey(key jwk.Key) (jwk.Key, error) {
-	keyAlg, ok := key.Algorithm()
-	if !ok || keyAlg == nil {
-		return nil, errors.New("missing alg in recipient key")
-	}
-	kid, ok := key.KeyID()
-	if !ok || kid == "" {
-		return nil, errors.New("missing key id in recipient key")
-	}
-	return key, nil
 }
 
 // Unpack returns unpacked message from transport envelope
