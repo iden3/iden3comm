@@ -14,6 +14,8 @@ import (
 	"github.com/lestrrat-go/jwx/v3/jwe"
 	"github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
+
+	jweProvider "github.com/iden3/iden3comm/v2/packers/providers/jwe"
 )
 
 func TestAnoncryptPacker_Pack(t *testing.T) {
@@ -150,9 +152,9 @@ func TestAnoncryptPacker_Pack_MultiRecipients(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			anonPacker := NewAnoncryptPacker(nil, tt.didDocumentResolverFuncMock)
-			var recipientsDids []AnoncryptRecipients
+			var recipientsDids []jweProvider.AnoncryptRecipients
 			for _, r := range tt.recipients {
-				recipientsDids = append(recipientsDids, AnoncryptRecipients{DID: r.did, JWKAlg: r.alg.String()})
+				recipientsDids = append(recipientsDids, jweProvider.AnoncryptRecipients{DID: r.did, JWKAlg: r.alg.String()})
 			}
 			ciphertext, err := anonPacker.Pack(tt.message, AnoncryptPackerParams{
 				Recipients: recipientsDids,
@@ -316,7 +318,7 @@ func TestAnoncryptPacker_Pack_JS_Aligen(t *testing.T) {
 
 	packer := NewAnoncryptPacker(nil, didDocResolverFunc)
 	ciphertext, err := packer.Pack([]byte(originMessage), AnoncryptPackerParams{
-		Recipients: []AnoncryptRecipients{
+		Recipients: []jweProvider.AnoncryptRecipients{
 			{DID: endUserDID},
 			{DID: anotherUserDID},
 		},

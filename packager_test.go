@@ -15,6 +15,7 @@ import (
 	"github.com/iden3/iden3comm/v2"
 	"github.com/iden3/iden3comm/v2/mock"
 	"github.com/iden3/iden3comm/v2/packers"
+	jweProvider "github.com/iden3/iden3comm/v2/packers/providers/jwe"
 	"github.com/iden3/iden3comm/v2/protocol"
 	"github.com/lestrrat-go/jwx/v3/jwa"
 	"github.com/stretchr/testify/assert"
@@ -168,7 +169,7 @@ func TestPackagerAnonryptPacker_Multirecipients(t *testing.T) {
 	marshalledMsg, err := createFetchCredentialMessage(packers.MediaTypeEncryptedMessage, senderDID, targetID)
 	require.NoError(t, err)
 
-	recipients := []packers.AnoncryptRecipients{
+	recipients := []jweProvider.AnoncryptRecipients{
 		{
 			DID:    "did:example:alice",
 			JWKAlg: jwa.RSA_OAEP_256().String(),
