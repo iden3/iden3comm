@@ -117,7 +117,7 @@ func (p *AnoncryptPacker) Pack(payload []byte, params iden3comm.PackerParams) ([
 		return nil, errors.Wrap(err, "failed to set default values to packer params")
 	}
 
-	var recipientsKeys []jwk.Key
+	recipientsKeys := make([]jwk.Key, 0, len(packerParams.Recipients))
 	for _, recipient := range packerParams.Recipients {
 		recipientDidDocument, err := p.didDocumentResolver.Resolve(context.Background(), recipient.DID, nil)
 		if err != nil {
