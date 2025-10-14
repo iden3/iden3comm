@@ -9,6 +9,7 @@ import (
 
 	"github.com/iden3/driver-did-iden3/pkg/document"
 	"github.com/iden3/driver-did-iden3/pkg/services"
+	"github.com/iden3/go-schema-processor/v2/verifiable"
 	"github.com/iden3/iden3comm/v2"
 	jweProvider "github.com/iden3/iden3comm/v2/packers/providers/jwe"
 	"github.com/iden3/iden3comm/v2/protocol"
@@ -20,10 +21,8 @@ import (
 )
 
 var (
-	defaultKEA                      = jwa.RSA_OAEP_256()
-	defaultCEA                      = jwa.A256GCM()
-	supportedAnoncryptKekAlgorithms = []string{defaultKEA.String(), jwa.ECDH_ES_A256KW().String()}
-	supportedCekAlgorithms          = []string{defaultCEA.String(), jwa.A256CBC_HS512().String()}
+	defaultKEA = jwa.RSA_OAEP_256()
+	defaultCEA = jwa.A256GCM()
 )
 
 // MediaTypeEncryptedMessage is media type for encrypted message
@@ -31,13 +30,20 @@ const MediaTypeEncryptedMessage iden3comm.MediaType = "application/iden3comm-enc
 
 // AnoncryptPacker is  packer for anon encryption / decryption
 type AnoncryptPacker struct {
-	jweProvider *jweProvider.Provider
+	didDocumentResolver DidDocumentResolverFunc
+	privateKeyResolver  KeyResolverHandlerFunc
+}
+
+// AnoncryptRecipients is recipient info for anoncrypt packer
+type AnoncryptRecipients struct {
+	DID    string
+	JWKAlg string
 }
 
 // AnoncryptPackerParams is params for anoncrypt packer
 type AnoncryptPackerParams struct {
 	RecipientKey               jwk.Key
-	Recipients                 []jweProvider.AnoncryptRecipients
+	Recipients                 []AnoncryptRecipients
 	ContentEncryptionAlgorithm string
 	iden3comm.PackerParams
 }
@@ -49,14 +55,14 @@ func (p *AnoncryptPackerParams) withDefault() error {
 
 	if p.ContentEncryptionAlgorithm == "" {
 		p.ContentEncryptionAlgorithm = defaultCEA.String()
-	} else if !isSupportedCekAlgorithm(p.ContentEncryptionAlgorithm) {
+	} else if !jweProvider.IsSupportedContentEncryptionAlgorithm(p.ContentEncryptionAlgorithm) {
 		return errors.New("unsupported content encryption algorithm")
 	}
 
 	for i := range p.Recipients {
 		if p.Recipients[i].JWKAlg == "" {
 			p.Recipients[i].JWKAlg = defaultKEA.String()
-		} else if !isSupportedKekAlgorithm(p.Recipients[i].JWKAlg) {
+		} else if !jweProvider.IsSupportedKeyEncryptionAlgorithm(p.Recipients[i].JWKAlg) {
 			return errors.New("unsupported recipient key algorithm")
 		}
 	}
@@ -66,7 +72,7 @@ func (p *AnoncryptPackerParams) withDefault() error {
 		if !ok || alg == nil {
 			return errors.New("missing alg in recipient key")
 		}
-		if !isSupportedKekAlgorithm(alg.String()) {
+		if !jweProvider.IsSupportedKeyEncryptionAlgorithm(alg.String()) {
 			return errors.New("unsupported recipient key algorithm")
 		}
 	}
@@ -79,8 +85,10 @@ func NewAnoncryptPacker(
 	kr KeyResolverHandlerFunc,
 	dr DidDocumentResolverFunc,
 ) *AnoncryptPacker {
-	p := jweProvider.NewJWEProvider(kr, dr)
-	return &AnoncryptPacker{jweProvider: p}
+	return &AnoncryptPacker{
+		privateKeyResolver:  kr,
+		didDocumentResolver: dr,
+	}
 }
 
 // KeyResolverHandlerFunc resolve private key by key id
@@ -109,17 +117,37 @@ func (p *AnoncryptPacker) Pack(payload []byte, params iden3comm.PackerParams) ([
 		return nil, errors.Wrap(err, "failed to set default values to packer params")
 	}
 
+	var recipientsKeys []jwk.Key
+	for _, recipient := range packerParams.Recipients {
+		recipientDidDocument, err := p.didDocumentResolver.Resolve(context.Background(), recipient.DID, nil)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to resolve did document for did %s", recipient.DID)
+		}
+		recipientJWK, err := ResolveRecipientKeyFromDIDDoc(recipientDidDocument.DidDocument, recipient.JWKAlg)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to resolve recipient key from did document for did %s", recipient.DID)
+		}
+		recipientsKeys = append(recipientsKeys, recipientJWK)
+	}
+
+	if packerParams.RecipientKey != nil {
+		validDirectKey, err := IsValidDirectKey(packerParams.RecipientKey)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to validate direct recipient key")
+		}
+		recipientsKeys = append(recipientsKeys, validDirectKey)
+	}
+
 	h := jwe.NewHeaders()
 	if err := h.Set(jwe.TypeKey, string(p.MediaType())); err != nil {
 		return nil, errors.Wrap(err, "failed to set typ header")
 	}
 
-	ret, err := p.jweProvider.Encrypt(
+	ret, err := jweProvider.Encrypt(
 		payload,
-		packerParams.RecipientKey,
-		packerParams.Recipients,
-		packerParams.ContentEncryptionAlgorithm,
+		recipientsKeys,
 		jweProvider.WithAdditionalProtectedHeaders(h),
+		jweProvider.WithContentEncryptionAlgorithm(packerParams.ContentEncryptionAlgorithm),
 	)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to encrypt message")
@@ -128,9 +156,72 @@ func (p *AnoncryptPacker) Pack(payload []byte, params iden3comm.PackerParams) ([
 	return ret, nil
 }
 
+// ResolveRecipientKeyFromDIDDoc resolves recipient key from did document by key alg
+func ResolveRecipientKeyFromDIDDoc(diddoc *verifiable.DIDDocument, keyAlg string) (jwk.Key, error) {
+	if diddoc == nil {
+		return nil, errors.New("did document is nil")
+	}
+
+	vms, err := diddoc.AllVerificationMethods().FilterBy(
+		verifiable.WithJWKAlgorithm(keyAlg),
+	)
+	if err != nil {
+		return nil, errors.Errorf(
+			"failed to filter verification methods for DidDoc '%v': %v",
+			diddoc.ID, err)
+	}
+
+	if len(vms) == 0 {
+		return nil, errors.Errorf(
+			"no verification methods found for key alg '%v' for DidDoc '%v'",
+			keyAlg, diddoc.ID)
+	}
+	vm := vms[0]
+
+	recipientJWKBytes, err := json.Marshal(vm.PublicKeyJwk)
+	if err != nil {
+		return nil, errors.Errorf(
+			"failed to marshal public key to jwk for did %s: %v", diddoc.ID, err)
+	}
+	recipientKey, err := jwk.ParseKey(recipientJWKBytes)
+	if err != nil {
+		return nil, errors.Errorf(
+			"failed to parse public key to jwk for did %s: %v", diddoc.ID, err)
+	}
+	_, ok := recipientKey.Algorithm()
+	if !ok {
+		return nil,
+			errors.Errorf("missing alg in recipient key for did %s", diddoc.ID)
+	}
+
+	// if key id is not presented in recipient key, then set it from vm id
+	// else use existing one
+	kid, ok := recipientKey.KeyID()
+	if !ok || kid == "" {
+		if err := recipientKey.Set(jwk.KeyIDKey, vm.ID); err != nil {
+			return nil, errors.Wrap(err, "failed to set kid in recipient key")
+		} // set kid from vm id
+	}
+
+	return recipientKey, nil
+}
+
+// IsValidDirectKey checks that provided direct recipient key is valid for usage
+func IsValidDirectKey(key jwk.Key) (jwk.Key, error) {
+	keyAlg, ok := key.Algorithm()
+	if !ok || keyAlg == nil {
+		return nil, errors.New("missing alg in recipient key")
+	}
+	kid, ok := key.KeyID()
+	if !ok || kid == "" {
+		return nil, errors.New("missing key id in recipient key")
+	}
+	return key, nil
+}
+
 // Unpack returns unpacked message from transport envelope
 func (p *AnoncryptPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
-	payload, err := p.jweProvider.Decrypt(envelope)
+	payload, err := jweProvider.Decrypt(envelope, p.privateKeyResolver.Resolve)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to decrypt message")
 	}
@@ -155,7 +246,7 @@ func (p *AnoncryptPacker) GetSupportedProfiles() []string {
 			"%s;env=%s;alg=%s",
 			protocol.Iden3CommVersion1,
 			p.MediaType(),
-			strings.Join(p.getSupportedKekAlgorithms(), ","),
+			strings.Join(jweProvider.SupportedKekAlgorithms, ","),
 		),
 	}
 }
@@ -186,41 +277,11 @@ func (p *AnoncryptPacker) IsProfileSupported(profile string) bool {
 		return true
 	}
 
-	supportedAlgorithms := p.getSupportedKekAlgorithms()
 	for _, alg := range parsedProfile.AcceptAnoncryptAlgorithms {
-		for _, supportedAlg := range supportedAlgorithms {
-			if string(alg) == supportedAlg {
-				return true
-			}
-		}
-	}
-	return false
-
-}
-
-func (p *AnoncryptPacker) getSupportedKekAlgorithms() []string {
-	return supportedAnoncryptKekAlgorithms
-}
-
-//nolint:unused // function might be used in future
-func (p *AnoncryptPacker) getSupportedCekAlgorithms() []string {
-	return supportedCekAlgorithms
-}
-
-func isSupportedKekAlgorithm(alg string) bool {
-	for _, v := range supportedAnoncryptKekAlgorithms {
-		if v == alg {
+		if jweProvider.IsSupportedKeyEncryptionAlgorithm(string(alg)) {
 			return true
 		}
 	}
 	return false
-}
 
-func isSupportedCekAlgorithm(alg string) bool {
-	for _, v := range supportedCekAlgorithms {
-		if v == alg {
-			return true
-		}
-	}
-	return false
 }
