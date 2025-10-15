@@ -100,20 +100,8 @@ const (
 
 // CredentialIssuanceRequestMessage represent Iden3message for credential request
 type CredentialIssuanceRequestMessage struct {
-	ID       string                    `json:"id"`
-	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thid,omitempty"`
-
+	iden3comm.BasicMessage
 	Body CredentialIssuanceRequestMessageBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
-
-	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
 }
 
 // CredentialIssuanceRequestMessageBody represents data for credential issuance request
@@ -125,20 +113,8 @@ type CredentialIssuanceRequestMessageBody struct {
 
 // CredentialsOfferMessage represent Iden3message for credential offer
 type CredentialsOfferMessage struct {
-	ID       string                    `json:"id"`
-	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thid,omitempty"`
-
+	iden3comm.BasicMessage
 	Body CredentialsOfferMessageBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
-
-	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
 }
 
 // CredentialsOfferMessageBody is struct the represents offer message
@@ -154,22 +130,25 @@ type CredentialOffer struct {
 	Status      string `json:"status,omitempty"`
 }
 
+// MarshalJSON marshals protocol request message with typed body and basic structure
+func (m CredentialsOfferMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON  unmarshals protocol request message with typed body and basic structure
+func (m *CredentialsOfferMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
+}
+
 // CredentialIssuanceMessage represent Iden3message for credential issuance
 type CredentialIssuanceMessage struct {
-	ID       string                    `json:"id"`
-	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thid,omitempty"`
-
+	iden3comm.BasicMessage
 	Body IssuanceMessageBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
-
-	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
 }
 
 // IssuanceMessageBody is struct the represents message when credential is issued
@@ -177,26 +156,45 @@ type IssuanceMessageBody struct {
 	Credential verifiable.W3CCredential `json:"credential"`
 }
 
+// MarshalJSON marshals protocol request message with typed body and basic structure
+func (m CredentialIssuanceMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON  unmarshals protocol request message with typed body and basic structure
+func (m *CredentialIssuanceMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
+}
+
 // CredentialFetchRequestMessage represent Iden3message for credential fetch request
 type CredentialFetchRequestMessage struct {
-	ID       string                            `json:"id"`
-	Typ      iden3comm.MediaType               `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage         `json:"type"`
-	ThreadID string                            `json:"thid,omitempty"`
-	Body     CredentialFetchRequestMessageBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
-
-	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
+	iden3comm.BasicMessage
+	Body CredentialFetchRequestMessageBody `json:"body,omitempty"`
 }
 
 // CredentialFetchRequestMessageBody is msg body for fetch request
 type CredentialFetchRequestMessageBody struct {
 	ID string `json:"id"`
+}
+
+// MarshalJSON marshals protocol request message with typed body and basic structure
+func (m CredentialFetchRequestMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON  unmarshals protocol request message with typed body and basic structure
+func (m *CredentialFetchRequestMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
 }
 
 // Schema represents location and type where it's stored
@@ -208,20 +206,8 @@ type Schema struct {
 
 // CredentialStatusUpdateMessage represents credential status update message
 type CredentialStatusUpdateMessage struct {
-	ID       string                    `json:"id"`
-	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thid,omitempty"`
-
+	iden3comm.BasicMessage
 	Body CredentialStatusUpdateMessageBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
-
-	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
 }
 
 // CredentialStatusUpdateMessageBody the structure that represents the body of credential status update message
@@ -230,22 +216,25 @@ type CredentialStatusUpdateMessageBody struct {
 	Reason string `json:"reason"`
 }
 
+// MarshalJSON marshals protocol request message with typed body and basic structure
+func (m CredentialStatusUpdateMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON  unmarshals protocol request message with typed body and basic structure
+func (m *CredentialStatusUpdateMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
+}
+
 // CredentialRefreshMessage represent Iden3message for credential refresh message
 type CredentialRefreshMessage struct {
-	ID       string                    `json:"id"`
-	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thid,omitempty"`
-
+	iden3comm.BasicMessage
 	Body CredentialRefreshMessageBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
-
-	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
 }
 
 // CredentialRefreshMessageBody is msg body for refresh message
@@ -254,22 +243,25 @@ type CredentialRefreshMessageBody struct {
 	Reason string `json:"reason"`
 }
 
+// MarshalJSON marshals protocol request message with typed body and basic structure
+func (m CredentialRefreshMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON unmarshals protocol request message with typed body and basic structure
+func (m *CredentialRefreshMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
+}
+
 // CredentialsOnchainOfferMessage represent Iden3message for credential onchain offer
 type CredentialsOnchainOfferMessage struct {
-	ID       string                    `json:"id"`
-	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thid,omitempty"`
-
+	iden3comm.BasicMessage
 	Body CredentialsOnchainOfferMessageBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
-
-	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
 }
 
 // CredentialsOnchainOfferMessageBody is struct the represents onchain offer message
@@ -278,26 +270,44 @@ type CredentialsOnchainOfferMessageBody struct {
 	TransactionData TransactionData   `json:"transaction_data"`
 }
 
+// MarshalJSON marshals protocol request message with typed body and basic structure
+func (m CredentialsOnchainOfferMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON  unmarshals protocol request message with typed body and basic structure
+func (m *CredentialsOnchainOfferMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
+}
+
 // CredentialsProposalRequestMessage represent Iden3message for credential proposal request
 //
 // # Experimental
 //
 // Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
 type CredentialsProposalRequestMessage struct {
-	ID       string                    `json:"id"`
-	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thid,omitempty"`
-
+	iden3comm.BasicMessage
 	Body CredentialsProposalRequestBody `json:"body,omitempty"`
+}
 
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
+// MarshalJSON marshals protocol request message with typed body and basic structure
+func (m CredentialsProposalRequestMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
 
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
+// UnmarshalJSON  unmarshals protocol request message with typed body and basic structure
+func (m *CredentialsProposalRequestMessage) UnmarshalJSON(bytes []byte) error {
 
-	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
 }
 
 // CredentialsProposalMessage represents Iden3message for credential proposal
@@ -306,20 +316,8 @@ type CredentialsProposalRequestMessage struct {
 //
 // Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
 type CredentialsProposalMessage struct {
-	ID       string                    `json:"id"`
-	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thid,omitempty"`
-
+	iden3comm.BasicMessage
 	Body CredentialsProposalBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
-
-	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
 }
 
 // CredentialsProposalRequestBody is msg body for proposal requests
@@ -331,6 +329,21 @@ type CredentialsProposalRequestBody struct {
 	Credentials []CredentialInfo `json:"credentials"`
 	Metadata    *Metadata        `json:"metadata,omitempty"`
 	DIDDoc      json.RawMessage  `json:"did_doc,omitempty"`
+}
+
+// MarshalJSON marshals protocol request message with typed body and basic structure
+func (m CredentialsProposalMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON  unmarshals protocol request message with typed body and basic structure
+func (m *CredentialsProposalMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
 }
 
 // CredentialInfo is a part of credential proposal request bodys
@@ -381,20 +394,23 @@ type CredentialProposalInfo struct {
 //
 // Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
 type CredentialPaymentRequestMessage struct {
-	ID       string                    `json:"id"`
-	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thid,omitempty"`
-
+	iden3comm.BasicMessage
 	Body CredentialPaymentRequestBody `json:"body,omitempty"`
+}
 
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
+// MarshalJSON marshals protocol request message with typed body and basic structure
+func (m CredentialPaymentRequestMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
 
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
+// UnmarshalJSON  unmarshals protocol request message with typed body and basic structure
+func (m *CredentialPaymentRequestMessage) UnmarshalJSON(bytes []byte) error {
 
-	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
 }
 
 // CredentialPaymentRequestBody is msg body for payment requests
@@ -441,20 +457,23 @@ type CredentialPaymentData struct {
 //
 // Notice: this functionality is in beta and can be deleted or be non-backward compatible in the future releases.
 type CredentialPaymentMessage struct {
-	ID       string                    `json:"id"`
-	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thid,omitempty"`
-
+	iden3comm.BasicMessage
 	Body CredentialPaymentBody `json:"body,omitempty"`
+}
 
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
+// MarshalJSON marshals protocol request message with typed body and basic structure
+func (m CredentialPaymentMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
 
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
+// UnmarshalJSON  unmarshals protocol request message with typed body and basic structure
+func (m *CredentialPaymentMessage) UnmarshalJSON(bytes []byte) error {
 
-	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
 }
 
 // CredentialPaymentBody is msg body for payment
