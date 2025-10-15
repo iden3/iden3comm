@@ -11,6 +11,7 @@ import (
 	"github.com/iden3/driver-did-iden3/pkg/services"
 	"github.com/iden3/go-schema-processor/v2/verifiable"
 	"github.com/iden3/iden3comm/v2"
+	jweProvider "github.com/iden3/iden3comm/v2/packers/providers/jwe"
 	"github.com/iden3/iden3comm/v2/protocol"
 	"github.com/iden3/iden3comm/v2/utils"
 	"github.com/lestrrat-go/jwx/v3/jwa"
@@ -20,10 +21,8 @@ import (
 )
 
 var (
-	defaultKEA                      = jwa.RSA_OAEP_256()
-	defaultCEA                      = jwa.A256GCM()
-	supportedAnoncryptKekAlgorithms = []string{defaultKEA.String(), jwa.ECDH_ES_A256KW().String()}
-	supportedCekAlgorithms          = []string{defaultCEA.String(), jwa.A256CBC_HS512().String()}
+	defaultKEA = jwa.RSA_OAEP_256()
+	defaultCEA = jwa.A256GCM()
 )
 
 // MediaTypeEncryptedMessage is media type for encrypted message
@@ -31,8 +30,8 @@ const MediaTypeEncryptedMessage iden3comm.MediaType = "application/iden3comm-enc
 
 // AnoncryptPacker is  packer for anon encryption / decryption
 type AnoncryptPacker struct {
-	kr            KeyResolverHandlerFunc
-	didResolution DidDocumentResolverFunc
+	didDocumentResolver DidDocumentResolverFunc
+	privateKeyResolver  KeyResolverHandlerFunc
 }
 
 // AnoncryptRecipients is recipient info for anoncrypt packer
@@ -56,14 +55,14 @@ func (p *AnoncryptPackerParams) withDefault() error {
 
 	if p.ContentEncryptionAlgorithm == "" {
 		p.ContentEncryptionAlgorithm = defaultCEA.String()
-	} else if !isSupportedCekAlgorithm(p.ContentEncryptionAlgorithm) {
+	} else if !jweProvider.IsSupportedContentEncryptionAlgorithm(p.ContentEncryptionAlgorithm) {
 		return errors.New("unsupported content encryption algorithm")
 	}
 
 	for i := range p.Recipients {
 		if p.Recipients[i].JWKAlg == "" {
 			p.Recipients[i].JWKAlg = defaultKEA.String()
-		} else if !isSupportedKekAlgorithm(p.Recipients[i].JWKAlg) {
+		} else if !jweProvider.IsSupportedKeyEncryptionAlgorithm(p.Recipients[i].JWKAlg) {
 			return errors.New("unsupported recipient key algorithm")
 		}
 	}
@@ -73,7 +72,7 @@ func (p *AnoncryptPackerParams) withDefault() error {
 		if !ok || alg == nil {
 			return errors.New("missing alg in recipient key")
 		}
-		if !isSupportedKekAlgorithm(alg.String()) {
+		if !jweProvider.IsSupportedKeyEncryptionAlgorithm(alg.String()) {
 			return errors.New("unsupported recipient key algorithm")
 		}
 	}
@@ -86,7 +85,10 @@ func NewAnoncryptPacker(
 	kr KeyResolverHandlerFunc,
 	dr DidDocumentResolverFunc,
 ) *AnoncryptPacker {
-	return &AnoncryptPacker{kr: kr, didResolution: dr}
+	return &AnoncryptPacker{
+		privateKeyResolver:  kr,
+		didDocumentResolver: dr,
+	}
 }
 
 // KeyResolverHandlerFunc resolve private key by key id
@@ -115,51 +117,44 @@ func (p *AnoncryptPacker) Pack(payload []byte, params iden3comm.PackerParams) ([
 		return nil, errors.Wrap(err, "failed to set default values to packer params")
 	}
 
-	recipients := []jwe.EncryptOption{}
+	recipientsKeys := make([]jwk.Key, 0, len(packerParams.Recipients))
 	for _, recipient := range packerParams.Recipients {
-		resolution, err := p.didResolution(context.Background(), recipient.DID, nil)
+		recipientDidDocument, err := p.didDocumentResolver.Resolve(context.Background(), recipient.DID, nil)
 		if err != nil {
-			return nil, errors.Errorf("failed to resolve DidDoc for did %s: %v", recipient.DID, err)
+			return nil, errors.Wrapf(err,
+				"failed to resolve did document for did %s", recipient.DID)
 		}
 
-		recipientKey, err := p.resolveRecipientKeyFromDIDDoc(
-			resolution.DidDocument, recipient.JWKAlg)
+		recipientJWK, err := utils.ResolveRecipientKeyFromDIDDoc(
+			recipientDidDocument.DidDocument,
+			verifiable.WithJWKAlgorithm(recipient.JWKAlg),
+		)
 		if err != nil {
-			return nil, errors.Errorf("failed to resolve recipient key for did %s: %v", recipient.DID, err)
+			return nil, errors.Wrapf(err,
+				"failed to resolve recipient key from did document for did %s", recipient.DID)
 		}
-
-		recipients = append(recipients, recipientKey)
+		recipientsKeys = append(recipientsKeys, recipientJWK)
 	}
 
 	if packerParams.RecipientKey != nil {
-		k, err := p.useDirectKey(packerParams.RecipientKey)
+		validDirectKey, err := utils.IsValidDirectKey(packerParams.RecipientKey)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to use direct recipient key")
+			return nil, errors.Wrap(err, "failed to validate direct recipient key")
 		}
-		recipients = append(recipients, k)
+		recipientsKeys = append(recipientsKeys, validDirectKey)
 	}
 
-	if len(recipients) == 0 {
-		return nil, errors.New("no recipient keys provided")
-	}
-
-	cea := jwa.NewContentEncryptionAlgorithm(packerParams.ContentEncryptionAlgorithm)
-
-	headers := jwe.NewHeaders()
-	if err := headers.Set(jwe.ContentEncryptionKey, cea); err != nil {
-		return nil, errors.Wrap(err, "failed to set enc header")
-	}
-	if err := headers.Set(jwe.TypeKey, string(p.MediaType())); err != nil {
+	h := jwe.NewHeaders()
+	if err := h.Set(jwe.TypeKey, string(p.MediaType())); err != nil {
 		return nil, errors.Wrap(err, "failed to set typ header")
 	}
 
-	opts := append([]jwe.EncryptOption{
-		jwe.WithJSON(),
-		jwe.WithContentEncryption(cea),
-		jwe.WithProtectedHeaders(headers),
-	}, recipients...)
-
-	ret, err := jwe.Encrypt(payload, opts...)
+	ret, err := jweProvider.Encrypt(
+		payload,
+		recipientsKeys,
+		jweProvider.WithAdditionalProtectedHeaders(h),
+		jweProvider.WithContentEncryptionAlgorithm(packerParams.ContentEncryptionAlgorithm),
+	)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to encrypt message")
 	}
@@ -167,110 +162,19 @@ func (p *AnoncryptPacker) Pack(payload []byte, params iden3comm.PackerParams) ([
 	return ret, nil
 }
 
-func (p *AnoncryptPacker) useDirectKey(key jwk.Key) (jwe.EncryptOption, error) {
-	keyAlg, ok := key.Algorithm()
-	if !ok || keyAlg == nil {
-		return nil, errors.New("missing alg in recipient key")
-	}
-	kid, ok := key.KeyID()
-	if !ok || kid == "" {
-		return nil, errors.New("missing key id in recipient key")
-	}
-	recipientHeaders := jwe.NewHeaders()
-	if err := recipientHeaders.Set(jwe.KeyIDKey, kid); err != nil {
-		return nil, errors.Wrap(err, "failed to set kid header")
-	}
-	return jwe.WithKey(keyAlg, key,
-		jwe.WithPerRecipientHeaders(recipientHeaders),
-	), nil
-}
-
-func (p *AnoncryptPacker) resolveRecipientKeyFromDIDDoc(diddoc *verifiable.DIDDocument, keyAlg string) (jwe.EncryptDecryptOption, error) {
-	if diddoc == nil {
-		return nil, errors.New("did document is nil")
-	}
-
-	vms, err := diddoc.AllVerificationMethods().FilterBy(
-		verifiable.WithJWKAlgorithm(keyAlg),
-	)
-	if err != nil {
-		return nil, errors.Errorf(
-			"failed to filter verification methods for DidDoc '%v': %v",
-			diddoc.ID, err)
-	}
-
-	if len(vms) == 0 {
-		return nil, errors.Errorf(
-			"no verification methods found for key alg '%v' for DidDoc '%v'",
-			keyAlg, diddoc.ID)
-	}
-	vm := vms[0]
-
-	recipientJWKBytes, err := json.Marshal(vm.PublicKeyJwk)
-	if err != nil {
-		return nil, errors.Errorf(
-			"failed to marshal public key to jwk for did %s: %v", diddoc.ID, err)
-	}
-	recipientKey, err := jwk.ParseKey(recipientJWKBytes)
-	if err != nil {
-		return nil, errors.Errorf(
-			"failed to parse public key to jwk for did %s: %v", diddoc.ID, err)
-	}
-	alg, ok := recipientKey.Algorithm()
-	if !ok {
-		return nil,
-			errors.Errorf("missing alg in recipient key for did %s", diddoc.ID)
-	}
-
-	recipientHeaders := jwe.NewHeaders()
-	if err := recipientHeaders.Set(jwe.KeyIDKey, vm.ID); err != nil {
-		return nil, errors.Wrap(err, "failed to set kid header")
-	}
-
-	return jwe.WithKey(alg, recipientKey,
-		jwe.WithPerRecipientHeaders(recipientHeaders),
-	), nil
-}
-
 // Unpack returns unpacked message from transport envelope
 func (p *AnoncryptPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
-	jweMessage, err := jwe.Parse(envelope)
+	payload, err := jweProvider.Decrypt(envelope, p.privateKeyResolver.Resolve)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse jwe token: %w", err)
+		return nil, errors.Wrap(err, "failed to decrypt message")
 	}
 
-	for _, r := range jweMessage.Recipients() {
-		kid, ok := r.Headers().KeyID()
-		if !ok {
-			continue
-		}
-		decryptionKey, err := p.kr.Resolve(kid)
-		if err != nil {
-			continue
-		}
-
-		alg, ok := r.Headers().Algorithm()
-		if !ok {
-			continue
-		}
-		if !isSupportedKekAlgorithm(alg.String()) {
-			continue
-		}
-
-		payload, err := jwe.Decrypt(envelope, jwe.WithKey(alg, decryptionKey))
-		if err != nil {
-			continue
-		}
-
-		var msg iden3comm.BasicMessage
-		err = json.Unmarshal(payload, &msg)
-		if err != nil {
-			return nil, err
-		}
-		return &msg, nil
+	msg := &iden3comm.BasicMessage{}
+	if err = json.Unmarshal(payload, msg); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal message")
 	}
 
-	return nil, errors.New("no recipient found")
+	return msg, nil
 }
 
 // MediaType for iden3comm
@@ -285,7 +189,7 @@ func (p *AnoncryptPacker) GetSupportedProfiles() []string {
 			"%s;env=%s;alg=%s",
 			protocol.Iden3CommVersion1,
 			p.MediaType(),
-			strings.Join(p.getSupportedKekAlgorithms(), ","),
+			strings.Join(jweProvider.SupportedKekAlgorithms, ","),
 		),
 	}
 }
@@ -316,41 +220,11 @@ func (p *AnoncryptPacker) IsProfileSupported(profile string) bool {
 		return true
 	}
 
-	supportedAlgorithms := p.getSupportedKekAlgorithms()
 	for _, alg := range parsedProfile.AcceptAnoncryptAlgorithms {
-		for _, supportedAlg := range supportedAlgorithms {
-			if string(alg) == supportedAlg {
-				return true
-			}
-		}
-	}
-	return false
-
-}
-
-func (p *AnoncryptPacker) getSupportedKekAlgorithms() []string {
-	return supportedAnoncryptKekAlgorithms
-}
-
-//nolint:unused // function might be used in future
-func (p *AnoncryptPacker) getSupportedCekAlgorithms() []string {
-	return supportedCekAlgorithms
-}
-
-func isSupportedKekAlgorithm(alg string) bool {
-	for _, v := range supportedAnoncryptKekAlgorithms {
-		if v == alg {
+		if jweProvider.IsSupportedKeyEncryptionAlgorithm(string(alg)) {
 			return true
 		}
 	}
 	return false
-}
 
-func isSupportedCekAlgorithm(alg string) bool {
-	for _, v := range supportedCekAlgorithms {
-		if v == alg {
-			return true
-		}
-	}
-	return false
 }
