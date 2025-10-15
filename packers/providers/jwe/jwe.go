@@ -10,6 +10,10 @@ import (
 )
 
 var (
+	ErrDecryptionKeyNotFound = errors.New("decryption key not found")
+)
+
+var (
 	// SupportedKekAlgorithms is a list of supported key encryption algorithms
 	SupportedKekAlgorithms = []string{jwa.RSA_OAEP_256().String(), jwa.ECDH_ES_A256KW().String()}
 	// SupportedCekAlgorithms is a list of supported content encryption algorithms
@@ -161,5 +165,5 @@ func Decrypt(envelope []byte, fn KeyResolutionFunc) ([]byte, error) {
 		return payload, nil
 	}
 
-	return nil, errors.New("no matching key found for decryption")
+	return nil, ErrDecryptionKeyNotFound
 }
