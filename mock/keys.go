@@ -25,6 +25,43 @@ var (
 	ViktorDigest = rand.New(rand.NewSource(3))
 )
 
+type MockCommon struct {
+	MockRSA MockRSA
+	MockEC  MockEC
+}
+
+func NewCommonMock(r MockRSA, e MockEC) MockCommon {
+	return MockCommon{
+		MockRSA: r,
+		MockEC:  e,
+	}
+}
+
+func (m MockCommon) BuildDidDocWithAllKeys(t *testing.T, did string) *document.DidResolution {
+	rsaJwk := m.MockRSA.GetJWKForPublicKey(t)
+	ecJwk := m.MockEC.GetJWKForPublicKey(t)
+
+	return &document.DidResolution{
+		DidDocument: &verifiable.DIDDocument{
+			ID: did,
+			VerificationMethod: []verifiable.CommonVerificationMethod{
+				{
+					ID:           did + "#rsa-key-1",
+					Type:         "JsonWebKey2020",
+					Controller:   did,
+					PublicKeyJwk: rsaJwk,
+				},
+				{
+					ID:           did + "#ec-key-1",
+					Type:         "JsonWebKey2020",
+					Controller:   did,
+					PublicKeyJwk: ecJwk,
+				},
+			},
+		},
+	}
+}
+
 type MockRSA struct {
 	PrivateKey *rsa.PrivateKey
 }
