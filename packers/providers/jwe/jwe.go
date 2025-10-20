@@ -1,6 +1,7 @@
 package jwe
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/lestrrat-go/jwx/v3/jwa"
@@ -126,44 +127,38 @@ type KeyResolutionFunc func(keyID string) (key interface{}, err error)
 
 // Decrypt decrypts the JWE envelope using the provided key resolution function
 func Decrypt(envelope []byte, fn KeyResolutionFunc) ([]byte, error) {
-	jweMessage, err := jwe.Parse(envelope)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse jwe token: %w", err)
-	}
+	customKeyProvider := func(ctx context.Context, sink jwe.KeySink, r jwe.Recipient, msg *jwe.Message) error {
+		alg, ok := r.Headers().Algorithm()
+		if !ok || alg.String() == "" {
+			return fmt.Errorf("recipient has no algorithm")
+		}
+		if !IsSupportedKeyEncryptionAlgorithm(alg.String()) {
+			return fmt.Errorf("unsupported key encryption algorithm: %s", alg.String())
+		}
 
-	for _, r := range jweMessage.Recipients() {
+		enc, ok := msg.ProtectedHeaders().ContentEncryption()
+		if !ok || enc.String() == "" {
+			return fmt.Errorf("message has no content encryption algorithm")
+		}
+		if !IsSupportedContentEncryptionAlgorithm(enc.String()) {
+			return fmt.Errorf("unsupported content encryption algorithm: %s", enc.String())
+		}
+
 		kid, ok := r.Headers().KeyID()
-		if !ok {
-			continue
+		if !ok || kid == "" {
+			return fmt.Errorf("recipient has no key ID")
 		}
 		decryptionKey, err := fn(kid)
 		if err != nil {
-			continue
+			return err
 		}
-
-		alg, ok := r.Headers().Algorithm()
-		if !ok {
-			continue
-		}
-		if !IsSupportedKeyEncryptionAlgorithm(alg.String()) {
-			continue
-		}
-
-		cekAlg, ok := jweMessage.ProtectedHeaders().ContentEncryption()
-		if !ok {
-			continue
-		}
-		if !IsSupportedContentEncryptionAlgorithm(cekAlg.String()) {
-			continue
-		}
-
-		payload, err := jwe.Decrypt(envelope, jwe.WithKey(alg, decryptionKey))
-		if err != nil {
-			continue
-		}
-
-		return payload, nil
+		sink.Key(alg, decryptionKey)
+		return nil
 	}
 
-	return nil, ErrDecryptionKeyNotFound
+	payload, err := jwe.Decrypt(envelope, jwe.WithKeyProvider(jwe.KeyProviderFunc(customKeyProvider)))
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", err, ErrDecryptionKeyNotFound)
+	}
+	return payload, nil
 }
