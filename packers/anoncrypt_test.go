@@ -2,6 +2,7 @@ package packers
 
 import (
 	"context"
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"testing"
@@ -234,6 +235,73 @@ func TestAnoncryptPacker_GetSupportedProfiles(t *testing.T) {
 		"iden3comm/v1;env=application/iden3comm-encrypted-json;alg=RSA-OAEP-256,ECDH-ES+A256KW",
 	}
 	require.ElementsMatch(t, expected, profiles)
+}
+
+func TestDecryptForListBigListOfRecipients(t *testing.T) {
+	var (
+		aliceDID  = "did:example:alice"
+		bobDID    = "did:example:bob"
+		viktorDID = "did:example:viktor"
+	)
+
+	recipients := map[string]struct {
+		privateJWK map[string]interface{}
+		doc        document.DidResolution
+	}{}
+	for _, r := range []string{aliceDID, bobDID, viktorDID} {
+		rsaKey := mock.NewMockRSA(t, rand.Reader)
+		ecKey := mock.NewMockEC(t, rand.Reader)
+
+		comm := mock.NewCommonMock(rsaKey, ecKey)
+
+		recipients[r] = struct {
+			privateJWK map[string]interface{}
+			doc        document.DidResolution
+		}{
+			privateJWK: rsaKey.GetJWKForPrivateKey(t),
+			doc:        *comm.BuildDidDocWithAllKeys(t, r),
+		}
+	}
+
+	didDocumentResolverFunc := func(_ context.Context, did string, _ *services.ResolverOpts) (
+		*document.DidResolution, error,
+	) {
+		if doc, ok := recipients[did]; ok {
+			return &doc.doc, nil
+		}
+		return nil, fmt.Errorf("not found")
+	}
+
+	// try to decryupt only with viktor's RSA key
+	privateKeyResolverFunc := func(keyID string) (key interface{}, err error) {
+		if keyID == viktorDID+"#rsa-key-1" {
+			b, err := json.Marshal(recipients[viktorDID].privateJWK)
+			require.NoError(t, err)
+			return jwk.ParseKey(b)
+		}
+		return nil, fmt.Errorf("not found")
+	}
+
+	anonPacker := NewAnoncryptPacker(privateKeyResolverFunc, didDocumentResolverFunc)
+
+	originMessage := `{"id":"8589c266-f5f4-4a80-8fc8-c1ad4de3e3b4","thid":"43246acb-b772-414e-9c90-f36b37261000","typ":"application/iden3comm-encrypted-json","type":"https://iden3-communication.io/passport/0.1/verification-request","from":"did:iden3:polygon:amoy:x6x5sor7zpxUwajVSoHGg8aAhoHNoAW1xFDTPCF49","to":"did:iden3:billions:test:2VxnoiNqdMPyHMtUwAEzhnWqXGkEeJpAp4ntTkL8XT"}`
+
+	ciphertext, err := anonPacker.Pack([]byte(originMessage), AnoncryptPackerParams{
+		Recipients: []AnoncryptRecipients{
+			{DID: aliceDID, JWKAlg: jwa.RSA_OAEP_256().String()},
+			{DID: bobDID, JWKAlg: jwa.ECDH_ES_A256KW().String()},
+			{DID: viktorDID, JWKAlg: jwa.RSA_OAEP_256().String()},
+		},
+	})
+	require.NoError(t, err)
+
+	decryptedMsg, err := anonPacker.Unpack(ciphertext)
+	require.NoError(t, err)
+
+	decryptedBytes, err := json.Marshal(decryptedMsg)
+	require.NoError(t, err)
+
+	require.JSONEq(t, string(decryptedBytes), originMessage)
 }
 
 func TestAnoncryptPacker_Pack_JS_Aligen(t *testing.T) {
