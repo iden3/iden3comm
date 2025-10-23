@@ -112,6 +112,7 @@ func Encrypt(payload []byte, recipients []jwk.Key, opts ...EncryptOption) ([]byt
 		jwe.WithJSON(),
 		jwe.WithContentEncryption(cea),
 		jwe.WithProtectedHeaders(headers),
+		jwe.WithLegacyHeaderMerging(false),
 	}, withKeys...)
 
 	ret, err := jwe.Encrypt(payload, jweOpts...)
@@ -128,7 +129,12 @@ type KeyResolutionFunc func(keyID string) (key interface{}, err error)
 // Decrypt decrypts the JWE envelope using the provided key resolution function
 func Decrypt(envelope []byte, fn KeyResolutionFunc) ([]byte, error) {
 	customKeyProvider := func(ctx context.Context, sink jwe.KeySink, r jwe.Recipient, msg *jwe.Message) error {
-		alg, ok := r.Headers().Algorithm()
+		mergedHeaders, err := mergeHeaders(msg.ProtectedHeaders(), msg.UnprotectedHeaders(), r.Headers())
+		if err != nil {
+			return fmt.Errorf("failed to merge JWE headers: %w", err)
+		}
+
+		alg, ok := mergedHeaders.Algorithm()
 		if !ok || alg.String() == "" {
 			return fmt.Errorf("recipient has no algorithm")
 		}
@@ -136,7 +142,7 @@ func Decrypt(envelope []byte, fn KeyResolutionFunc) ([]byte, error) {
 			return fmt.Errorf("unsupported key encryption algorithm: %s", alg.String())
 		}
 
-		enc, ok := msg.ProtectedHeaders().ContentEncryption()
+		enc, ok := mergedHeaders.ContentEncryption()
 		if !ok || enc.String() == "" {
 			return fmt.Errorf("message has no content encryption algorithm")
 		}
@@ -144,7 +150,7 @@ func Decrypt(envelope []byte, fn KeyResolutionFunc) ([]byte, error) {
 			return fmt.Errorf("unsupported content encryption algorithm: %s", enc.String())
 		}
 
-		kid, ok := r.Headers().KeyID()
+		kid, ok := mergedHeaders.KeyID()
 		if !ok || kid == "" {
 			return fmt.Errorf("recipient has no key ID")
 		}
@@ -161,4 +167,47 @@ func Decrypt(envelope []byte, fn KeyResolutionFunc) ([]byte, error) {
 		return nil, fmt.Errorf("%s: %w", err, ErrDecryptionKeyNotFound)
 	}
 	return payload, nil
+}
+
+func mergeHeaders(protected, unprotected, perRecipient jwe.Headers) (jwe.Headers, error) {
+	var allKeys []string
+	if protected != nil {
+		allKeys = append(allKeys, protected.Keys()...)
+	}
+	if unprotected != nil {
+		allKeys = append(allKeys, unprotected.Keys()...)
+	}
+	if perRecipient != nil {
+		allKeys = append(allKeys, perRecipient.Keys()...)
+	}
+
+	seen := make(map[string]struct{})
+	for _, key := range allKeys {
+		if _, ok := seen[key]; ok {
+			return nil, errors.Errorf("duplicate header key found: %s", key)
+		}
+		seen[key] = struct{}{}
+	}
+
+	// Merge headers (no duplicates, so safe to merge)
+	result := jwe.NewHeaders()
+	if protected != nil {
+		result = protected
+	}
+	if unprotected != nil {
+		var err error
+		result, err = result.Merge(unprotected)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to merge unprotected headers")
+		}
+	}
+	if perRecipient != nil {
+		var err error
+		result, err = result.Merge(perRecipient)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to merge per-recipient headers")
+		}
+	}
+
+	return result, nil
 }
