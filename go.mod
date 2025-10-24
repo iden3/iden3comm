@@ -13,7 +13,7 @@ require (
 	github.com/iden3/go-rapidsnark/types v0.0.3
 	github.com/iden3/go-schema-processor/v2 v2.6.3
 	github.com/iden3/jose-primitives v0.0.5
-	github.com/lestrrat-go/jwx/v3 v3.0.10
+	github.com/lestrrat-go/jwx/v3 v3.0.12
 	github.com/mr-tron/base58 v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.11.1
@@ -47,15 +47,17 @@ require (
 	github.com/iden3/go-rapidsnark/witness/wazero v0.0.0-20230524142950-0986cf057d4e // indirect
 	github.com/iden3/merkletree-proof v1.0.1 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.4 // indirect
+	github.com/lestrrat-go/dsig v1.0.0 // indirect
+	github.com/lestrrat-go/dsig-secp256k1 v1.0.0 // indirect
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
-	github.com/lestrrat-go/httprc/v3 v3.0.0 // indirect
+	github.com/lestrrat-go/httprc/v3 v3.0.1 // indirect
 	github.com/lestrrat-go/option v1.0.1 // indirect
 	github.com/lestrrat-go/option/v2 v2.0.0 // indirect
 	github.com/piprate/json-gold v0.5.1-0.20241210232033-19254b3ec65b // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/pquerna/cachecontrol v0.2.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	github.com/segmentio/asm v1.2.0 // indirect
+	github.com/segmentio/asm v1.2.1 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/supranational/blst v0.3.16-0.20250831170142-f48500c1fdbe // indirect
 	github.com/tetratelabs/wazero v1.1.0 // indirect
@@ -63,10 +65,10 @@ require (
 	github.com/tklauser/numcpus v0.10.0 // indirect
 	github.com/valyala/fastjson v1.6.4 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
-	golang.org/x/crypto v0.42.0 // indirect
-	golang.org/x/net v0.44.0 // indirect
+	golang.org/x/crypto v0.43.0 // indirect
+	golang.org/x/net v0.45.0 // indirect
 	golang.org/x/sync v0.17.0 // indirect
-	golang.org/x/sys v0.36.0 // indirect
-	golang.org/x/text v0.29.0 // indirect
+	golang.org/x/sys v0.37.0 // indirect
+	golang.org/x/text v0.30.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
