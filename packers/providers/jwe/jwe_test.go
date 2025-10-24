@@ -183,7 +183,7 @@ func TestMergeHeaders_Errors(t *testing.T) {
 			expectedErr: "duplicate header key found: alg",
 		},
 		{
-			name: "deuplicate between all three headers",
+			name: "duplicate between all three headers",
 			protected: func() jwe.Headers {
 				h := jwe.NewHeaders()
 				require.NoError(t, h.Set(jwe.TypeKey, "type-1"))

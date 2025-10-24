@@ -192,7 +192,9 @@ func mergeHeaders(protected, unprotected, perRecipient jwe.Headers) (jwe.Headers
 	// Merge headers (no duplicates, so safe to merge)
 	result := jwe.NewHeaders()
 	if protected != nil {
-		result = protected
+		if err := protected.Copy(result); err != nil {
+			return nil, errors.Wrap(err, "failed to merge protected headers")
+		}
 	}
 	if unprotected != nil {
 		var err error
