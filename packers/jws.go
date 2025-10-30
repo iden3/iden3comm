@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/dustinxie/ecc"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/iden3/go-iden3-crypto/keccak256"
 	"github.com/iden3/go-schema-processor/v2/verifiable"
 	"github.com/iden3/iden3comm/v2"
@@ -298,7 +297,7 @@ func (p *JWSPacker) Unpack(envelope []byte) (*iden3comm.BasicMessage, error) {
 
 		// if previous validation failed but blockchainAccountId or ethereumAddress are set - try to recover address from signature (E256K or E256K-R)
 		if err != nil {
-			_, err := recoverEthereumAddress(token, vms[i], alg)
+			err := verifyJWS(token, vms[i], alg)
 			if err != nil {
 				continue
 			}
@@ -322,14 +321,14 @@ func verifySignatureWithPublicKey(envelope []byte, alg jwa.SignatureAlgorithm, v
 	}
 	return nil
 }
-func recoverEthereumAddress(token *jws.Message, vm verifiable.CommonVerificationMethod, alg jwa.SignatureAlgorithm) (common.Address, error) {
+func verifyJWS(token *jws.Message, vm verifiable.CommonVerificationMethod, alg jwa.SignatureAlgorithm) error {
 	base64Token, err := jws.Compact(token)
 	if err != nil {
-		return common.Address{}, errors.WithStack(err)
+		return errors.WithStack(err)
 	}
 	base64TokenParts := strings.Split(string(base64Token), ".")
 	if len(base64TokenParts) != 3 {
-		return common.Address{}, errors.New("jws should have 3 encoded parts")
+		return errors.New("jws should have 3 encoded parts")
 	}
 	signedData := base64TokenParts[0] + "." + base64TokenParts[1]
 	hash := sha256.Sum256([]byte(signedData))
@@ -342,16 +341,16 @@ func recoverEthereumAddress(token *jws.Message, vm verifiable.CommonVerification
 	}
 	recoveredKey, err := ecc.RecoverEthereum(hash[:], sig)
 	if err != nil {
-		return common.Address{}, errors.WithStack(err)
+		return errors.WithStack(err)
 	}
 
 	recoveredAddress := "0x" + hex.EncodeToString(keccak256.Hash(recoveredKey[1:])[12:])
 	blockchainAccountIDParts := strings.Split(vm.BlockchainAccountID, ":")
 	address := blockchainAccountIDParts[len(blockchainAccountIDParts)-1]
 	if !strings.EqualFold(address, recoveredAddress) && !strings.EqualFold(vm.EthereumAddress, recoveredAddress) {
-		return common.Address{}, errors.New("invalid signature from blockchain account id or ethereum address")
+		return errors.New("invalid signature from blockchain account id or ethereum address")
 	}
-	return common.HexToAddress(recoveredAddress), nil
+	return nil
 }
 
 // MediaType for iden3comm that returns MediaTypeSignedMessage
