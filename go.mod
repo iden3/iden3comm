@@ -9,7 +9,7 @@ require (
 	github.com/iden3/go-circuits/v2 v2.4.2
 	github.com/iden3/go-iden3-core/v2 v2.3.2
 	github.com/iden3/go-iden3-crypto v0.0.17
-	github.com/iden3/go-jwz/v2 v2.2.2
+	github.com/iden3/go-jwz/v2 v2.2.3-0.20251030122439-a8c21744054c
 	github.com/iden3/go-rapidsnark/types v0.0.3
 	github.com/iden3/go-schema-processor/v2 v2.6.3
 	github.com/iden3/jose-primitives v0.0.5
@@ -41,7 +41,7 @@ require (
 	github.com/iden3/contracts-abi/onchain-credential-status-resolver/go/abi v1.0.2 // indirect
 	github.com/iden3/contracts-abi/state/go/abi v1.1.0 // indirect
 	github.com/iden3/go-merkletree-sql/v2 v2.0.6 // indirect
-	github.com/iden3/go-rapidsnark/prover v0.0.10 // indirect
+	github.com/iden3/go-rapidsnark/prover v0.0.14-0.20251030114752-41385a617c58 // indirect
 	github.com/iden3/go-rapidsnark/verifier v0.0.5 // indirect
 	github.com/iden3/go-rapidsnark/witness/v2 v2.0.0 // indirect
 	github.com/iden3/go-rapidsnark/witness/wazero v0.0.0-20230524142950-0986cf057d4e // indirect
