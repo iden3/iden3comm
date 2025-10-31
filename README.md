@@ -10,11 +10,15 @@ dual licensed as below, without any additional terms or conditions.
 
 ## Build constraints
 
-### no_jwz
+### prover_disabled
 
-If you do not use the JWZ functionality and do not need to run prover on
-JWZ packed messages, you can build the library with the `no_jwz` build tag.
-This build tag would prevent the dependency on the `librapidsnark.a` library
+The `prover_disabled` build tag prevents the dependency on the `librapidsnark.a` library.
+
+**Behavior with `prover_disabled` flag:**
+- ZK proof verification remains fully functional
+- ZK proof generation will fail with an error when calling the `Pack` method from `ZKPPacker`
+
+To enable both ZK proof generation and verification, build the library without the `prover_disabled` flag.
 
 ## License
 

@@ -1,5 +1,3 @@
-//go:build !no_jwz
-
 package packers
 
 import (

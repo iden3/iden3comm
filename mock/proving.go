@@ -1,5 +1,3 @@
-//go:build !no_jwz
-
 // Package mock defines mocks for protocol testing
 package mock
 
