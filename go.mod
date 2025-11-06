@@ -5,7 +5,7 @@ go 1.24.2
 require (
 	github.com/dustinxie/ecc v0.0.0-20210511000915-959544187564
 	github.com/google/uuid v1.6.0
-	github.com/iden3/driver-did-iden3 v0.0.14
+	github.com/iden3/driver-did-iden3 v0.0.15
 	github.com/iden3/go-circuits/v2 v2.4.2
 	github.com/iden3/go-iden3-core/v2 v2.3.2
 	github.com/iden3/go-iden3-crypto v0.0.17
@@ -22,7 +22,7 @@ require (
 require (
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/bits-and-blooms/bitset v1.24.0 // indirect
-	github.com/consensys/gnark-crypto v0.19.0 // indirect
+	github.com/consensys/gnark-crypto v0.19.2 // indirect
 	github.com/crate-crypto/go-eth-kzg v1.4.0 // indirect
 	github.com/crate-crypto/go-ipa v0.0.0-20240724233137-53bbb0ceb27a // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
