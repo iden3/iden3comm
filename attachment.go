@@ -5,6 +5,7 @@ type Attachment struct {
 	ID          string     `json:"id"`
 	Description string     `json:"description,omitempty"`
 	MediaType   MediaType  `json:"media_type,omitempty"`
+	Format      string     `json:"format,omitempty"`
 	Data        AttachData `json:"data"`
 }
 
