@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/iden3/driver-did-iden3/pkg/services/blockchain/eth"
 	"github.com/iden3/go-circuits/v2"
 	core "github.com/iden3/go-iden3-core/v2"
 	"github.com/iden3/go-iden3-core/v2/w3c"
@@ -125,4 +126,27 @@ func TestZKPSupportedProfilesWithoutCircuits(t *testing.T) {
 	p := NewZKPPacker(nil, nil)
 	acceptProfiles := p.GetSupportedProfiles()
 	require.Equal(t, []string{"iden3comm/v1;env=application/iden3-zkp-json;alg=groth16"}, acceptProfiles)
+}
+
+func TestConvertEthResolvers(t *testing.T) {
+	resolver1, err := eth.NewResolver("https://rpc-mainnet.billions.network", "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a123")
+	require.NoError(t, err)
+	resolver2, err := eth.NewResolver("http://billions-testnet-rpc.eu-north-2.gateway.fm", "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896")
+	require.NoError(t, err)
+
+	ethResolvers := map[int]eth.Resolver{
+		45056: *resolver1,
+		6913:  *resolver2,
+	}
+
+	converted := convertEthResolvers(ethResolvers)
+	require.Equal(t, 2, len(converted))
+
+	actual1 := converted[45056].(*eth.Resolver)
+	actual2 := converted[6913].(*eth.Resolver)
+
+	actualP1 := fmt.Sprintf("%p", actual1)
+	actualP2 := fmt.Sprintf("%p", actual2)
+
+	require.NotEqual(t, actualP1, actualP2)
 }
