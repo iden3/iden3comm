@@ -453,8 +453,10 @@ func unique(ids []circuits.CircuitID) []circuits.CircuitID {
 func convertEthResolvers(resolvers map[int]eth.Resolver) map[int]driver.Resolver {
 	converted := make(map[int]driver.Resolver, len(resolvers))
 	for chainID, resolver := range resolvers {
-		r := resolver
-		converted[chainID] = &r
+		// https://go.dev/blog/loopvar-preview
+		// no need to create a new variable
+		// since the issue with 'for' was fixed on go 1.22
+		converted[chainID] = &resolver
 	}
 	return converted
 }
