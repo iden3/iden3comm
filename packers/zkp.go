@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/iden3/driver-did-iden3/pkg/services"
+	driver "github.com/iden3/driver-did-iden3/pkg/services"
 	"github.com/iden3/driver-did-iden3/pkg/services/blockchain/eth"
 	"github.com/iden3/go-circuits/v2"
 	core "github.com/iden3/go-iden3-core/v2"
@@ -353,23 +353,28 @@ func WithAuthVerifyDelay(delay time.Duration) DefaultZKPUnpackerOption {
 }
 
 type defaultZKPUnpacker struct {
-	resolvers       map[int]eth.Resolver
+	resolvers       map[int]driver.Resolver
 	authVerifyDelay time.Duration
 }
 
+// Deprecated: use NewDefaultZKPUnpacker instead.
 // DefaultZKPUnpacker creates a default ZKP unpacker with the provided verification key and resolvers
 func DefaultZKPUnpacker(verificationKey []byte, resolvers map[int]eth.Resolver, opts ...DefaultZKPUnpackerOption) *ZKPPacker {
-	def := &defaultZKPUnpacker{resolvers, time.Minute * 5}
-	for _, opt := range opts {
-		opt(def)
-	}
-	verifications := make(map[jwz.ProvingMethodAlg]VerificationParams)
-	verifications[jwz.AuthV2Groth16Alg] = NewVerificationParams(verificationKey, def.defaultZkpUnpackerVerificationFn)
-	return NewZKPPacker(nil, verifications)
+	r := convertEthResolvers(resolvers)
+	return NewDefaultZKPUnpacker(map[jwz.ProvingMethodAlg][]byte{
+		jwz.AuthV2Groth16Alg: verificationKey,
+	}, r, opts...)
 }
 
+// Deprecated: use NewDefaultZKPUnpacker instead.
 // DefaultMultiKeyZKPUnpacker creates a default ZKP unpacker with the provided verification keys and resolvers
 func DefaultMultiKeyZKPUnpacker(verificationKeys map[jwz.ProvingMethodAlg][]byte, resolvers map[int]eth.Resolver, opts ...DefaultZKPUnpackerOption) *ZKPPacker {
+	r := convertEthResolvers(resolvers)
+	return NewDefaultZKPUnpacker(verificationKeys, r, opts...)
+}
+
+// NewDefaultZKPUnpacker creates a default ZKP unpacker with the provided verification keys and resolvers
+func NewDefaultZKPUnpacker(verificationKeys map[jwz.ProvingMethodAlg][]byte, resolvers map[int]driver.Resolver, opts ...DefaultZKPUnpackerOption) *ZKPPacker {
 	def := &defaultZKPUnpacker{resolvers, time.Minute * 5}
 	for _, opt := range opts {
 		opt(def)
@@ -413,7 +418,7 @@ func (d *defaultZKPUnpacker) defaultZkpUnpackerVerificationFn(id circuits.Circui
 	resolver := d.resolvers[int(chainID)]
 
 	globalState := authPubSignals.GISTRoot.BigInt()
-	globalStateInfo, err := resolver.ResolveGist(context.Background(), &services.ResolverOpts{GistRoot: globalState})
+	globalStateInfo, err := resolver.ResolveGist(context.Background(), &driver.ResolverOpts{GistRoot: globalState})
 	if err != nil {
 		return errors.Errorf("error getting global state info by state '%s': %v",
 			globalState, err)
@@ -443,4 +448,15 @@ func unique(ids []circuits.CircuitID) []circuits.CircuitID {
 		}
 	}
 	return result
+}
+
+func convertEthResolvers(resolvers map[int]eth.Resolver) map[int]driver.Resolver {
+	converted := make(map[int]driver.Resolver, len(resolvers))
+	for chainID, resolver := range resolvers {
+		// https://go.dev/blog/loopvar-preview
+		// no need to create a new variable
+		// since the issue with 'for' was fixed on go 1.22
+		converted[chainID] = &resolver
+	}
+	return converted
 }
