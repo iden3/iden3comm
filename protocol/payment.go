@@ -32,6 +32,9 @@ const (
 	// Iden3PaymentRailsSolanaSPLRequestV1Type is a Iden3PaymentRailsSolanaSPLRequestV1 payment type
 	Iden3PaymentRailsSolanaSPLRequestV1Type PaymentRequestType = "Iden3PaymentRailsSolanaSPLRequestV1"
 
+	// Iden3PaymentRailsStripeRequestV1Type is a Iden3PaymentRailsStripeRequestV1 payment type
+	Iden3PaymentRailsStripeRequestV1Type PaymentRequestType = "Iden3PaymentRailsStripeRequestV1"
+
 	// Iden3PaymentCryptoV1Type is a Iden3PaymentCryptoV1 payment type
 	Iden3PaymentCryptoV1Type PaymentType = "Iden3PaymentCryptoV1"
 
@@ -46,6 +49,9 @@ const (
 
 	// Iden3PaymentRailsSolanaSPLV1Type is a Iden3PaymentRailsSolanaSPLV1 payment type
 	Iden3PaymentRailsSolanaSPLV1Type PaymentType = "Iden3PaymentRailsSolanaSPLV1"
+
+	// Iden3PaymentRailsStripeV1Type is a Iden3PaymentRailsStripeV1 payment type
+	Iden3PaymentRailsStripeV1Type PaymentType = "Iden3PaymentRailsStripeV1"
 
 	// SolanaEd25519Signature2025Type is a Solana Ed25519 signature proof type.
 	SolanaEd25519Signature2025Type verifiable.ProofType = "SolanaEd25519Signature2025"
@@ -172,6 +178,12 @@ func (p *PaymentRequestInfoData) unmarshalFromItem(typ PaymentRequestType, data 
 			return nil, fmt.Errorf("unmarshalling PaymentRequestInfoData: %w", err)
 		}
 		return o, nil
+	case Iden3PaymentRailsStripeRequestV1Type:
+		var o Iden3PaymentRailsStripeRequestV1
+		if err := json.Unmarshal(data, &o); err != nil {
+			return nil, fmt.Errorf("unmarshalling PaymentRequestInfoData: %w", err)
+		}
+		return o, nil
 	default:
 		return nil, errors.Errorf("unmarshalling PaymentRequestInfoData. unknown type: %s", typ)
 	}
@@ -264,6 +276,39 @@ type Iden3PaymentRailsSolanaSPLRequestV1 struct {
 // PaymentRequestType implements the PaymentRequestInfoDataItem interface.
 func (i Iden3PaymentRailsSolanaSPLRequestV1) PaymentRequestType() PaymentRequestType {
 	return Iden3PaymentRailsSolanaSPLRequestV1Type
+}
+
+// Iden3PaymentRailsStripeRequestV1 represents the Iden3PaymentRailsStripeRequestV1 payment request data.
+type Iden3PaymentRailsStripeRequestV1 struct {
+	Nonce          string                 `json:"nonce"`
+	Type           string                 `json:"type"`
+	Context        PaymentContext         `json:"@context"`
+	Metadata       map[string]interface{} `json:"metadata,omitempty"`
+	ExpirationDate string                 `json:"expirationDate,omitempty"`
+	SuccessURL     string                 `json:"successUrl"`
+	CancelURL      string                 `json:"cancelUrl,omitempty"`
+	Items          []StripeItem           `json:"items"`
+	SessionID      string                 `json:"sessionId"`
+	SessionURL     string                 `json:"sessionUrl"`
+	Proof          PaymentProof           `json:"proof"`
+}
+
+// StripeItem represents an item for Stripe payment.
+type StripeItem struct {
+	Quantity  int             `json:"quantity"`
+	PriceData StripePriceData `json:"priceData"`
+}
+
+// StripePriceData represents price data for Stripe item.
+type StripePriceData struct {
+	Currency string `json:"currency"`
+	Amount   string `json:"amount"`
+	Name     string `json:"name"`
+}
+
+// PaymentRequestType implements the PaymentRequestInfoDataItem interface.
+func (i Iden3PaymentRailsStripeRequestV1) PaymentRequestType() PaymentRequestType {
+	return Iden3PaymentRailsStripeRequestV1Type
 }
 
 // PaymentFeatures represents type Features used in ERC20 payment request.
@@ -420,6 +465,7 @@ type Payment struct {
 	railsERC       *Iden3PaymentRailsERC20V1
 	railsSolana    *Iden3PaymentRailsSolanaV1
 	railsSolanaSPL *Iden3PaymentRailsSolanaSPLV1
+	railsStripe    *Iden3PaymentRailsStripeV1
 }
 
 // NewPaymentCrypto creates a new Payment with Iden3PaymentCryptoV1 data.
@@ -462,6 +508,14 @@ func NewPaymentRailsSolanaSPL(data Iden3PaymentRailsSolanaSPLV1) Payment {
 	}
 }
 
+// NewPaymentRailsStripe creates a new Payment with Iden3PaymentRailsStripeV1 data.
+func NewPaymentRailsStripe(data Iden3PaymentRailsStripeV1) Payment {
+	return Payment{
+		dataType:    Iden3PaymentRailsStripeV1Type,
+		railsStripe: &data,
+	}
+}
+
 // Type returns the type of the data in the union. You can use Data() to get the data.
 func (p *Payment) Type() PaymentType {
 	return p.dataType
@@ -480,6 +534,8 @@ func (p *Payment) Data() interface{} {
 		return p.railsSolana
 	case Iden3PaymentRailsSolanaSPLV1Type:
 		return p.railsSolanaSPL
+	case Iden3PaymentRailsStripeV1Type:
+		return p.railsStripe
 	}
 	return nil
 }
@@ -505,6 +561,8 @@ func (p *Payment) UnmarshalJSON(bytes []byte) error {
 		return json.Unmarshal(bytes, &p.railsSolana)
 	case Iden3PaymentRailsSolanaSPLV1Type:
 		return json.Unmarshal(bytes, &p.railsSolanaSPL)
+	case Iden3PaymentRailsStripeV1Type:
+		return json.Unmarshal(bytes, &p.railsStripe)
 	}
 	return errors.Errorf("failed to unmarshal PaymentRequestInfoData: %s", string(bytes))
 }
@@ -522,6 +580,8 @@ func (p Payment) MarshalJSON() ([]byte, error) {
 		return json.Marshal(p.railsSolana)
 	case Iden3PaymentRailsSolanaSPLV1Type:
 		return json.Marshal(p.railsSolanaSPL)
+	case Iden3PaymentRailsStripeV1Type:
+		return json.Marshal(p.railsStripe)
 	}
 	return nil, errors.New("failed to marshal not initialized Payment")
 }
@@ -556,6 +616,16 @@ type Iden3PaymentRailsERC20V1 struct {
 		TxID         string `json:"txId"`
 		ChainID      string `json:"chainId"`
 		TokenAddress string `json:"tokenAddress"`
+	} `json:"paymentData"`
+}
+
+// Iden3PaymentRailsStripeV1 represents the Iden3PaymentRailsStripeV1 payment data.
+type Iden3PaymentRailsStripeV1 struct {
+	Nonce       string         `json:"nonce"`
+	Type        PaymentType    `json:"type"`
+	Context     PaymentContext `json:"@context,omitempty"`
+	PaymentData struct {
+		ID string `json:"id"`
 	} `json:"paymentData"`
 }
 

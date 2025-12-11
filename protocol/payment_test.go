@@ -334,6 +334,80 @@ func TestPaymentRequestMessagePaymentTypeUnmarshall(t *testing.T) {
 	  }	  
 `
 
+	const paymentRequestTypeIden3PaymentRailsStripeRequestV1 = `
+	{
+		"id": "70574bc1-2472-4fa0-b7b1-b79a84376fab",
+		"thid": "70574bc1-2472-4fa0-b7b1-b79a84376fab",
+		"from": "did:iden3:polygon:amoy:x6x5sor7zpyZX9yNpm8h1rPBDSN9idaEhDj1Qm8Q9",
+		"to": "did:iden3:polygon:amoy:x7Z95VkUuyo6mqraJw2VGwCfqTzdqhM1RVjRHzcpK",
+		"typ": "application/iden3comm-plain-json",
+		"type": "https://iden3-communication.io/credentials/0.1/payment-request",
+		"body": {
+		  "agent": "https://agent-url.com",
+		  "payments": [
+			{
+			  "data": [
+				{
+				  "type": "Iden3PaymentRailsStripeRequestV1",
+				  "@context": [
+					"https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsStripeRequestV1",
+					"https://w3id.org/security/suites/eip712sig-2021/v1"
+				  ],
+				  "nonce": "12312",
+				  "metadata": {
+					"orderId": "95514aff-86df-47bd-9c1e-eaaa80369264",
+					"userId": "13dedafa-5acb-42eb-acc3-b0e2a8926349"
+				  },
+				  "expirationDate": "2024-10-28T16:02:36.816Z",
+				  "successUrl": "https://wallet-beta.billions.network/payment-done",
+				  "cancelUrl": "https://wallet-beta.billions.network/payment-cancelled",
+				  "items": [
+					{
+					  "quantity": 1,
+					  "priceData": {
+						"currency": "usd",
+						"amount": "4000",
+						"name": "Billions Voucher Purchase"
+					  }
+					}
+				  ],
+				  "sessionId": "950c63d7-d520-418a-a723-6bb2a962dd27",
+				  "sessionUrl": "https://stripe.com/pay/checkout-session/950c63d7-d520-418a-a723-6bb2a962dd27",
+				  "proof": [
+					{
+					  "type": "EthereumEip712Signature2021",
+					  "proofPurpose": "assertionMethod",
+					  "proofValue": "0xc3d9d6fa9aa7af03863943f7568ce61303e84221e3e29277309fd42581742024402802816cca5542620c19895331f4bdc1ea6fed0d0c6a1cf8656556d3acfde61b",
+					  "verificationMethod": "did:pkh:eip155:80002:0xE9D7fCDf32dF4772A7EF7C24c76aB40E4A42274a#blockchainAccountId",
+					  "created": "2024-10-28T15:02:36.946Z",
+					  "eip712": {
+						"types": "https://schema.iden3.io/core/json/Iden3PaymentRailsStripeRequestV1.json",
+						"primaryType": "Iden3PaymentRailsStripeRequestV1",
+						"domain": {
+						  "name": "MCPayment",
+						  "version": "1.0.0",
+						  "chainId": "80002",
+						  "verifyingContract": "0x6f742EBA99C3043663f995a7f566e9F012C07925"
+						}
+					  }
+					}
+				  ]
+				}
+			  ],
+			  "credentials": [
+				{
+				  "type": "AML",
+				  "context": "http://test.com"
+				}
+			  ],
+			  "description": ""
+			}
+		  ]
+		},
+		"created_time": 1755004494
+	  }
+`
+
 	for _, tc := range []struct {
 		desc            string
 		payload         []byte
@@ -363,6 +437,11 @@ func TestPaymentRequestMessagePaymentTypeUnmarshall(t *testing.T) {
 			desc:            "PaymentRequestMessage of type Iden3PaymentRailsSolanaSPLRequestV1",
 			payload:         []byte(paymentRequestTypeIden3PaymentRailsSolanaSPLRequestV1),
 			expectedPayload: []byte(paymentRequestTypeIden3PaymentRailsSolanaSPLRequestV1),
+		},
+		{
+			desc:            "PaymentRequestMessage of type Iden3PaymentRailsStripeRequestV1",
+			payload:         []byte(paymentRequestTypeIden3PaymentRailsStripeRequestV1),
+			expectedPayload: []byte(paymentRequestTypeIden3PaymentRailsStripeRequestV1),
 		},
 	} {
 
@@ -1297,6 +1376,30 @@ func TestPaymentMarshalUnmarshal(t *testing.T) {
 	  } 
   `
 
+	const paymentStripe = `
+	{
+		"id": "dd25cf2f-bdfd-48fa-b02d-ca5872f30300",
+		"thid": "dd25cf2f-bdfd-48fa-b02d-ca5872f30300",
+		"from": "did:iden3:polygon:amoy:x7Z95VkUuyo6mqraJw2VGwCfqTzdqhM1RVjRHzcpK",
+		"to": "did:iden3:polygon:amoy:x6x5sor7zpyZX9yNpm8h1rPBDSN9idaEhDj1Qm8Q9",
+		"typ": "application/iden3comm-plain-json",
+		"type": "https://iden3-communication.io/credentials/0.1/payment",
+		"body": {
+		  "payments": [
+			{
+			  "nonce": "10008",
+			  "type": "Iden3PaymentRailsStripeV1",
+			  "@context": "https://schema.iden3.io/core/jsonld/payment.jsonld#Iden3PaymentRailsStripeV1",
+			  "paymentData": {
+				"id": "4e77af65-3ebc-4d4e-b138-526c6cda6ea3"
+			  }
+			}
+		  ]
+		},
+		"created_time": 1754575183
+	  } 
+  `
+
 	for _, tc := range []struct {
 		desc            string
 		payload         []byte
@@ -1326,6 +1429,11 @@ func TestPaymentMarshalUnmarshal(t *testing.T) {
 			desc:            "Solana SPL payment",
 			payload:         []byte(paymentSolanaSPL),
 			expectedPayload: []byte(paymentSolanaSPL),
+		},
+		{
+			desc:            "Stripe payment",
+			payload:         []byte(paymentStripe),
+			expectedPayload: []byte(paymentStripe),
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
