@@ -20,19 +20,8 @@ const (
 
 // AuthorizationResponseMessage is struct the represents iden3message authorization response
 type AuthorizationResponseMessage struct {
-	ID       string                           `json:"id"`
-	Typ      iden3comm.MediaType              `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage        `json:"type"`
-	ThreadID string                           `json:"thid,omitempty"`
-	Body     AuthorizationMessageResponseBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
-
-	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
+	iden3comm.BasicMessage
+	Body AuthorizationMessageResponseBody `json:"body,omitempty"`
 }
 
 // AuthorizationMessageResponseBody is struct the represents authorization response data
@@ -42,21 +31,40 @@ type AuthorizationMessageResponseBody struct {
 	Scope   []ZeroKnowledgeProofResponse `json:"scope"`
 }
 
+// MarshalJSON marshals protocol request message with typed body and basic structure
+func (m AuthorizationResponseMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON  unmarshals protocol request message with typed body and basic structure
+func (m *AuthorizationResponseMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
+}
+
 // AuthorizationRequestMessage is struct the represents iden3message authorization request
 type AuthorizationRequestMessage struct {
-	ID       string                          `json:"id"`
-	Typ      iden3comm.MediaType             `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage       `json:"type"`
-	ThreadID string                          `json:"thid,omitempty"`
-	Body     AuthorizationRequestMessageBody `json:"body,omitempty"`
+	iden3comm.BasicMessage
+	Body AuthorizationRequestMessageBody `json:"body,omitempty"`
+}
 
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
+// MarshalJSON marshals protocol request message with typed body and basic structure
+func (m AuthorizationRequestMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
 
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
+// UnmarshalJSON  unmarshals protocol request message with typed body and basic structure
+func (m *AuthorizationRequestMessage) UnmarshalJSON(bytes []byte) error {
 
-	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
 }
 
 // AuthorizationRequestMessageBody is body for authorization request
