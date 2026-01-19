@@ -6,20 +6,17 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/iden3/iden3comm/v2"
 	"github.com/iden3/iden3comm/v2/packers"
 	"github.com/iden3/iden3comm/v2/protocol"
 )
 
 type Discovery struct {
-	packerManager      *iden3comm.PackageManager
-	supportedProtocols []iden3comm.ProtocolMessage
+	features map[protocol.DiscoveryProtocolFeatureType]Featurer
 }
 
-func New(packerManager *iden3comm.PackageManager, supportedProtocols []iden3comm.ProtocolMessage) *Discovery {
+func New(features map[protocol.DiscoveryProtocolFeatureType]Featurer) *Discovery {
 	return &Discovery{
-		packerManager:      packerManager,
-		supportedProtocols: supportedProtocols,
+		features: features,
 	}
 }
 
@@ -34,16 +31,10 @@ func (d *Discovery) Handle(ctx context.Context,
 
 	for _, query := range queries {
 		var disclosuresToAppend []protocol.DiscoverFeatureDisclosure
-		switch query.FeatureType {
-		case protocol.DiscoveryProtocolFeatureTypeAccept:
-			disclosuresToAppend = d.handleAccept(ctx)
-		case protocol.DiscoveryProtocolFeatureTypeGoalCode:
-			disclosuresToAppend = d.handleGoalCode(ctx)
-		case protocol.DiscoveryProtocolFeatureTypeProtocol:
-			disclosuresToAppend = d.handleProtocol(ctx)
-		case protocol.DiscoveryProtocolFeatureTypeHeader:
-			disclosuresToAppend = d.handleHeader(ctx)
+		if featurer, ok := d.features[query.FeatureType]; ok {
+			disclosuresToAppend = featurer.Handle(ctx)
 		}
+
 		disclosuresToAppend, err = d.handleMatch(disclosuresToAppend, query.Match)
 		if err != nil {
 			return protocol.DiscoverFeatureDiscloseMessage{}, err
@@ -62,60 +53,6 @@ func (d *Discovery) Handle(ctx context.Context,
 		From: discoverInputMessage.To,
 		To:   discoverInputMessage.From,
 	}, nil
-}
-
-func (d *Discovery) handleAccept(_ context.Context) []protocol.DiscoverFeatureDisclosure {
-	disclosures := []protocol.DiscoverFeatureDisclosure{}
-
-	profiles := d.packerManager.GetSupportedProfiles()
-	for _, profile := range profiles {
-		disclosures = append(disclosures, protocol.DiscoverFeatureDisclosure{
-			FeatureType: protocol.DiscoveryProtocolFeatureTypeAccept,
-			ID:          profile,
-		})
-	}
-	return disclosures
-}
-
-func (d *Discovery) handleProtocol(_ context.Context) []protocol.DiscoverFeatureDisclosure {
-	disclosures := []protocol.DiscoverFeatureDisclosure{}
-	for _, protocolMessage := range d.supportedProtocols {
-		disclosures = append(disclosures, protocol.DiscoverFeatureDisclosure{
-			FeatureType: protocol.DiscoveryProtocolFeatureTypeProtocol,
-			ID:          string(protocolMessage),
-		})
-	}
-	return disclosures
-}
-
-func (d *Discovery) handleGoalCode(_ context.Context) []protocol.DiscoverFeatureDisclosure {
-	disclosures := []protocol.DiscoverFeatureDisclosure{}
-	return disclosures
-}
-
-func (d *Discovery) handleHeader(_ context.Context) []protocol.DiscoverFeatureDisclosure {
-	headers := []string{
-		"id",
-		"typ",
-		"type",
-		"thid",
-		"body",
-		"from",
-		"to",
-		"created_time",
-		"expires_time",
-	}
-
-	disclosures := []protocol.DiscoverFeatureDisclosure{}
-
-	for _, header := range headers {
-		disclosures = append(disclosures, protocol.DiscoverFeatureDisclosure{
-			FeatureType: protocol.DiscoveryProtocolFeatureTypeHeader,
-			ID:          header,
-		})
-	}
-
-	return disclosures
 }
 
 func (d *Discovery) handleMatch(disclosures []protocol.DiscoverFeatureDisclosure, match string) ([]protocol.DiscoverFeatureDisclosure, error) {
