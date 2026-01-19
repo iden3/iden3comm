@@ -96,6 +96,7 @@ func (h *HeaderFeaturer) Handle(ctx context.Context) []protocol.DiscoverFeatureD
 		"to",
 		"created_time",
 		"expires_time",
+		"attachments",
 	}
 
 	disclosures := []protocol.DiscoverFeatureDisclosure{}
