@@ -14,13 +14,13 @@ type Featurer interface {
 
 // AcceptFeaturer implementation
 type AcceptFeaturer struct {
-	packerManager *iden3comm.PackageManager
+	packageManager *iden3comm.PackageManager
 }
 
 // NewAcceptFeaturer constructor
-func NewAcceptFeaturer(packerManager *iden3comm.PackageManager) *AcceptFeaturer {
+func NewAcceptFeaturer(packageManager *iden3comm.PackageManager) *AcceptFeaturer {
 	return &AcceptFeaturer{
-		packerManager: packerManager,
+		packageManager: packageManager,
 	}
 }
 
@@ -28,7 +28,7 @@ func NewAcceptFeaturer(packerManager *iden3comm.PackageManager) *AcceptFeaturer 
 func (a *AcceptFeaturer) Handle(ctx context.Context) []protocol.DiscoverFeatureDisclosure {
 	disclosures := []protocol.DiscoverFeatureDisclosure{}
 
-	profiles := a.packerManager.GetSupportedProfiles()
+	profiles := a.packageManager.GetSupportedProfiles()
 	for _, profile := range profiles {
 		disclosures = append(disclosures, protocol.DiscoverFeatureDisclosure{
 			FeatureType: protocol.DiscoveryProtocolFeatureTypeAccept,

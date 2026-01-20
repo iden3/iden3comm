@@ -1,10 +1,10 @@
 package discovery_test
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/iden3/iden3comm/v2/handlers/discovery"
+	"github.com/stretchr/testify/require"
 )
 
 func TestParseFeature(t *testing.T) {
@@ -31,14 +31,19 @@ func TestParseFeature(t *testing.T) {
 				Algs:    []string{"alg1", "alg2"},
 			},
 		},
+		{
+			name: "empty alg list",
+			id:   "iden3comm/v1;alg=",
+			want: discovery.Feature{
+				Version: "iden3comm/v1",
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := discovery.ParseFeature(tt.id)
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ParseFeature(%q) = %+v, want %+v", tt.id, got, tt.want)
-			}
+			require.Equal(t, tt.want, got)
 		})
 	}
 }

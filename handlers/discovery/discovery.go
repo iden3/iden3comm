@@ -10,16 +10,19 @@ import (
 	"github.com/iden3/iden3comm/v2/protocol"
 )
 
+// Discovery handler
 type Discovery struct {
 	features map[protocol.DiscoveryProtocolFeatureType]Featurer
 }
 
+// New creates a new Discovery handler
 func New(features map[protocol.DiscoveryProtocolFeatureType]Featurer) *Discovery {
 	return &Discovery{
 		features: features,
 	}
 }
 
+// Handle processes a DiscoverFeatureQueriesMessage and returns a DiscoverFeatureDiscloseMessage
 func (d *Discovery) Handle(ctx context.Context,
 	discoverInputMessage protocol.DiscoverFeatureQueriesMessage) (protocol.DiscoverFeatureDiscloseMessage, error) {
 	queries := discoverInputMessage.Body.Queries

@@ -2,6 +2,7 @@ package discovery
 
 import "strings"
 
+// Feature represents a parsed feature with its components
 type Feature struct {
 	Version    string
 	Env        string
@@ -9,11 +10,13 @@ type Feature struct {
 	CircuitIds []string
 }
 
+// ParseFeature parses a feature ID string into a Feature struct
 func ParseFeature(id string) Feature {
-	parts := strings.Split(id, ";")
-	if len(parts) == 0 {
+	id = strings.TrimSpace(id)
+	if id == "" {
 		return Feature{}
 	}
+	parts := strings.Split(id, ";")
 
 	f := Feature{
 		Version: parts[0],
@@ -26,6 +29,9 @@ func ParseFeature(id string) Feature {
 		}
 		key := strings.TrimSpace(kv[0])
 		value := strings.TrimSpace(kv[1])
+		if value == "" {
+			continue
+		}
 
 		switch key {
 		case "env":

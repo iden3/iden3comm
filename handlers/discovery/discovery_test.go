@@ -193,6 +193,44 @@ func TestDiscovery_Handle(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "With match wildcard. Filter only application/iden3comm-plain-json packers",
+			discoveryFactory: func(t *testing.T) *discovery.Discovery {
+				zkpPacker := packers.NewZKPPacker(
+					map[jwz.ProvingMethodAlg]packers.ProvingParams{},
+					map[jwz.ProvingMethodAlg]packers.VerificationParams{
+						jwz.AuthV3Groth16Alg:      {},
+						jwz.AuthV3_8_32Groth16Alg: {},
+					},
+				)
+
+				pm := iden3comm.NewPackageManager()
+				err := pm.RegisterPackers(zkpPacker, &packers.PlainMessagePacker{})
+				require.NoError(t, err)
+
+				return discovery.New(map[protocol.DiscoveryProtocolFeatureType]discovery.Featurer{
+					protocol.DiscoveryProtocolFeatureTypeAccept:   discovery.NewAcceptFeaturer(pm),
+					protocol.DiscoveryProtocolFeatureTypeProtocol: discovery.NewProtocolFeaturer([]iden3comm.ProtocolMessage{}),
+					protocol.DiscoveryProtocolFeatureTypeGoalCode: discovery.NewGoalCodeFeaturer(),
+					protocol.DiscoveryProtocolFeatureTypeHeader:   discovery.NewHeaderFeaturer(),
+				})
+			},
+			discoverInputMessage: newDiscoverFeatureQueriesMessage([]protocol.DiscoverFeatureQuery{
+				{
+					FeatureType: protocol.DiscoveryProtocolFeatureTypeAccept,
+					Match:       "*iden3comm-plain-json",
+				},
+			}),
+			want: []want{
+				{
+					FeatureType: protocol.DiscoveryProtocolFeatureTypeAccept,
+					ParsedFeatures: discovery.Feature{
+						Version: "iden3comm/v1",
+						Env:     "application/iden3comm-plain-json",
+					},
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -220,7 +258,7 @@ func testActualID(t *testing.T, actual []protocol.DiscoverFeatureDisclosure, wan
 			}
 
 			if a.FeatureType == protocol.DiscoveryProtocolFeatureTypeAccept {
-				isEqual := isEqualAccpetFeature(a, w.ParsedFeatures)
+				isEqual := isEqualAcceptFeature(a, w.ParsedFeatures)
 				if isEqual {
 					// nullify to avoid duplicate matching
 					want = nullify(want, i)
@@ -244,7 +282,7 @@ type mockT struct{}
 
 func (m *mockT) Errorf(format string, args ...interface{}) {}
 
-func isEqualAccpetFeature(actual protocol.DiscoverFeatureDisclosure, want discovery.Feature) bool {
+func isEqualAcceptFeature(actual protocol.DiscoverFeatureDisclosure, want discovery.Feature) bool {
 	parsed := discovery.ParseFeature(actual.ID)
 
 	if want.Version != parsed.Version {
