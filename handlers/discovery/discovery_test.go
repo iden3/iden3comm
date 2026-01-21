@@ -7,6 +7,7 @@ import (
 	"github.com/iden3/go-jwz/v2"
 	"github.com/iden3/iden3comm/v2"
 	"github.com/iden3/iden3comm/v2/handlers/discovery"
+	"github.com/iden3/iden3comm/v2/handlers/discovery/features"
 	"github.com/iden3/iden3comm/v2/packers"
 	"github.com/iden3/iden3comm/v2/protocol"
 	"github.com/stretchr/testify/assert"
@@ -42,10 +43,10 @@ func TestDiscovery_Handle(t *testing.T) {
 				require.NoError(t, err)
 
 				return discovery.New(map[protocol.DiscoveryProtocolFeatureType]discovery.Featurer{
-					protocol.DiscoveryProtocolFeatureTypeAccept:   discovery.NewAcceptFeaturer(pm),
-					protocol.DiscoveryProtocolFeatureTypeProtocol: discovery.NewProtocolFeaturer([]iden3comm.ProtocolMessage{}),
-					protocol.DiscoveryProtocolFeatureTypeGoalCode: discovery.NewGoalCodeFeaturer(),
-					protocol.DiscoveryProtocolFeatureTypeHeader:   discovery.NewHeaderFeaturer(),
+					protocol.DiscoveryProtocolFeatureTypeAccept:   features.NewAcceptFeaturer(pm),
+					protocol.DiscoveryProtocolFeatureTypeProtocol: features.NewProtocolFeaturer([]iden3comm.ProtocolMessage{}),
+					protocol.DiscoveryProtocolFeatureTypeGoalCode: features.NewGoalCodeFeaturer(),
+					protocol.DiscoveryProtocolFeatureTypeHeader:   features.NewHeaderFeaturer(),
 				})
 			},
 			discoverInputMessage: newDiscoverFeatureQueriesMessage([]protocol.DiscoverFeatureQuery{
@@ -84,10 +85,10 @@ func TestDiscovery_Handle(t *testing.T) {
 				require.NoError(t, err)
 
 				return discovery.New(map[protocol.DiscoveryProtocolFeatureType]discovery.Featurer{
-					protocol.DiscoveryProtocolFeatureTypeAccept:   discovery.NewAcceptFeaturer(pm),
-					protocol.DiscoveryProtocolFeatureTypeProtocol: discovery.NewProtocolFeaturer([]iden3comm.ProtocolMessage{}),
-					protocol.DiscoveryProtocolFeatureTypeGoalCode: discovery.NewGoalCodeFeaturer(),
-					protocol.DiscoveryProtocolFeatureTypeHeader:   discovery.NewHeaderFeaturer(),
+					protocol.DiscoveryProtocolFeatureTypeAccept:   features.NewAcceptFeaturer(pm),
+					protocol.DiscoveryProtocolFeatureTypeProtocol: features.NewProtocolFeaturer([]iden3comm.ProtocolMessage{}),
+					protocol.DiscoveryProtocolFeatureTypeGoalCode: features.NewGoalCodeFeaturer(),
+					protocol.DiscoveryProtocolFeatureTypeHeader:   features.NewHeaderFeaturer(),
 				})
 			},
 			discoverInputMessage: newDiscoverFeatureQueriesMessage([]protocol.DiscoverFeatureQuery{
@@ -125,13 +126,13 @@ func TestDiscovery_Handle(t *testing.T) {
 				require.NoError(t, err)
 
 				return discovery.New(map[protocol.DiscoveryProtocolFeatureType]discovery.Featurer{
-					protocol.DiscoveryProtocolFeatureTypeAccept: discovery.NewAcceptFeaturer(pm),
-					protocol.DiscoveryProtocolFeatureTypeProtocol: discovery.NewProtocolFeaturer([]iden3comm.ProtocolMessage{
+					protocol.DiscoveryProtocolFeatureTypeAccept: features.NewAcceptFeaturer(pm),
+					protocol.DiscoveryProtocolFeatureTypeProtocol: features.NewProtocolFeaturer([]iden3comm.ProtocolMessage{
 						protocol.CredentialProposalRequestMessageType,
 						protocol.CredentialFetchRequestMessageType,
 					}),
-					protocol.DiscoveryProtocolFeatureTypeGoalCode: discovery.NewGoalCodeFeaturer(),
-					protocol.DiscoveryProtocolFeatureTypeHeader:   discovery.NewHeaderFeaturer(),
+					protocol.DiscoveryProtocolFeatureTypeGoalCode: features.NewGoalCodeFeaturer(),
+					protocol.DiscoveryProtocolFeatureTypeHeader:   features.NewHeaderFeaturer(),
 				})
 			},
 			discoverInputMessage: newDiscoverFeatureQueriesMessage([]protocol.DiscoverFeatureQuery{
@@ -158,13 +159,13 @@ func TestDiscovery_Handle(t *testing.T) {
 				require.NoError(t, err)
 
 				return discovery.New(map[protocol.DiscoveryProtocolFeatureType]discovery.Featurer{
-					protocol.DiscoveryProtocolFeatureTypeAccept: discovery.NewAcceptFeaturer(pm),
-					protocol.DiscoveryProtocolFeatureTypeProtocol: discovery.NewProtocolFeaturer([]iden3comm.ProtocolMessage{
+					protocol.DiscoveryProtocolFeatureTypeAccept: features.NewAcceptFeaturer(pm),
+					protocol.DiscoveryProtocolFeatureTypeProtocol: features.NewProtocolFeaturer([]iden3comm.ProtocolMessage{
 						protocol.CredentialProposalRequestMessageType,
 						protocol.CredentialFetchRequestMessageType,
 					}),
-					protocol.DiscoveryProtocolFeatureTypeGoalCode: discovery.NewGoalCodeFeaturer(),
-					protocol.DiscoveryProtocolFeatureTypeHeader:   discovery.NewHeaderFeaturer(),
+					protocol.DiscoveryProtocolFeatureTypeGoalCode: features.NewGoalCodeFeaturer(),
+					protocol.DiscoveryProtocolFeatureTypeHeader:   features.NewHeaderFeaturer(),
 				})
 			},
 			discoverInputMessage: newDiscoverFeatureQueriesMessage([]protocol.DiscoverFeatureQuery{
@@ -209,10 +210,10 @@ func TestDiscovery_Handle(t *testing.T) {
 				require.NoError(t, err)
 
 				return discovery.New(map[protocol.DiscoveryProtocolFeatureType]discovery.Featurer{
-					protocol.DiscoveryProtocolFeatureTypeAccept:   discovery.NewAcceptFeaturer(pm),
-					protocol.DiscoveryProtocolFeatureTypeProtocol: discovery.NewProtocolFeaturer([]iden3comm.ProtocolMessage{}),
-					protocol.DiscoveryProtocolFeatureTypeGoalCode: discovery.NewGoalCodeFeaturer(),
-					protocol.DiscoveryProtocolFeatureTypeHeader:   discovery.NewHeaderFeaturer(),
+					protocol.DiscoveryProtocolFeatureTypeAccept:   features.NewAcceptFeaturer(pm),
+					protocol.DiscoveryProtocolFeatureTypeProtocol: features.NewProtocolFeaturer([]iden3comm.ProtocolMessage{}),
+					protocol.DiscoveryProtocolFeatureTypeGoalCode: features.NewGoalCodeFeaturer(),
+					protocol.DiscoveryProtocolFeatureTypeHeader:   features.NewHeaderFeaturer(),
 				})
 			},
 			discoverInputMessage: newDiscoverFeatureQueriesMessage([]protocol.DiscoverFeatureQuery{

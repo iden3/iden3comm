@@ -10,12 +10,20 @@ import (
 	"github.com/iden3/iden3comm/v2/protocol"
 )
 
+// Featurer interface for feature handlers
+// # Experimental
+type Featurer interface {
+	Handle(ctx context.Context) []protocol.DiscoverFeatureDisclosure
+}
+
 // Discovery handler
+// # Experimental
 type Discovery struct {
 	features map[protocol.DiscoveryProtocolFeatureType]Featurer
 }
 
 // New creates a new Discovery handler
+// # Experimental
 func New(features map[protocol.DiscoveryProtocolFeatureType]Featurer) *Discovery {
 	return &Discovery{
 		features: features,
@@ -23,6 +31,7 @@ func New(features map[protocol.DiscoveryProtocolFeatureType]Featurer) *Discovery
 }
 
 // Handle processes a DiscoverFeatureQueriesMessage and returns a DiscoverFeatureDiscloseMessage
+// # Experimental
 func (d *Discovery) Handle(ctx context.Context,
 	discoverInputMessage protocol.DiscoverFeatureQueriesMessage) (protocol.DiscoverFeatureDiscloseMessage, error) {
 	queries := discoverInputMessage.Body.Queries

@@ -3,6 +3,7 @@ package discovery
 import "strings"
 
 // Feature represents a parsed feature with its components
+// # Experimental
 type Feature struct {
 	Version    string
 	Env        string
@@ -11,6 +12,7 @@ type Feature struct {
 }
 
 // ParseFeature parses a feature ID string into a Feature struct
+// # Experimental
 func ParseFeature(id string) Feature {
 	id = strings.TrimSpace(id)
 	if id == "" {
