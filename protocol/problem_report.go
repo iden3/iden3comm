@@ -1,6 +1,7 @@
 package protocol
 
 import (
+	"encoding/json"
 	"strings"
 
 	"github.com/iden3/iden3comm/v2"
@@ -47,22 +48,8 @@ const (
 
 // ProblemReportMessage represent Iden3Message for problem report
 type ProblemReportMessage struct {
-	ID             string                    `json:"id"`
-	Typ            iden3comm.MediaType       `json:"typ,omitempty"`
-	Type           iden3comm.ProtocolMessage `json:"type"`
-	ThreadID       string                    `json:"thid,omitempty"`
-	ParentThreadID string                    `json:"pthid"`
-	Ack            []string                  `json:"ack,omitempty"`
-
+	iden3comm.BasicMessage
 	Body ProblemReportMessageBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
-
-	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
 }
 
 // ProblemReportMessageBody is struct the represents body for problem report
@@ -75,6 +62,21 @@ type ProblemReportMessageBody struct {
 	Comment    string           `json:"comment,omitempty"`
 	Args       []string         `json:"args,omitempty"`
 	EscalateTo string           `json:"escalate_to,omitempty"`
+}
+
+// MarshalJSON marshals protocol request message with typed body and basic structure
+func (m ProblemReportMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON  unmarshals protocol request message with typed body and basic structure
+func (m *ProblemReportMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
 }
 
 // ProblemErrorCode is a string  that represents an error code "e.p.xxxx.yyyy.zzzz"

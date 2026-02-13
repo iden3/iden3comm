@@ -15,19 +15,8 @@ const (
 
 // ContractInvokeRequestMessage is struct the represents iden3message contract invoke request
 type ContractInvokeRequestMessage struct {
-	ID       string                           `json:"id"`
-	Typ      iden3comm.MediaType              `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage        `json:"type"`
-	ThreadID string                           `json:"thid,omitempty"`
-	Body     ContractInvokeRequestMessageBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
-
-	Attachments []iden3comm.Attachment `json:"attachments,omitempty"`
+	Body ContractInvokeRequestMessageBody `json:"body,omitempty"`
+	iden3comm.BasicMessage
 }
 
 // ContractInvokeRequestMessageBody is body for contract invoke request
@@ -36,6 +25,21 @@ type ContractInvokeRequestMessageBody struct {
 	TransactionData TransactionData             `json:"transaction_data"`
 	DIDDoc          json.RawMessage             `json:"did_doc,omitempty"`
 	Scope           []ZeroKnowledgeProofRequest `json:"scope"`
+}
+
+// MarshalJSON marshals protocol request message with typed body and basic structure
+func (m ContractInvokeRequestMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON  unmarshals protocol request message with typed body and basic structure
+func (m *ContractInvokeRequestMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
 }
 
 // TransactionData represents structure for on chain verification
@@ -48,17 +52,8 @@ type TransactionData struct {
 
 // ContractInvokeResponseMessage is struct the represents iden3message contract invoke response
 type ContractInvokeResponseMessage struct {
-	ID       string                            `json:"id"`
-	Typ      iden3comm.MediaType               `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage         `json:"type"`
-	ThreadID string                            `json:"thid,omitempty"`
-	Body     ContractInvokeResponseMessageBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
+	Body ContractInvokeResponseMessageBody `json:"body,omitempty"`
+	iden3comm.BasicMessage
 }
 
 // ContractInvokeResponseMessageBody is body for contract invoke response
@@ -66,6 +61,21 @@ type ContractInvokeResponseMessageBody struct {
 	TransactionData TransactionData                     `json:"transaction_data"`
 	DIDDoc          json.RawMessage                     `json:"did_doc,omitempty"`
 	Scope           []OnchainZeroKnowledgeProofResponse `json:"scope"`
+}
+
+// MarshalJSON marshals protocol request message with typed body and basic structure
+func (m ContractInvokeResponseMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON  unmarshals protocol request message with typed body and basic structure
+func (m *ContractInvokeResponseMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
 }
 
 // OnchainZeroKnowledgeProofResponse represents structure of zkp response given for onchain verification

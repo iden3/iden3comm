@@ -1,6 +1,10 @@
 package protocol
 
-import "github.com/iden3/iden3comm/v2"
+import (
+	"encoding/json"
+
+	"github.com/iden3/iden3comm/v2"
+)
 
 // DiscoveryProtocolFeatureType is type for query feature-type.
 type DiscoveryProtocolFeatureType string
@@ -21,23 +25,29 @@ const (
 
 // DiscoverFeatureQueriesMessage represents discover feature queries message.
 type DiscoverFeatureQueriesMessage struct {
-	ID       string                    `json:"id"`
-	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thid,omitempty"`
+	iden3comm.BasicMessage
 
 	Body DiscoverFeatureQueriesMessageBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // DiscoverFeatureQueriesMessageBody represents the body of the DiscoverFeatureQueriesMessage.
 type DiscoverFeatureQueriesMessageBody struct {
 	Queries []DiscoverFeatureQuery `json:"queries"`
+}
+
+// MarshalJSON marshals protocol request message with typed body and basic structure
+func (m DiscoverFeatureQueriesMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON  unmarshals protocol request message with typed body and basic structure
+func (m *DiscoverFeatureQueriesMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
 }
 
 // DiscoverFeatureQuery represents discover feature query.
@@ -48,18 +58,8 @@ type DiscoverFeatureQuery struct {
 
 // DiscoverFeatureDiscloseMessage represents discover feature disclose message.
 type DiscoverFeatureDiscloseMessage struct {
-	ID       string                    `json:"id"`
-	Typ      iden3comm.MediaType       `json:"typ,omitempty"`
-	Type     iden3comm.ProtocolMessage `json:"type"`
-	ThreadID string                    `json:"thid,omitempty"`
-
+	iden3comm.BasicMessage
 	Body DiscoverFeatureDiscloseMessageBody `json:"body,omitempty"`
-
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-
-	CreatedTime *int64 `json:"created_time,omitempty"`
-	ExpiresTime *int64 `json:"expires_time,omitempty"`
 }
 
 // DiscoverFeatureDiscloseMessageBody represents the body of the DiscoverFeatureDiscloseMessage.
@@ -71,4 +71,19 @@ type DiscoverFeatureDiscloseMessageBody struct {
 type DiscoverFeatureDisclosure struct {
 	FeatureType DiscoveryProtocolFeatureType `json:"feature-type"`
 	ID          string                       `json:"id"`
+}
+
+// MarshalJSON marshals protocol request message with typed body and basic structure
+func (m DiscoverFeatureDiscloseMessage) MarshalJSON() ([]byte, error) {
+	return commonMarshal(m)
+}
+
+// UnmarshalJSON  unmarshals protocol request message with typed body and basic structure
+func (m *DiscoverFeatureDiscloseMessage) UnmarshalJSON(bytes []byte) error {
+
+	err := json.Unmarshal(bytes, &m.BasicMessage)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(m.BasicMessage.Body, &m.Body)
 }

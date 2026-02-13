@@ -6,6 +6,7 @@ import (
 
 	uuid "github.com/google/uuid"
 	"github.com/iden3/go-rapidsnark/types"
+	"github.com/iden3/iden3comm/v2"
 	"github.com/iden3/iden3comm/v2/packers"
 	"github.com/iden3/iden3comm/v2/protocol"
 	"github.com/stretchr/testify/require"
@@ -24,10 +25,15 @@ func TestContractInvokeResponseMessageCreation(t *testing.T) {
 	require.NoError(t, err)
 
 	invokeResponse := protocol.ContractInvokeResponseMessage{
-		ID:       id.String(),
-		Typ:      packers.MediaTypePlainMessage,
-		Type:     protocol.ContractInvokeResponseMessageType,
-		ThreadID: thID.String(),
+
+		BasicMessage: iden3comm.BasicMessage{
+			ID:       id.String(),
+			Typ:      packers.MediaTypePlainMessage,
+			Type:     protocol.ContractInvokeResponseMessageType,
+			ThreadID: thID.String(),
+			From:     didStr,
+			To:       "did:polygonid:polygon:mumbai:2qJ689kpoJxcSzB5sAFJtPsSBSrHF5dq722BHMqURL",
+		},
 		Body: protocol.ContractInvokeResponseMessageBody{
 			TransactionData: protocol.TransactionData{
 				ContractAddress: "0x1234",
@@ -54,8 +60,6 @@ func TestContractInvokeResponseMessageCreation(t *testing.T) {
 				},
 			},
 		},
-		From: didStr,
-		To:   "did:polygonid:polygon:mumbai:2qJ689kpoJxcSzB5sAFJtPsSBSrHF5dq722BHMqURL",
 	}
 
 	marshalledReq, err := json.Marshal(invokeResponse)
