@@ -7,6 +7,7 @@ import (
 	"github.com/iden3/go-circuits/v2"
 	"github.com/iden3/iden3comm/v2"
 	"github.com/iden3/iden3comm/v2/protocol"
+	"github.com/lestrrat-go/jwx/v3/jwa"
 )
 
 const (
@@ -232,7 +233,8 @@ func isAcceptJwsAlgorithms(value string) bool {
 func isAcceptAnoncryptAlgorithms(value string) bool {
 	// List all possible Anoncrypt algorithms
 	validAlgorithms := []protocol.AnoncryptAlgorithms{
-		protocol.AnoncryptECDHESA256KW,
+		protocol.AnoncryptAlgorithms(jwa.RSA_OAEP_256().String()),
+		protocol.AnoncryptAlgorithms(jwa.ECDH_ES_A256KW().String()),
 	}
 	for _, v := range validAlgorithms {
 		if protocol.AnoncryptAlgorithms(value) == v {

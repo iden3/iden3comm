@@ -131,7 +131,7 @@ func TestZKPSupportedProfilesWithoutCircuits(t *testing.T) {
 func TestConvertEthResolvers(t *testing.T) {
 	resolver1, err := eth.NewResolver("https://rpc-mainnet.billions.network", "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a123")
 	require.NoError(t, err)
-	resolver2, err := eth.NewResolver("http://billions-testnet-rpc.eu-north-2.gateway.fm", "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896")
+	resolver2, err := eth.NewResolver("https://billions-testnet-rpc.eu-north-2.gateway.fm", "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896")
 	require.NoError(t, err)
 
 	ethResolvers := map[int]eth.Resolver{
