@@ -415,7 +415,10 @@ func (d *defaultZKPUnpacker) defaultZkpUnpackerVerificationFn(id circuits.Circui
 			userDID.String(), err)
 	}
 
-	resolver := d.resolvers[int(chainID)]
+	resolver, found := d.resolvers[int(chainID)]
+	if !found {
+		return errors.Errorf("resolver for chainID '%d' not found", chainID)
+	}
 
 	globalState := authPubSignals.GISTRoot.BigInt()
 	globalStateInfo, err := resolver.ResolveGist(context.Background(), &driver.ResolverOpts{GistRoot: globalState})
